@@ -63,13 +63,15 @@ chmod 600 /root/.ssh/authorized_keys
 |-----|----------|
 | `VPS_HOST` | `5.129.243.246` |
 | `VPS_USER` | `root` |
-| `VPS_SSH_KEY` | **весь** текст файла `deploy_key` (от `-----BEGIN` до `-----END`) |
+| `VPS_SSH_KEY` | **base64** ключ (команда ниже — одна длинная строка без переносов) |
 
-**Терминал 1** — показать приватный ключ для копирования:
+**Терминал 1** — получить base64 для секрета (скопируйте **всю** выведенную строку):
 
 ```powershell
-Get-Content deploy_key
+[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((Get-Content -Path deploy_key -Raw)))
 ```
+
+В GitHub вставьте **одну строку** base64 (не файл `deploy_key` целиком).
 
 ⚠️ Файлы `deploy_key` / `deploy_key.pub` **не коммитить** — они уже в `.gitignore`.
 

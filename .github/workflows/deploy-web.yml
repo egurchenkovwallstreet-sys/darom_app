@@ -54,12 +54,19 @@ jobs:
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           install -m 700 -d ~/.ssh
-          # Убираем Windows-переносы строк (CRLF), если ключ копировали из PowerShell
-          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          # Ключ в секрете — base64 (см. deploy/README.md), декодируем без поломки переносов строк
+          echo "$VPS_SSH_KEY" | tr -d ' \r\n' | base64 -d > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null
-          echo "✅ SSH-ключ валидный"
+          echo "✅ SSH-ключ валидный, отпечаток:"
+          ssh-keygen -lf ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Test SSH connection
+        run: |
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=30 \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            'echo "SSH OK from GitHub Actions"'
 
       - name: Upload archive to server
         run: |
