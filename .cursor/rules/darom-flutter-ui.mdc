@@ -1,0 +1,32 @@
+---
+description: Flutter UI «Даром» — Midnight Glow, структура экранов
+globs: lib/**/*.dart
+alwaysApply: false
+---
+
+# Flutter UI — Midnight Glow
+
+## Фон на каждом экране
+Используй `MidnightGlowScreen` — **не дублируй** фон с планетой.
+
+```dart
+return MidnightGlowScreen(
+  child: SafeArea(child: /* контент */),
+);
+```
+
+Планета: предзагрузка в `main()` через `PlanetAssets.preload()`. Контент появляется после планеты.
+
+## Цвета (`lib/theme/app_colors.dart`)
+- `#001F3F` тёмно-синий | `#008C8C` бирюза | `#00BFFF` голубой
+- Ошибки: `#FF5722` | Рейтинг: `#FFC107`
+
+## Кнопки
+- `AnimatedScale` 1.08 при нажатии, 150ms
+- Основные кнопки: shimmer через `flutter_animate`
+
+## Навигация (текущая)
+`Onboarding → Phone → SMS → ProfileSetup → Home → Subcategories → ListingsFeed → Listing`
+
+## Mock-данные
+До backend: `MockListings.forSubcategory(category, subcategory)` в `lib/data/mock_listings.dart`

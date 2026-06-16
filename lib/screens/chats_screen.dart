@@ -1,0 +1,249 @@
+import 'package:flutter/material.dart';
+
+import '../models/conversation.dart';
+import '../services/chats_api.dart';
+import '../widgets/midnight_glow_screen.dart';
+import 'chat_thread_screen.dart';
+
+class ChatsScreen extends StatefulWidget {
+  final String phoneNumber;
+  final String? currentUserId;
+  final bool inShell;
+
+  const ChatsScreen({
+    super.key,
+    required this.phoneNumber,
+    this.currentUserId,
+    this.inShell = false,
+  });
+
+  @override
+  State<ChatsScreen> createState() => _ChatsScreenState();
+}
+
+class _ChatsScreenState extends State<ChatsScreen> {
+  final ChatsApi _api = ChatsApi();
+  late Future<List<Conversation>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  @override
+  void dispose() {
+    _api.dispose();
+    super.dispose();
+  }
+
+  Future<List<Conversation>> _load() {
+    return _api.fetchConversations(phone: widget.phoneNumber);
+  }
+
+  void _reload() {
+    setState(() => _future = _load());
+  }
+
+  String _formatTime(DateTime? time) {
+    if (time == null) return '';
+    final local = time.toLocal();
+    final now = DateTime.now();
+    if (local.year == now.year && local.month == now.month && local.day == now.day) {
+      final h = local.hour.toString().padLeft(2, '0');
+      final m = local.minute.toString().padLeft(2, '0');
+      return '$h:$m';
+    }
+    return '${local.day.toString().padLeft(2, '0')}.${local.month.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final content = SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: Text(
+              'Чаты',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFFFFFFF),
+              ),
+            ),
+          ),
+          Expanded(
+            child: FutureBuilder<List<Conversation>>(
+              future: _future,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            snapshot.error.toString(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _reload,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF00BFFF),
+                              foregroundColor: const Color(0xFF001F3F),
+                            ),
+                            child: const Text('Повторить'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                final items = snapshot.data ?? [];
+                if (items.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline,
+                            size: 64,
+                            color: const Color(0xFF00BFFF).withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Пока нет переписок\nОткройте объявление и нажмите «Написать владельцу»',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  color: const Color(0xFF00BFFF),
+                  onRefresh: () async => _reload(),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final chat = items[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: GestureDetector(
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatThreadScreen(
+                                  phoneNumber: widget.phoneNumber,
+                                  currentUserId: widget.currentUserId,
+                                  conversation: chat,
+                                ),
+                              ),
+                            );
+                            _reload();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF001F3F).withOpacity(0.85),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF00BFFF).withOpacity(0.2),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: const Color(0xFF00BFFF)),
+                                  ),
+                                  child: const Icon(Icons.chat, color: Color(0xFF00BFFF)),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        chat.counterpartyName,
+                                        style: const TextStyle(
+                                          color: Color(0xFFFFFFFF),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        chat.listingTitle,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: const Color(0xFF00BFFF).withOpacity(0.9),
+                                        ),
+                                      ),
+                                      if (chat.lastMessage != null) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          chat.lastMessage!,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: const Color(0xFFFFFFFF).withOpacity(0.65),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  _formatTime(chat.lastMessageAt),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: const Color(0xFFFFFFFF).withOpacity(0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (widget.inShell) return content;
+    return MidnightGlowScreen(child: content);
+  }
+}

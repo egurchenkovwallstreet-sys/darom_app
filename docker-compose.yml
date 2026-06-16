@@ -1,0 +1,26 @@
+# Локальная база данных для разработки «Даром».
+# Запуск: docker compose up -d
+# Остановка: docker compose down
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: darom_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: darom
+      POSTGRES_PASSWORD: darom_dev
+      POSTGRES_DB: darom
+    ports:
+      - "5433:5432"
+    volumes:
+      - darom_pg_data:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U darom -d darom"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  darom_pg_data:

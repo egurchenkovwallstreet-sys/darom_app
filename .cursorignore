@@ -1,0 +1,25 @@
+﻿# Сборка и кэш — не нужны AI
+build/
+.dart_tool/
+.pub/
+.pub-cache/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+
+# Нативные платформы (пока не трогаем)
+android/
+ios/
+linux/
+macos/
+windows/
+
+# IDE и lock-файлы
+.idea/
+*.iml
+pubspec.lock
+.metadata
+
+# Тестовые артефакты сборки
+**/doc/api/
+**/*.symbols
+**/*.map.json
