@@ -6,7 +6,8 @@ import '../models/chat_message.dart';
 import '../models/conversation.dart';
 import '../services/chats_api.dart';
 import '../services/listings_api.dart' show PickupLimitException;
-import '../widgets/midnight_glow_screen.dart';
+import '../theme/app_colors.dart';
+import '../widgets/keyboard_inset_padding.dart';
 import '../widgets/primary_action_button.dart';
 import '../widgets/pickup_pack_offer_dialog.dart';
 
@@ -51,7 +52,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
 
   void _onInputFocusChange() {
     if (_inputFocus.hasFocus) {
-      Future<void>.delayed(const Duration(milliseconds: 300), _scrollToBottom);
+      for (final delay in [100, 300, 500]) {
+        Future<void>.delayed(Duration(milliseconds: delay), _scrollToBottom);
+      }
     }
   }
 
@@ -221,18 +224,25 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MidnightGlowScreen(
-      adjustForKeyboard: true,
-      showDecorations: false,
-      child: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            if (_conversation.canReserve) _buildReserveBanner(),
-            if (_conversation.isReservedByMe) _buildReservedBanner(),
-            Expanded(child: _buildMessages()),
-            _buildInput(),
-          ],
+    return Scaffold(
+      backgroundColor: AppColors.darkBlue,
+      resizeToAvoidBottomInset: false,
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: AppColors.midnightGlowGradient,
+        ),
+        child: KeyboardInsetPadding(
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(),
+                if (_conversation.canReserve) _buildReserveBanner(),
+                if (_conversation.isReservedByMe) _buildReservedBanner(),
+                Expanded(child: _buildMessages()),
+                _buildInput(),
+              ],
+            ),
+          ),
         ),
       ),
     );
