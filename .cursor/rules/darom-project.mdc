@@ -10,29 +10,21 @@ alwaysApply: true
 **Прогресс:** см. `docs/PROGRESS.md` | **ТЗ:** `docs/TZ_DAROM.md`
 
 ## Текущий статус
-- Этапы **4A–4D** ✅ (профиль, лимиты, сделки, рейтинг, жалобы, заборы — протестировано)
-- UI (Midnight Glow) + **backend + API + PostgreSQL/PostGIS** работают
-- Docker PostGIS на порту **5433**
-- Следующий этап: **внешние сервисы** (SMS → фото → Робокасса → Firebase → админка). Карта: **flutter_map + OpenStreetMap** (бесплатно)
-- Прогресс: ядро MVP ~**88%**, полное ТЗ ~**42%** — см. `docs/PROGRESS.md`
+- **Этап A ✅** — backend на Timeweb `5.129.243.246`, PM2, S3, миграции, всё протестировано
+- **Этап B ← СЕЙЧАС** — Flutter Web на сервере (`deploy/README.md`)
+- Прогресс: ядро MVP ~**93%**, полное ТЗ ~**50%** — см. `docs/PROGRESS.md`
+- **Новый чат:** `docs/NEW_CHAT.md`
 
-## Запуск (2 терминала)
+## Запуск
 
-**Терминал 1 — Backend:**
-```powershell
-cd C:\Users\User\Desktop\darom_app
-docker compose up -d
-cd backend
-npm run dev
-```
-Проверка: http://localhost:3000/api/health
+**Продакшен:** API http://5.129.243.246:3000 (PM2 на сервере). Сайт (этап B): http://5.129.243.246/
 
-**Терминал 2 — Flutter (всегда порт 8080!):**
+**Разработка UI на ПК** (Docker/backend на ПК не нужны):
 ```powershell
 cd C:\Users\User\Desktop\darom_app
 flutter run -d chrome --web-port=8080
 ```
-Без `--web-port=8080` вход не запоминается между запусками.
+API → Timeweb. Без `--web-port=8080` вход не запоминается.
 
 ## Ключевые бизнес-правила
 - **Основатель** (первые **1000** пользователей): **бесплатно до 20 активных объявлений одновременно** + значок навсегда + приоритет в ленте. **Монетизация как у всех** (на заборы и «Супер даритель» — без льгот).

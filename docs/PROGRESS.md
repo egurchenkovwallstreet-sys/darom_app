@@ -10,15 +10,17 @@
 
 | | |
 |---|---|
-| **Текущий этап** | **A — сервер Timeweb** 🟡 → **B — сайт в интернете** |
-| **Backend** | VPS `5.129.243.246:3000`, PM2 `darom-api` |
-| **Flutter на ПК** | `remoteHost = 5.129.243.246` в `lib/services/api_config.dart` |
-| **Ядро MVP** | ~**92%** |
-| **Полное ТЗ** | ~**48%** |
+| **Текущий этап** | **B — сайт на сервере** ← **СЕЙЧАС** |
+| **Backend** | VPS `5.129.243.246:3000`, PM2 `darom-api`, **S3 ✅** |
+| **Flutter** | Пока ПК `:8080` → API на сервере; цель: **http://5.129.243.246/** |
+| **Ядро MVP** | ~**93%** |
+| **Полное ТЗ** | ~**50%** |
 | **Пользователь** | новичок, нужны **пошаговые** инструкции |
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
 
-**Health:** http://5.129.243.246:3000/api/health — `ok:true`, `db.connected:true`. На этапе A нужно: `photos.s3Ready:true`.
+**Health:** http://5.129.243.246:3000/api/health — `ok:true`, `s3Ready:true`, `bucket:darom-photos`.
+
+**Новый чат:** скопируйте промпт из `docs/NEW_CHAT.md`.
 
 ---
 
@@ -67,30 +69,29 @@
 
 ---
 
-## Запуск (2 терминала)
+## Запуск
 
-**Терминал 1 — Backend:**
+### Продакшен (основной режим)
+- **API:** http://5.129.243.246:3000 — PM2 на сервере, Docker не нужен на ПК
+- **Приложение (этап B):** http://5.129.243.246/ — см. `deploy/README.md`
+- **Проверка:** http://5.129.243.246:3000/api/health
+
+### Разработка UI на ПК (пока сайт не выложен)
+**Терминал 2 — Flutter** (Docker и backend на ПК **не нужны**):
+```powershell
+cd C:\Users\User\Desktop\darom_app
+flutter run -d chrome --web-port=8080
+```
+API идёт на Timeweb (`lib/services/api_config.dart`, `remoteHost = 5.129.243.246`).
+
+### Локальный backend (только если отлаживаете server-код)
 ```powershell
 cd C:\Users\User\Desktop\darom_app
 docker compose up -d
 cd backend
 npm run dev
 ```
-Проверка: http://localhost:3000/api/health
-
-**Терминал 2 — Flutter:**
-```powershell
-cd C:\Users\User\Desktop\darom_app
-flutter run -d chrome --web-port=8080
-```
-
-**backend/.env** (важное):
-```
-PORT=3000
-DATABASE_URL=postgresql://darom:darom_dev@127.0.0.1:5433/darom
-SMS_RU_API_ID=
-SMS_MOCK=true
-```
+В `api_config.dart` временно: `remoteHost = ''`.
 
 ---
 
@@ -180,25 +181,20 @@ backend/
 
 ---
 
-## ⏳ Этап A — сервер Timeweb (текущий)
+## ⏳ Этап B — сайт на сервере (текущий)
 
-1. **Health OK** — http://5.129.243.246:3000/api/health → `"ok":true`
-2. **Миграции** на сервере — `bash backend/scripts/run_all_migrations.sh`
-3. **Ключи S3** в `/opt/darom_app/backend/.env` → `photos.s3Ready: true`
-4. **git pull** + `pm2 restart darom-api` после push с GitHub
-5. **Чеклист в приложении** (Flutter на ПК, порт 8080):
-   - регистрация / вход
-   - создать объявление **с фото**
-   - избранное ❤️
-   - написать в чат → забронировать
-   - профиль + аватар
+1. `flutter build web --release` на ПК
+2. Загрузить `build/web/` → `/var/www/darom/` на сервере
+3. Nginx — `deploy/nginx-darom.conf` (см. `deploy/README.md`)
+4. Открыть http://5.129.243.246/ с телефона
+5. Проверить вход, объявления, фото, чаты
 
-## ⏳ Дальше (после этапа A)
+## ⏳ Дальше
 
-1. **Этап B** — Flutter Web на Timeweb + домен/HTTPS
-2. **Робокасса** — реальная оплата
-3. **Firebase** — push
-4. **Админка** → Android/iOS → магазины
+1. **Домен + HTTPS**
+2. **Робокасса**
+3. **Firebase** push
+4. **Админка** → Android/iOS
 
 ---
 
@@ -212,10 +208,10 @@ backend/
 - [x] 4D: Лимиты заборов, пакет 99₽
 - [x] 5: SMS API + тестовый режим (боевой SMS.ru — по желанию)
 - [x] 6: Карта — flutter_map + OpenStreetMap (бесплатно, без ключей)
-- [x] 7: Фото — Yandex Object Storage (ключи на сервере ⏳)
-- [x] A0: Timeweb VPS, PM2, Flutter → удалённый API
-- [ ] **A: Проверка сервера + S3 + чеклист** ← **СЕЙЧАС**
-- [ ] B: Flutter Web на сервере
+- [x] 7: Фото — Yandex Object Storage ✅ на сервере
+- [x] A: Timeweb VPS, PM2, S3, миграции, чеклист приложения ✅
+- [ ] **B: Flutter Web на сервере (nginx)** ← **СЕЙЧАС**
+- [ ] B+: Домен + HTTPS
 - [ ] 8: Робокасса
 
 ---
