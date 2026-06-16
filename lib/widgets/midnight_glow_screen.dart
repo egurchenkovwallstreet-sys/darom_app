@@ -10,11 +10,14 @@ class MidnightGlowScreen extends StatefulWidget {
     required this.child,
     this.bottomNavigationBar,
     this.showDecorations = true,
+    /// true — для чатов и форм: поле ввода поднимается над клавиатурой.
+    this.adjustForKeyboard = false,
   });
 
   final Widget child;
   final Widget? bottomNavigationBar;
   final bool showDecorations;
+  final bool adjustForKeyboard;
 
   @override
   State<MidnightGlowScreen> createState() => _MidnightGlowScreenState();
@@ -76,8 +79,7 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      // Клавиатура поверх страницы (interactive-widget=overlays-content в index.html).
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: widget.adjustForKeyboard,
       bottomNavigationBar: widget.bottomNavigationBar,
       body: Stack(
         fit: StackFit.expand,

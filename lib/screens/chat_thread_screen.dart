@@ -30,6 +30,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   final ChatsApi _api = ChatsApi();
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _inputFocus = FocusNode();
 
   late Conversation _conversation;
   List<ChatMessage> _messages = [];
@@ -44,7 +45,14 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   void initState() {
     super.initState();
     _conversation = widget.conversation;
+    _inputFocus.addListener(_onInputFocusChange);
     _bootstrap();
+  }
+
+  void _onInputFocusChange() {
+    if (_inputFocus.hasFocus) {
+      Future<void>.delayed(const Duration(milliseconds: 300), _scrollToBottom);
+    }
   }
 
   Future<void> _bootstrap() async {
@@ -56,6 +64,8 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   @override
   void dispose() {
     _pollTimer?.cancel();
+    _inputFocus.removeListener(_onInputFocusChange);
+    _inputFocus.dispose();
     _inputController.dispose();
     _scrollController.dispose();
     _api.dispose();
@@ -212,6 +222,8 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   @override
   Widget build(BuildContext context) {
     return MidnightGlowScreen(
+      adjustForKeyboard: true,
+      showDecorations: false,
       child: SafeArea(
         child: Column(
           children: [
@@ -384,6 +396,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           Expanded(
             child: TextField(
               controller: _inputController,
+              focusNode: _inputFocus,
               enabled: !_sending,
               style: const TextStyle(color: Color(0xFFFFFFFF)),
               minLines: 1,
