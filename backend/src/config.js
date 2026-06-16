@@ -26,6 +26,8 @@ const config = {
     region: process.env.YC_S3_REGION || 'ru-central1',
     publicBaseUrl: process.env.YC_S3_PUBLIC_BASE_URL || '',
   },
+  deploySecret: process.env.DEPLOY_SECRET || '',
+  webRoot: process.env.WEB_ROOT || '/var/www/darom',
 };
 
 if (!config.databaseUrl) {

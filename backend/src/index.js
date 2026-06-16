@@ -11,6 +11,7 @@ const dealsRouter = require('./routes/deals');
 const photosRouter = require('./routes/photos');
 const favoritesRouter = require('./routes/favorites');
 const chatsRouter = require('./routes/chats');
+const deployWebRouter = require('./routes/deploy_web');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/deals', dealsRouter);
 app.use('/api/favorites', favoritesRouter);
 app.use('/api/chats', chatsRouter);
+app.use('/api/deploy-web', deployWebRouter);
 
 const server = app.listen(config.port, () => {
   console.log(`Darom API: http://localhost:${config.port}`);

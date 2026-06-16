@@ -15,75 +15,59 @@
 
 ## Автодеплой сайта через GitHub Actions (рекомендуется)
 
-После настройки: **`git push`** → GitHub сам собирает сайт и заливает на сервер. WinSCP не нужен.
+После настройки: **`git push`** → GitHub собирает сайт и отправляет на сервер **через API** (порт 3000). SSH и WinSCP не нужны.
 
-### Один раз: ключ и секреты
+### Один раз: пароль деплоя
 
-#### A. Создать ключ на ПК
+#### A. Придумайте длинный пароль
+
+Например: `DaromWebDeploy2026Xy7zK9mN` (свой, никому не показывайте).
+
+Запишите — он нужен в **двух местах** (сервер + GitHub).
+
+#### B. Добавить пароль на сервер
+
+**Консоль Timeweb (VNC):**
+
+```bash
+nano /opt/darom_app/backend/.env
+```
+
+В **конец файла** добавьте (подставьте **свой** пароль):
+
+```
+DEPLOY_SECRET=DaromWebDeploy2026Xy7zK9mN
+WEB_ROOT=/var/www/darom
+```
+
+Сохраните: `Ctrl+O`, Enter, `Ctrl+X`.
+
+Перезапустите backend:
+
+```bash
+cd /opt/darom_app && git pull && cd backend && npm install && pm2 restart darom-api
+```
+
+#### C. Два секрета в GitHub
+
+1. Откройте: https://github.com/egurchenkovwallstreet-sys/darom_app/settings/secrets/actions  
+2. **New repository secret** — два раза:
+
+| Имя | Значение |
+|-----|----------|
+| `VPS_HOST` | `5.129.243.246` |
+| `DEPLOY_SECRET` | **тот же пароль**, что в `.env` на сервере |
+
+Секреты `VPS_USER` и `VPS_SSH_KEY` **больше не нужны** (можно удалить).
+
+#### D. Отправить код на GitHub
 
 **Терминал 1** (PowerShell):
 
 ```powershell
 cd C:\Users\User\Desktop\darom_app
-ssh-keygen -t ed25519 -C "github-deploy-darom" -f deploy_key -N ""
-```
-
-**Успех:** появились файлы `deploy_key` и `deploy_key.pub` в папке проекта.
-
-#### B. Добавить публичный ключ на сервер
-
-**Терминал 1** — скопируйте содержимое публичного ключа:
-
-```powershell
-Get-Content deploy_key.pub
-```
-
-Скопируйте **всю строку** (начинается с `ssh-ed25519`).
-
-**Консоль Timeweb (VNC):**
-
-```bash
-mkdir -p /root/.ssh
-chmod 700 /root/.ssh
-nano /root/.ssh/authorized_keys
-```
-
-Вставьте строку ключа в **новую строку**, сохраните: `Ctrl+O`, Enter, `Ctrl+X`.
-
-```bash
-chmod 600 /root/.ssh/authorized_keys
-```
-
-#### C. Три секрета в GitHub
-
-1. Откройте: https://github.com/egurchenkovwallstreet-sys/darom_app/settings/secrets/actions  
-2. **New repository secret** — три раза:
-
-| Имя | Значение |
-|-----|----------|
-| `VPS_HOST` | `5.129.243.246` |
-| `VPS_USER` | `root` |
-| `VPS_SSH_KEY` | **base64** ключ (команда ниже — одна длинная строка без переносов) |
-
-**Терминал 1** — получить base64 для секрета (скопируйте **всю** выведенную строку):
-
-```powershell
-[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((Get-Content -Path deploy_key -Raw)))
-```
-
-В GitHub вставьте **одну строку** base64 (не файл `deploy_key` целиком).
-
-⚠️ Файлы `deploy_key` / `deploy_key.pub` **не коммитить** — они уже в `.gitignore`.
-
-#### D. Загрузить workflow в GitHub
-
-**Терминал 1:**
-
-```powershell
-cd C:\Users\User\Desktop\darom_app
-git add .github/workflows/deploy-web.yml
 git add .
-git commit -m "Автодеплой Flutter Web через GitHub Actions."
+git commit -m "Деплой сайта через API."
 git push
 ```
 
@@ -98,7 +82,7 @@ git commit -m "кратко: что изменили"
 git push
 ```
 
-1. Откройте вкладку **Actions** на GitHub — зелёная галочка = успех (~5–10 мин).  
+1. Откройте **Actions** на GitHub — ждите **зелёную галочку** (~5–10 мин).  
 2. Проверьте http://5.129.243.246/
 
 **Backend** (только server-код, без Flutter):

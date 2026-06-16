@@ -1,5 +1,5 @@
-# Сборка Flutter Web и выкладка на Timeweb при push в main.
-# Секреты: VPS_HOST, VPS_USER, VPS_SSH_KEY (см. deploy/README.md).
+# Сборка Flutter Web и выкладка на Timeweb через API (порт 3000).
+# Секреты: VPS_HOST, DEPLOY_SECRET (см. deploy/README.md).
 
 name: Deploy Flutter Web
 
@@ -12,6 +12,9 @@ on:
       - 'assets/**'
       - 'pubspec.yaml'
       - 'pubspec.lock'
+      - 'backend/src/routes/deploy_web.js'
+      - 'backend/src/config.js'
+      - 'backend/src/index.js'
       - '.github/workflows/deploy-web.yml'
   workflow_dispatch:
 
@@ -27,8 +30,7 @@ jobs:
       - name: Check GitHub secrets
         run: |
           test -n "${{ secrets.VPS_HOST }}" || (echo "❌ Нет секрета VPS_HOST" && exit 1)
-          test -n "${{ secrets.VPS_USER }}" || (echo "❌ Нет секрета VPS_USER" && exit 1)
-          test -n "${{ secrets.VPS_SSH_KEY }}" || (echo "❌ Нет секрета VPS_SSH_KEY" && exit 1)
+          test -n "${{ secrets.DEPLOY_SECRET }}" || (echo "❌ Нет секрета DEPLOY_SECRET" && exit 1)
           echo "✅ Секреты на месте"
 
       - name: Setup Flutter
@@ -49,33 +51,10 @@ jobs:
           tar -czf web-build.tar.gz -C build/web .
           ls -lh web-build.tar.gz
 
-      - name: Install SSH key
-        env:
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+      - name: Upload to server via API
         run: |
-          install -m 700 -d ~/.ssh
-          # Ключ в секрете — base64 (см. deploy/README.md), декодируем без поломки переносов строк
-          echo "$VPS_SSH_KEY" | tr -d ' \r\n' | base64 -d > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null
-          echo "✅ SSH-ключ валидный, отпечаток:"
-          ssh-keygen -lf ~/.ssh/deploy_key
-          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
-
-      - name: Test SSH connection
-        run: |
-          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=30 \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
-            'echo "SSH OK from GitHub Actions"'
-
-      - name: Upload archive to server
-        run: |
-          scp -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=30 \
-            web-build.tar.gz \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/web-build.tar.gz"
-
-      - name: Extract on server
-        run: |
-          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=30 \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
-            'rm -rf /var/www/darom/* && tar -xzf /tmp/web-build.tar.gz -C /var/www/darom && rm -f /tmp/web-build.tar.gz && echo "OK:" && ls -la /var/www/darom/ | head -8'
+          curl -f -S --connect-timeout 30 --max-time 120 \
+            -X POST \
+            -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" \
+            -F "archive=@web-build.tar.gz" \
+            "http://${{ secrets.VPS_HOST }}:3000/api/deploy-web"
