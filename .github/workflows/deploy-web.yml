@@ -24,6 +24,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check GitHub secrets
+        run: |
+          test -n "${{ secrets.VPS_HOST }}" || (echo "❌ Нет секрета VPS_HOST" && exit 1)
+          test -n "${{ secrets.VPS_USER }}" || (echo "❌ Нет секрета VPS_USER" && exit 1)
+          test -n "${{ secrets.VPS_SSH_KEY }}" || (echo "❌ Нет секрета VPS_SSH_KEY" && exit 1)
+          echo "✅ Секреты на месте"
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -37,28 +44,31 @@ jobs:
         run: flutter build web --release
 
       - name: Pack build
-        run: tar -czf web-build.tar.gz -C build/web .
+        run: |
+          test -f build/web/index.html || (echo "❌ build/web/index.html не найден" && exit 1)
+          tar -czf web-build.tar.gz -C build/web .
+          ls -lh web-build.tar.gz
+
+      - name: Install SSH key
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          # Убираем Windows-переносы строк (CRLF), если ключ копировали из PowerShell
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null
+          echo "✅ SSH-ключ валидный"
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Upload archive to server
-        uses: appleboy/scp-action@v1.0.0
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: 22
-          source: web-build.tar.gz
-          target: /tmp/
+        run: |
+          scp -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=30 \
+            web-build.tar.gz \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/web-build.tar.gz"
 
       - name: Extract on server
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: 22
-          script: |
-            rm -rf /var/www/darom/*
-            tar -xzf /tmp/web-build.tar.gz -C /var/www/darom
-            rm -f /tmp/web-build.tar.gz
-            echo "OK: files in /var/www/darom:"
-            ls -la /var/www/darom/ | head -10
+        run: |
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=30 \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            'rm -rf /var/www/darom/* && tar -xzf /tmp/web-build.tar.gz -C /var/www/darom && rm -f /tmp/web-build.tar.gz && echo "OK:" && ls -la /var/www/darom/ | head -8'
