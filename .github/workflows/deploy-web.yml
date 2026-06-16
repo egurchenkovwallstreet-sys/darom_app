@@ -1,0 +1,64 @@
+# Сборка Flutter Web и выкладка на Timeweb при push в main.
+# Секреты: VPS_HOST, VPS_USER, VPS_SSH_KEY (см. deploy/README.md).
+
+name: Deploy Flutter Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/**'
+      - 'web/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/deploy-web.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web
+        run: flutter build web --release
+
+      - name: Pack build
+        run: tar -czf web-build.tar.gz -C build/web .
+
+      - name: Upload archive to server
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          source: web-build.tar.gz
+          target: /tmp/
+
+      - name: Extract on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script: |
+            rm -rf /var/www/darom/*
+            tar -xzf /tmp/web-build.tar.gz -C /var/www/darom
+            rm -f /tmp/web-build.tar.gz
+            echo "OK: files in /var/www/darom:"
+            ls -la /var/www/darom/ | head -10

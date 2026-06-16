@@ -46,3 +46,7 @@ app.*.map.json
 backend/node_modules/
 backend/.env
 backend/uploads/
+
+# Ключ для GitHub Actions (не коммитить!)
+deploy_key
+deploy_key.pub

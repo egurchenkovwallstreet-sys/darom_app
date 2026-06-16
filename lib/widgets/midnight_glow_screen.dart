@@ -74,78 +74,84 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen>
 
   @override
   Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+
     return Scaffold(
       backgroundColor: AppColors.darkBlue,
+      // Фон не сжимается при клавиатуре — иначе на мобильном web
+      // после закрытия клавиатуры остаётся синяя полоса без планеты.
+      resizeToAvoidBottomInset: false,
       bottomNavigationBar: widget.bottomNavigationBar,
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        child: Stack(
-          children: [
-            // 0. Базовый градиент — мгновенно с первого кадра
-            const Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: AppColors.midnightGlowGradient,
-                ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 0. Базовый градиент — мгновенно с первого кадра
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: AppColors.midnightGlowGradient,
               ),
             ),
+          ),
 
-            // 1. Планета — сразу после предзагрузки, без паузы
-            _PlanetLayer(planetScale: _planetScale),
+          // 1. Планета — сразу после предзагрузки, без паузы
+          _PlanetLayer(planetScale: _planetScale),
 
-            // 2. Градиент поверх планеты
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: AppColors.overlayGradient(),
-                ),
+          // 2. Градиент поверх планеты
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: AppColors.overlayGradient(),
               ),
             ),
+          ),
 
-            // 3. Размытые пятна
-            const _BlurSpot(top: -100, right: -100, size: 400, color: AppColors.cyan, opacity: 0.3),
-            const _BlurSpot(bottom: -150, left: -150, size: 500, color: AppColors.teal, opacity: 0.4),
+          // 3. Размытые пятна
+          const _BlurSpot(top: -100, right: -100, size: 400, color: AppColors.cyan, opacity: 0.3),
+          const _BlurSpot(bottom: -150, left: -150, size: 500, color: AppColors.teal, opacity: 0.4),
 
-            if (widget.showDecorations) ...[
-              const _DecorIcon(
-                top: 50,
-                right: 80,
-                size: 120,
-                iconSize: 100,
-                icon: Icons.favorite,
-                color: AppColors.cyan,
-                shadowOpacity: 0.3,
-                iconOpacity: 0.2,
-              ),
-              const _DecorIcon(
-                bottom: 200,
-                left: 50,
-                size: 100,
-                iconSize: 80,
-                icon: Icons.favorite,
-                color: AppColors.teal,
-                shadowOpacity: 0.3,
-                iconOpacity: 0.2,
-              ),
-              const _DecorIcon(
-                top: 300,
-                right: 30,
-                size: 140,
-                iconSize: 110,
-                icon: Icons.handshake,
-                color: AppColors.cyan,
-                shadowOpacity: 0.25,
-                iconOpacity: 0.18,
-              ),
-            ],
+          if (widget.showDecorations) ...[
+            const _DecorIcon(
+              top: 50,
+              right: 80,
+              size: 120,
+              iconSize: 100,
+              icon: Icons.favorite,
+              color: AppColors.cyan,
+              shadowOpacity: 0.3,
+              iconOpacity: 0.2,
+            ),
+            const _DecorIcon(
+              bottom: 200,
+              left: 50,
+              size: 100,
+              iconSize: 80,
+              icon: Icons.favorite,
+              color: AppColors.teal,
+              shadowOpacity: 0.3,
+              iconOpacity: 0.2,
+            ),
+            const _DecorIcon(
+              top: 300,
+              right: 30,
+              size: 140,
+              iconSize: 110,
+              icon: Icons.handshake,
+              color: AppColors.cyan,
+              shadowOpacity: 0.25,
+              iconOpacity: 0.18,
+            ),
+          ],
 
-            // 4. Контент — после планеты
-            FadeTransition(
+          // 4. Контент поднимается над клавиатурой, фон остаётся на месте
+          Padding(
+            padding: EdgeInsets.only(bottom: viewInsets.bottom),
+            child: FadeTransition(
               opacity: _contentFade,
               child: widget.child,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -173,13 +179,6 @@ class _PlanetLayer extends StatelessWidget {
         fit: BoxFit.cover,
         alignment: Alignment.center,
         gaplessPlayback: true,
-        // Если картинка уже в памяти — показываем сразу, без пустого кадра
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded || frame != null) {
-            return child;
-          }
-          return const SizedBox.shrink();
-        },
       ),
     );
   }
