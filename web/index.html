@@ -42,7 +42,7 @@
       background-color: #001F3F;
     }
 
-    /* Фон «Midnight Glow» под Flutter — виден сразу, в т.ч. при смене высоты клавиатуры */
+    /* Фон под Flutter — заполняет экран, если клавиатура меняет высоту */
     #darom-backdrop {
       position: fixed;
       inset: 0;
@@ -58,61 +58,33 @@
         url('assets/assets/images/earth.png') center center / cover no-repeat,
         linear-gradient(135deg, #001F3F 0%, #008C8C 50%, #00BFFF 100%);
     }
-
-    flutter-view,
-    flt-glass-pane,
-    flt-scene-host {
-      position: fixed !important;
-      inset: 0 !important;
-      width: 100% !important;
-      max-width: 100% !important;
-    }
   </style>
 </head>
 <body>
   <div id="darom-backdrop" aria-hidden="true"></div>
   <script>
-    // Мобильный web: после закрытия клавиатуры подгоняем высоту под visualViewport.
+    // Только подгонка фона при клавиатуре — без вмешательства во Flutter DOM.
     (function () {
-      function applyViewportSize() {
+      function syncBackdrop() {
+        var backdrop = document.getElementById('darom-backdrop');
+        if (!backdrop) return;
         var vv = window.visualViewport;
         var height = vv ? vv.height : window.innerHeight;
-        var width = vv ? vv.width : window.innerWidth;
-        var offsetTop = vv ? vv.offsetTop : 0;
-
-        document.documentElement.style.height = height + 'px';
-        document.body.style.height = height + 'px';
-        document.body.style.width = width + 'px';
-
-        var nodes = document.querySelectorAll('flutter-view, flt-glass-pane, flt-scene-host');
-        for (var i = 0; i < nodes.length; i++) {
-          var node = nodes[i];
-          node.style.height = height + 'px';
-          node.style.width = width + 'px';
-          node.style.top = offsetTop + 'px';
-        }
-
-        window.dispatchEvent(new Event('resize'));
-      }
-
-      function scheduleViewportFix() {
-        applyViewportSize();
-        setTimeout(applyViewportSize, 50);
-        setTimeout(applyViewportSize, 200);
-        setTimeout(applyViewportSize, 500);
+        var top = vv ? vv.offsetTop : 0;
+        backdrop.style.height = height + 'px';
+        backdrop.style.top = top + 'px';
       }
 
       if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', scheduleViewportFix);
-        window.visualViewport.addEventListener('scroll', scheduleViewportFix);
+        window.visualViewport.addEventListener('resize', syncBackdrop);
+        window.visualViewport.addEventListener('scroll', syncBackdrop);
       }
-      window.addEventListener('resize', scheduleViewportFix);
-      window.addEventListener('orientationchange', scheduleViewportFix);
-      document.addEventListener('focusout', scheduleViewportFix);
-      window.addEventListener('load', scheduleViewportFix);
-
-      var observer = new MutationObserver(scheduleViewportFix);
-      observer.observe(document.body, { childList: true, subtree: true });
+      window.addEventListener('resize', syncBackdrop);
+      window.addEventListener('orientationchange', syncBackdrop);
+      document.addEventListener('focusout', function () {
+        setTimeout(syncBackdrop, 100);
+      });
+      window.addEventListener('load', syncBackdrop);
     })();
   </script>
   <script src="flutter_bootstrap.js" async></script>
