@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../theme/app_colors.dart';
 import '../widgets/midnight_glow_screen.dart';
 import 'listings_feed_screen.dart';
 
@@ -126,7 +127,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                                   color: Color(0xFFFFFFFF),
                                   shadows: [
                                     Shadow(
-                                      color: widget.categoryColor.withOpacity(0.6),
+                                      color: AppColors.categoryIcon.withOpacity(0.6),
                                       offset: Offset(0, 4),
                                       blurRadius: 8,
                                     ),
@@ -181,7 +182,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
             builder: (context) => ListingsFeedScreen(
               categoryName: widget.categoryName,
               subcategoryName: subcategory['name'] as String,
-              categoryColor: widget.categoryColor,
+              categoryColor: AppColors.categoryIcon,
               phoneNumber: widget.phoneNumber,
               currentUserId: widget.currentUserId,
             ),
@@ -195,12 +196,12 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
           color: Color(0xFF001F3F).withOpacity(0.85),
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
-            color: widget.categoryColor,
+            color: AppColors.categoryIcon,
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: widget.categoryColor.withOpacity(0.2),
+              color: AppColors.categoryIcon.withOpacity(0.2),
               blurRadius: 10,
               offset: Offset(0, 5),
             ),
@@ -212,13 +213,13 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: widget.categoryColor.withOpacity(0.2),
+                color: AppColors.categoryIcon.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 subcategory['icon'] as IconData,
                 size: 35,
-                color: widget.categoryColor,
+                color: AppColors.categoryIcon,
               ),
             ),
             SizedBox(width: 15),

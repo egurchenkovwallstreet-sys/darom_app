@@ -10,6 +10,8 @@ class AppColors {
   static const white = Color(0xFFFFFFFF);
   static const gold = Color(0xFFFFC107);
   static const red = Color(0xFFFF5722);
+  /// Цвет иконок категорий и подкатегорий (как «Спорт» на главном экране).
+  static const categoryIcon = Color(0xFF2196F3);
 
   static const midnightGlowGradient = LinearGradient(
     begin: Alignment.topLeft,

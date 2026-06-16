@@ -10,6 +10,7 @@ import '../services/location_service.dart';
 import '../widgets/listing_tile_card.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/osm_map_widget.dart';
+import '../theme/app_colors.dart';
 import 'subcategories_screen.dart';
 import 'listing_screen.dart';
 
@@ -73,10 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<IconData> _categoryIcons = [
     Icons.checkroom, Icons.chair, Icons.toys, Icons.smartphone,
     Icons.menu_book, Icons.restaurant, Icons.fitness_center, Icons.category,
-  ];
-  final List<Color> _categoryColors = [
-    const Color(0xFFFFC107), const Color(0xFF795548), const Color(0xFFE91E63), const Color(0xFF00BCD4),
-    const Color(0xFF4CAF50), const Color(0xFFFF5722), const Color(0xFF2196F3), const Color(0xFF9C27B0),
   ];
 
   @override
@@ -801,7 +798,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     MaterialPageRoute(
                                       builder: (context) => SubcategoriesScreen(
                                         categoryName: _categories[index],
-                                        categoryColor: _categoryColors[index],
+                                        categoryColor: AppColors.categoryIcon,
                                         phoneNumber: widget.phoneNumber,
                                         currentUserId: widget.userId,
                                       ),
@@ -818,12 +815,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: Color(0xFF001F3F).withOpacity(0.85),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: _categoryColors[index],
+                                        color: AppColors.categoryIcon,
                                         width: 2,
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: _categoryColors[index].withOpacity(0.3),
+                                          color: AppColors.categoryIcon.withOpacity(0.3),
                                           blurRadius: 5,
                                           offset: Offset(0, 3),
                                         ),
@@ -835,7 +832,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Icon(
                                           _categoryIcons[index],
                                           size: 30,
-                                          color: _categoryColors[index],
+                                          color: AppColors.categoryIcon,
                                         ),
                                         SizedBox(height: 5),
                                         Text(
@@ -844,7 +841,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
-                                            color: _categoryColors[index],
+                                            color: AppColors.categoryIcon,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,

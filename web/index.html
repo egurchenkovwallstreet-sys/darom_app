@@ -18,7 +18,7 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=overlays-content">
   <meta name="description" content="A new Flutter project.">
 
   <!-- iOS meta tags & icons -->
@@ -34,15 +34,87 @@
   <link rel="manifest" href="manifest.json">
   <style>
     html, body {
-      background-color: #001F3F;
       margin: 0;
+      padding: 0;
+      width: 100%;
       height: 100%;
-      height: 100dvh;
       overflow: hidden;
+      background-color: #001F3F;
+    }
+
+    /* Фон «Midnight Glow» под Flutter — виден сразу, в т.ч. при смене высоты клавиатуры */
+    #darom-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(0, 31, 63, 0.72) 0%,
+          rgba(0, 140, 140, 0.32) 50%,
+          rgba(0, 191, 255, 0.22) 100%
+        ),
+        url('assets/assets/images/earth.png') center center / cover no-repeat,
+        linear-gradient(135deg, #001F3F 0%, #008C8C 50%, #00BFFF 100%);
+    }
+
+    flutter-view,
+    flt-glass-pane,
+    flt-scene-host {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
     }
   </style>
 </head>
 <body>
+  <div id="darom-backdrop" aria-hidden="true"></div>
+  <script>
+    // Мобильный web: после закрытия клавиатуры подгоняем высоту под visualViewport.
+    (function () {
+      function applyViewportSize() {
+        var vv = window.visualViewport;
+        var height = vv ? vv.height : window.innerHeight;
+        var width = vv ? vv.width : window.innerWidth;
+        var offsetTop = vv ? vv.offsetTop : 0;
+
+        document.documentElement.style.height = height + 'px';
+        document.body.style.height = height + 'px';
+        document.body.style.width = width + 'px';
+
+        var nodes = document.querySelectorAll('flutter-view, flt-glass-pane, flt-scene-host');
+        for (var i = 0; i < nodes.length; i++) {
+          var node = nodes[i];
+          node.style.height = height + 'px';
+          node.style.width = width + 'px';
+          node.style.top = offsetTop + 'px';
+        }
+
+        window.dispatchEvent(new Event('resize'));
+      }
+
+      function scheduleViewportFix() {
+        applyViewportSize();
+        setTimeout(applyViewportSize, 50);
+        setTimeout(applyViewportSize, 200);
+        setTimeout(applyViewportSize, 500);
+      }
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', scheduleViewportFix);
+        window.visualViewport.addEventListener('scroll', scheduleViewportFix);
+      }
+      window.addEventListener('resize', scheduleViewportFix);
+      window.addEventListener('orientationchange', scheduleViewportFix);
+      document.addEventListener('focusout', scheduleViewportFix);
+      window.addEventListener('load', scheduleViewportFix);
+
+      var observer = new MutationObserver(scheduleViewportFix);
+      observer.observe(document.body, { childList: true, subtree: true });
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
