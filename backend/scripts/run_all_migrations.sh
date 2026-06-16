@@ -1,0 +1,25 @@
+#!/bin/bash
+# Все миграции БД на сервере Timeweb (Linux).
+# Запуск из папки проекта: bash backend/scripts/run_all_migrations.sh
+
+set -e
+cd "$(dirname "$0")/../.."
+
+MIGRATIONS=(
+  migrate_4b.sql
+  migrate_super_donor.sql
+  migrate_4c.sql
+  migrate_4d.sql
+  migrate_sms.sql
+  migrate_photos.sql
+  migrate_listing_extra_packs.sql
+  migrate_favorites_chats.sql
+  migrate_avatar.sql
+)
+
+for file in "${MIGRATIONS[@]}"; do
+  echo ">>> $file"
+  docker exec -i darom_db psql -U darom -d darom < "backend/db/$file"
+done
+
+echo "Готово: все миграции применены."

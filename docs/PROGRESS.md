@@ -6,15 +6,19 @@
 
 ---
 
-## Снимок на 15.06.2026
+## Снимок на 16.06.2026
 
 | | |
 |---|---|
-| **Текущий этап** | **7 — Фото (Yandex Object Storage)** 🟡 → **8 — Робокасса** |
-| **Ядро MVP** | ~**90%** (UI + backend + все правила без внешних API) |
-| **Полное ТЗ** | ~**45%** (до App Store / Google Play) |
+| **Текущий этап** | **A — сервер Timeweb** 🟡 → **B — сайт в интернете** |
+| **Backend** | VPS `5.129.243.246:3000`, PM2 `darom-api` |
+| **Flutter на ПК** | `remoteHost = 5.129.243.246` в `lib/services/api_config.dart` |
+| **Ядро MVP** | ~**92%** |
+| **Полное ТЗ** | ~**48%** |
 | **Пользователь** | новичок, нужны **пошаговые** инструкции |
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
+
+**Health:** http://5.129.243.246:3000/api/health — `ok:true`, `db.connected:true`. На этапе A нужно: `photos.s3Ready:true`.
 
 ---
 
@@ -24,6 +28,13 @@
 - Стиль **Midnight Glow**, онбординг, категории, лента, карточка, профиль
 - Web: **всегда** `flutter run -d chrome --web-port=8080`
 - Сессия: `AuthGate` + localStorage (порт 8080 обязателен)
+- **Избранное**, **чаты** (PostgreSQL), поиск на главной, **аватар**, единая кнопка с **бликом**
+- Приложение на ПК → **удалённый API** Timeweb (`api_config.dart`)
+
+### Сервер Timeweb
+- VPS `5.129.243.246`, проект `/opt/darom_app`
+- Docker `darom_db`, backend через **PM2** `darom-api`
+- Обновление: `git pull` → `cd backend && npm install` → `pm2 restart darom-api`
 
 ### Backend + БД
 - Node.js + Express + PostgreSQL/PostGIS (Docker, порт **5433**)
@@ -83,9 +94,9 @@ SMS_MOCK=true
 
 ---
 
-## Миграции БД (если новая машина / чистая БД)
+## Миграции БД
 
-По порядку из `C:\Users\User\Desktop\darom_app`:
+**На ПК (PowerShell), из `C:\Users\User\Desktop\darom_app`:**
 ```powershell
 Get-Content backend\db\migrate_4b.sql | docker exec -i darom_db psql -U darom -d darom
 Get-Content backend\db\migrate_super_donor.sql | docker exec -i darom_db psql -U darom -d darom
@@ -93,6 +104,14 @@ Get-Content backend\db\migrate_4c.sql | docker exec -i darom_db psql -U darom -d
 Get-Content backend\db\migrate_4d.sql | docker exec -i darom_db psql -U darom -d darom
 Get-Content backend\db\migrate_sms.sql | docker exec -i darom_db psql -U darom -d darom
 Get-Content backend\db\migrate_photos.sql | docker exec -i darom_db psql -U darom -d darom
+Get-Content backend\db\migrate_listing_extra_packs.sql | docker exec -i darom_db psql -U darom -d darom
+Get-Content backend\db\migrate_favorites_chats.sql | docker exec -i darom_db psql -U darom -d darom
+Get-Content backend\db\migrate_avatar.sql | docker exec -i darom_db psql -U darom -d darom
+```
+
+**На сервере Timeweb (консоль VNC), из `/opt/darom_app`:**
+```bash
+bash backend/scripts/run_all_migrations.sh
 ```
 
 ---
@@ -114,7 +133,9 @@ Get-Content backend\db\migrate_photos.sql | docker exec -i darom_db psql -U daro
 | POST | `/api/listings/:id/give` | Отдал |
 | POST | `/api/listings/:id/reactivate` | Активировать повторно |
 | POST | `/api/listings/:id/report` | Жалоба |
-| POST | `/api/deals/:id/rate` | Оценка 1–5 |
+| POST | `/api/favorites` | Избранное |
+| GET/POST | `/api/chats` | Чаты и сообщения |
+| POST | `/api/users/avatar` | Аватар |
 
 ---
 
@@ -159,13 +180,25 @@ backend/
 
 ---
 
-## ⏳ Следующие этапы (по порядку)
+## ⏳ Этап A — сервер Timeweb (текущий)
 
-1. **Робокасса** — реальная оплата (Супер даритель, пакет заборов)
-2. **Firebase** — чаты + push
-3. **Админка** → сборка Android/iOS → магазины
+1. **Health OK** — http://5.129.243.246:3000/api/health → `"ok":true`
+2. **Миграции** на сервере — `bash backend/scripts/run_all_migrations.sh`
+3. **Ключи S3** в `/opt/darom_app/backend/.env` → `photos.s3Ready: true`
+4. **git pull** + `pm2 restart darom-api` после push с GitHub
+5. **Чеклист в приложении** (Flutter на ПК, порт 8080):
+   - регистрация / вход
+   - создать объявление **с фото**
+   - избранное ❤️
+   - написать в чат → забронировать
+   - профиль + аватар
 
-Опционально до Maps: SMS.ru боевой режим (`SMS_RU_API_ID`, баланс на sms.ru).
+## ⏳ Дальше (после этапа A)
+
+1. **Этап B** — Flutter Web на Timeweb + домен/HTTPS
+2. **Робокасса** — реальная оплата
+3. **Firebase** — push
+4. **Админка** → Android/iOS → магазины
 
 ---
 
@@ -179,8 +212,11 @@ backend/
 - [x] 4D: Лимиты заборов, пакет 99₽
 - [x] 5: SMS API + тестовый режим (боевой SMS.ru — по желанию)
 - [x] 6: Карта — flutter_map + OpenStreetMap (бесплатно, без ключей)
-- [x] 7: Фото — загрузка в Yandex Object Storage (нужны ключи в backend/.env)
-- [ ] 8: Робокасса ← **СЛЕДУЮЩИЙ**
+- [x] 7: Фото — Yandex Object Storage (ключи на сервере ⏳)
+- [x] A0: Timeweb VPS, PM2, Flutter → удалённый API
+- [ ] **A: Проверка сервера + S3 + чеклист** ← **СЕЙЧАС**
+- [ ] B: Flutter Web на сервере
+- [ ] 8: Робокасса
 
 ---
 
