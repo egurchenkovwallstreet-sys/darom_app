@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../models/listing.dart';
 import '../services/listings_api.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 import 'listing_screen.dart';
 
 class MyListingsScreen extends StatefulWidget {
@@ -123,13 +124,13 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            ElevatedButton(
+                            PrimaryActionButton(
+                              label: 'Повторить',
+                              height: 48,
+                              fontSize: 16,
+                              borderRadius: 24,
+                              gradientColors: PrimaryActionButton.primaryShortGradient,
                               onPressed: _retry,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF00BFFF),
-                                foregroundColor: const Color(0xFF001F3F),
-                              ),
-                              child: const Text('Повторить'),
                             ),
                           ],
                         ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../services/auth_api.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 import 'profile_setup_screen.dart';
 
 class SmsScreen extends StatefulWidget {
@@ -20,7 +20,6 @@ class SmsScreen extends StatefulWidget {
 
 class _SmsScreenState extends State<SmsScreen> {
   final AuthApi _authApi = AuthApi();
-  bool _isButtonPressed = false;
   bool _isVerifying = false;
   final List<TextEditingController> _controllers =
       List.generate(4, (_) => TextEditingController());
@@ -210,43 +209,10 @@ class _SmsScreenState extends State<SmsScreen> {
                     
                     const SizedBox(height: 24),
                     
-                    GestureDetector(
-                      onTapDown: (_) => setState(() => _isButtonPressed = true),
-                      onTapUp: (_) {
-                        setState(() => _isButtonPressed = false);
-                        _verify();
-                      },
-                      onTapCancel: () => setState(() => _isButtonPressed = false),
-                      child: AnimatedScale(
-                        scale: _isButtonPressed ? 1.08 : 1.0,
-                        duration: const Duration(milliseconds: 150),
-                        child: Container(
-                          width: double.infinity,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(30),
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF00BFFF),
-                                Color(0xFF008C8C),
-                                Color(0xFF001F3F),
-                              ],
-                            ),
-                          ),
-                          child: Center(
-                            child: _isVerifying
-                                ? const CircularProgressIndicator(color: Colors.white)
-                                : const Text(
-                                    'Подтвердить',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFFFFFFFF),
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
+                    PrimaryActionButton(
+                      label: 'Подтвердить',
+                      loading: _isVerifying,
+                      onPressed: _verify,
                     ),
                     
                     const SizedBox(height: 20),

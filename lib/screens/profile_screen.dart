@@ -6,6 +6,7 @@ import '../services/session_service.dart';
 import '../services/users_api.dart';
 import '../widgets/avatar_image.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 import 'my_listings_screen.dart';
 import 'onboarding_screen.dart';
 
@@ -28,7 +29,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UsersApi _usersApi = UsersApi();
   final ImagePicker _imagePicker = ImagePicker();
-  bool _isLogoutPressed = false;
   bool _isEditPressed = false;
   bool _uploadingAvatar = false;
   late Future<User> _profileFuture;
@@ -145,13 +145,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      ElevatedButton(
+                      PrimaryActionButton(
+                        label: 'Повторить',
+                        height: 48,
+                        fontSize: 16,
+                        borderRadius: 24,
+                        gradientColors: PrimaryActionButton.primaryShortGradient,
                         onPressed: _retry,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00BFFF),
-                          foregroundColor: const Color(0xFF001F3F),
-                        ),
-                        child: const Text('Повторить'),
+                      ),
+                      const SizedBox(height: 12),
+                      PrimaryActionButton(
+                        label: 'Выйти и войти заново',
+                        height: 48,
+                        fontSize: 16,
+                        borderRadius: 24,
+                        gradientColors: PrimaryActionButton.dangerDeepGradient,
+                        shadowColor: const Color(0xFFFF5722),
+                        onPressed: _logout,
                       ),
                     ],
                   ),
@@ -561,71 +571,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           
                           SizedBox(height: 20),
 
-                          // Кнопка выхода
-                          GestureDetector(
-                            onTapDown: (_) => setState(() => _isLogoutPressed = true),
-                            onTapUp: (_) {
-                              setState(() => _isLogoutPressed = false);
-                              _logout();
-                            },
-                            onTapCancel: () => setState(() => _isLogoutPressed = false),
-                            child: AnimatedScale(
-                              scale: _isLogoutPressed ? 1.08 : 1.0,
-                              duration: Duration(milliseconds: 150),
-                              curve: Curves.easeOut,
-                              child: Container(
-                                width: double.infinity,
-                                height: 55,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(27),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color(0xFFFF5722),
-                                      Color(0xFFD32F2F),
-                                      Color(0xFFB71C1C),
-                                    ],
-                                  ),
-                                  border: Border.all(
-                                    color: Color(0xFF000000).withOpacity(0.15),
-                                    width: 2,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Color(0xFFFF5722).withOpacity(0.5),
-                                      blurRadius: 20,
-                                      spreadRadius: 2,
-                                      offset: Offset(0, 10),
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'Выйти',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFFFFFFFF),
-                                      shadows: [
-                                        Shadow(
-                                          color: Color(0xFF000000).withOpacity(0.3),
-                                          blurRadius: 5,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              )
-                                  .animate(
-                                    onPlay: (controller) => controller.repeat(reverse: true),
-                                  )
-                                  .shimmer(
-                                    duration: Duration(seconds: 2),
-                                    color: Color(0xFFFFFFFF).withOpacity(0.3),
-                                  ),
-                            ),
+                          PrimaryActionButton(
+                            label: 'Выйти',
+                            height: 55,
+                            fontSize: 18,
+                            borderRadius: 27,
+                            gradientColors: PrimaryActionButton.dangerDeepGradient,
+                            shadowColor: const Color(0xFFFF5722),
+                            onPressed: _logout,
                           )
                               .animate(
                                 delay: Duration(milliseconds: 800),

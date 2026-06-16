@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 import 'phone_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -13,7 +14,6 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  bool _isButtonPressed = false;
 
   final List<Map<String, dynamic>> _pages = [
     {
@@ -120,7 +120,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             SizedBox(height: 30),
-            _build3DButton(),
+            PrimaryActionButton(
+              key: const ValueKey('onboarding-primary-button'),
+              label: _currentPage < _pages.length - 1 ? 'Далее' : 'Начать',
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              onPressed: () {
+                if (_currentPage < _pages.length - 1) {
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PhoneScreen()),
+                  );
+                }
+              },
+            ),
             SizedBox(height: 20),
           ],
         ),
@@ -242,96 +259,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               .fadeIn(duration: Duration(milliseconds: 800))
               .slideY(begin: 0.3, end: 0),
         ],
-      ),
-    );
-  }
-
-  Widget _build3DButton() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 40),
-      child: GestureDetector(
-        onTapDown: (_) {
-          setState(() {
-            _isButtonPressed = true;
-          });
-        },
-        onTapUp: (_) {
-          setState(() {
-            _isButtonPressed = false;
-          });
-          if (_currentPage < _pages.length - 1) {
-            _pageController.nextPage(
-              duration: Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => PhoneScreen()),
-            );
-          }
-        },
-        onTapCancel: () {
-          setState(() {
-            _isButtonPressed = false;
-          });
-        },
-        child: AnimatedScale(
-          scale: _isButtonPressed ? 1.08 : 1.0,
-          duration: Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-          child: Container(
-            height: 60,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF00BFFF),
-                  Color(0xFF008C8C),
-                  Color(0xFF001F3F),
-                ],
-              ),
-              border: Border.all(
-                color: Color(0xFF000000).withOpacity(0.15),
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0xFF00BFFF).withOpacity(0.5),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                  offset: Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                _currentPage < _pages.length - 1 ? 'Далее' : 'Начать',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFFFFFFF),
-                  shadows: [
-                    Shadow(
-                      color: Color(0xFF000000).withOpacity(0.3),
-                      blurRadius: 5,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          )
-              .animate(
-                onPlay: (controller) => controller.repeat(reverse: true),
-              )
-              .shimmer(
-                duration: Duration(seconds: 2),
-                color: Color(0xFFFFFFFF).withOpacity(0.3),
-              ),
-        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/conversation.dart';
 import '../services/chats_api.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 import 'chat_thread_screen.dart';
 
 class ChatsScreen extends StatefulWidget {
@@ -99,13 +100,13 @@ class _ChatsScreenState extends State<ChatsScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          ElevatedButton(
+                          PrimaryActionButton(
+                            label: 'Повторить',
+                            height: 48,
+                            fontSize: 16,
+                            borderRadius: 24,
+                            gradientColors: PrimaryActionButton.primaryShortGradient,
                             onPressed: _reload,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00BFFF),
-                              foregroundColor: const Color(0xFF001F3F),
-                            ),
-                            child: const Text('Повторить'),
                           ),
                         ],
                       ),

@@ -9,6 +9,7 @@ import '../services/listings_api.dart';
 import '../services/location_service.dart';
 import '../widgets/super_donor_offer_dialog.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 
 class _PickedPhoto {
   final Uint8List bytes;
@@ -47,7 +48,6 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
   String _selectedCategory = 'Одежда';
   String _selectedSubcategory = 'Мужская';
-  bool _isPublishPressed = false;
   bool _isPhotoPressed = false;
   bool _isPublishing = false;
   final ImagePicker _imagePicker = ImagePicker();
@@ -616,84 +616,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
                           
                           SizedBox(height: 30),
 
-                          GestureDetector(
-                            onTapDown: (_) {
-                              if (!_isPublishing) setState(() => _isPublishPressed = true);
-                            },
-                            onTapUp: (_) {
-                              setState(() => _isPublishPressed = false);
-                              _publish();
-                            },
-                            onTapCancel: () => setState(() => _isPublishPressed = false),
-                            child: AnimatedScale(
-                              scale: _isPublishPressed ? 1.08 : 1.0,
-                              duration: Duration(milliseconds: 150),
-                              curve: Curves.easeOut,
-                              child: Opacity(
-                                opacity: _isPublishing ? 0.7 : 1.0,
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(30),
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Color(0xFF00BFFF),
-                                        Color(0xFF008C8C),
-                                        Color(0xFF001F3F),
-                                      ],
-                                    ),
-                                    border: Border.all(
-                                      color: Color(0xFF000000).withOpacity(0.15),
-                                      width: 2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Color(0xFF00BFFF).withOpacity(0.5),
-                                        blurRadius: 20,
-                                        spreadRadius: 2,
-                                        offset: Offset(0, 10),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: _isPublishing
-                                        ? const SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Color(0xFFFFFFFF),
-                                            ),
-                                          )
-                                        : Text(
-                                            _isEditing ? 'Сохранить' : 'Опубликовать',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFFFFFFFF),
-                                              shadows: [
-                                                Shadow(
-                                                  color: Color(0xFF000000).withOpacity(0.3),
-                                                  blurRadius: 5,
-                                                  offset: Offset(0, 2),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                  ),
-                                )
-                                    .animate(
-                                      onPlay: (controller) => controller.repeat(reverse: true),
-                                    )
-                                    .shimmer(
-                                      duration: Duration(seconds: 2),
-                                      color: Color(0xFFFFFFFF).withOpacity(0.3),
-                                    ),
-                              ),
-                            ),
+                          PrimaryActionButton(
+                            label: _isEditing ? 'Сохранить' : 'Опубликовать',
+                            loading: _isPublishing,
+                            onPressed: _publish,
                           )
                               .animate(
                                 delay: Duration(milliseconds: 900),

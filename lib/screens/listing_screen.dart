@@ -6,6 +6,7 @@ import '../services/listings_api.dart';
 import '../widgets/favorite_button.dart';
 import '../widgets/listing_photo_gallery.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 import 'add_listing_screen.dart';
 import 'chat_thread_screen.dart';
 import '../widgets/pickup_pack_offer_dialog.dart';
@@ -526,31 +527,45 @@ class _ListingScreenState extends State<ListingScreen> {
     if (_isOwner && _listing.status == 'reserved') {
       return Column(
         children: [
-          _actionButton(
+          PrimaryActionButton(
             label: 'Отдал',
-            colors: const [Color(0xFF4CAF50), Color(0xFF008C8C)],
-            onTap: _markGiven,
+            height: 54,
+            fontSize: 17,
+            borderRadius: 27,
+            gradientColors: PrimaryActionButton.successGradient,
+            shadowColor: const Color(0xFF4CAF50),
+            onPressed: _markGiven,
           ),
           const SizedBox(height: 10),
-          _actionButton(
+          PrimaryActionButton(
             label: 'Активировать повторно',
-            colors: const [Color(0xFFFFC107), Color(0xFFFF5722)],
-            onTap: () => _runAction(
+            height: 54,
+            fontSize: 17,
+            borderRadius: 27,
+            gradientColors: PrimaryActionButton.warningGradient,
+            shadowColor: const Color(0xFFFFC107),
+            onPressed: () => _runAction(
               () => _api.reactivate(listingId: _listing.id, phone: widget.phoneNumber),
               'Объявление снова активно',
             ),
           ),
           const SizedBox(height: 10),
-          _actionButton(
+          PrimaryActionButton(
             label: 'Редактировать',
-            colors: const [Color(0xFF00BFFF), Color(0xFF008C8C)],
-            onTap: _editListing,
+            height: 54,
+            fontSize: 17,
+            borderRadius: 27,
+            gradientColors: PrimaryActionButton.primaryShortGradient,
+            onPressed: _editListing,
           ),
           const SizedBox(height: 10),
-          _actionButton(
+          PrimaryActionButton(
             label: 'Удалить объявление',
-            colors: const [Color(0xFFFF5722), Color(0xFF9E9E9E)],
-            onTap: _deleteListing,
+            height: 54,
+            fontSize: 17,
+            borderRadius: 27,
+            gradientColors: PrimaryActionButton.dangerGradient,
+            onPressed: _deleteListing,
           ),
         ],
       );
@@ -559,34 +574,45 @@ class _ListingScreenState extends State<ListingScreen> {
     if (_isOwner && _listing.isActive) {
       return Column(
         children: [
-          _actionButton(
+          PrimaryActionButton(
             label: 'Редактировать',
-            colors: const [Color(0xFF00BFFF), Color(0xFF008C8C)],
-            onTap: _editListing,
+            height: 54,
+            fontSize: 17,
+            borderRadius: 27,
+            gradientColors: PrimaryActionButton.primaryShortGradient,
+            onPressed: _editListing,
           ),
           const SizedBox(height: 10),
-          _actionButton(
+          PrimaryActionButton(
             label: 'Удалить объявление',
-            colors: const [Color(0xFFFF5722), Color(0xFF9E9E9E)],
-            onTap: _deleteListing,
+            height: 54,
+            fontSize: 17,
+            borderRadius: 27,
+            gradientColors: PrimaryActionButton.dangerGradient,
+            onPressed: _deleteListing,
           ),
         ],
       );
     }
 
     if (!_isOwner && _listing.isActive) {
-      return _actionButton(
+      return PrimaryActionButton(
         label: 'Написать владельцу',
-        colors: const [Color(0xFF00BFFF), Color(0xFF008C8C), Color(0xFF001F3F)],
-        onTap: _writeToOwner,
+        height: 54,
+        fontSize: 17,
+        borderRadius: 27,
+        onPressed: _writeToOwner,
       );
     }
 
     if (!_isOwner && _listing.isReserved) {
-      return _actionButton(
+      return PrimaryActionButton(
         label: 'Открыть чат',
-        colors: const [Color(0xFF008C8C), Color(0xFF001F3F)],
-        onTap: _writeToOwner,
+        height: 54,
+        fontSize: 17,
+        borderRadius: 27,
+        gradientColors: PrimaryActionButton.tealGradient,
+        onPressed: _writeToOwner,
       );
     }
 
@@ -596,34 +622,6 @@ class _ListingScreenState extends State<ListingScreen> {
       style: TextStyle(
         color: const Color(0xFFFFFFFF).withOpacity(0.7),
         fontSize: 16,
-      ),
-    );
-  }
-
-  Widget _actionButton({
-    required String label,
-    required List<Color> colors,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        height: 54,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(27),
-          gradient: LinearGradient(colors: colors),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFFFFFFF),
-            ),
-          ),
-        ),
       ),
     );
   }

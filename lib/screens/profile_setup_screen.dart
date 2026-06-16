@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../services/session_service.dart';
 import '../services/users_api.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 import 'main_shell.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
@@ -17,7 +18,6 @@ class ProfileSetupScreen extends StatefulWidget {
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final TextEditingController _nameController = TextEditingController();
   final UsersApi _usersApi = UsersApi();
-  bool _isButtonPressed = false;
   bool _isAvatarPressed = false;
   bool _isSaving = false;
 
@@ -211,65 +211,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 ),
               ).animate(delay: 600.ms).fadeIn(duration: 800.ms).slideY(begin: 0.3, end: 0),
               const SizedBox(height: 40),
-              GestureDetector(
-                onTapDown: (_) {
-                  if (!_isSaving) setState(() => _isButtonPressed = true);
-                },
-                onTapUp: (_) {
-                  setState(() => _isButtonPressed = false);
-                  _continue();
-                },
-                onTapCancel: () => setState(() => _isButtonPressed = false),
-                child: AnimatedScale(
-                  scale: _isButtonPressed ? 1.08 : 1.0,
-                  duration: const Duration(milliseconds: 150),
-                  child: Opacity(
-                    opacity: _isSaving ? 0.7 : 1.0,
-                    child: Container(
-                      width: double.infinity,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFF00BFFF), Color(0xFF008C8C), Color(0xFF001F3F)],
-                        ),
-                        border: Border.all(color: const Color(0xFF000000).withOpacity(0.15), width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF00BFFF).withOpacity(0.5),
-                            blurRadius: 20,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: _isSaving
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Color(0xFFFFFFFF),
-                                ),
-                              )
-                            : const Text(
-                                'Продолжить',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFFFFFF),
-                                ),
-                              ),
-                      ),
-                    )
-                        .animate(onPlay: (c) => c.repeat(reverse: true))
-                        .shimmer(duration: 2.seconds, color: const Color(0xFFFFFFFF).withOpacity(0.3)),
-                  ),
-                ),
-              ),
+              PrimaryActionButton(
+                label: 'Продолжить',
+                loading: _isSaving,
+                onPressed: _continue,
+              )
+                  .animate(delay: 700.ms)
+                  .fadeIn(duration: 800.ms)
+                  .slideY(begin: 0.3, end: 0),
               const SizedBox(height: 20),
             ],
           ),

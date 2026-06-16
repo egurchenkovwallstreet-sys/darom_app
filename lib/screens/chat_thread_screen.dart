@@ -7,6 +7,7 @@ import '../models/conversation.dart';
 import '../services/chats_api.dart';
 import '../services/listings_api.dart' show PickupLimitException;
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 import '../widgets/pickup_pack_offer_dialog.dart';
 
 class ChatThreadScreen extends StatefulWidget {
@@ -268,39 +269,15 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   Widget _buildReserveBanner() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: GestureDetector(
-        onTap: _reserving ? null : _reserve,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF00BFFF), Color(0xFF008C8C)],
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (_reserving)
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                )
-              else
-                const Icon(Icons.schedule, color: Colors.white),
-              const SizedBox(width: 8),
-              Text(
-                _reserving ? 'Бронируем...' : 'Забронировать на 24 ч',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-            ],
-          ),
-        ),
+      child: PrimaryActionButton(
+        label: _reserving ? 'Бронируем...' : 'Забронировать на 24 ч',
+        height: 48,
+        fontSize: 15,
+        borderRadius: 14,
+        icon: Icons.schedule,
+        loading: _reserving,
+        gradientColors: PrimaryActionButton.primaryShortGradient,
+        onPressed: _reserving ? null : _reserve,
       ),
     );
   }

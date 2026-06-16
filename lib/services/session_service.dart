@@ -35,6 +35,14 @@ class SessionService {
     await removeKey(_keyPhone);
     await removeKey(_keyName);
   }
+
+  /// Один раз сбрасывает старый локальный вход после перехода на сервер Timeweb.
+  static Future<void> migrateToRemoteServerIfNeeded() async {
+    const key = 'session_migrated_to_remote_v1';
+    if (await readString(key) == '1') return;
+    await clear();
+    await saveString(key, '1');
+  }
 }
 
 class SessionData {

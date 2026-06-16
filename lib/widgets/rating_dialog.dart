@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/deals_api.dart';
+import 'primary_action_button.dart';
 
 Future<void> showRatingDialog(
   BuildContext context, {
@@ -63,46 +64,39 @@ Future<void> showRatingDialog(
                     }),
                   ),
                   const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
+                  PrimaryActionButton(
+                    label: 'Отправить',
                     height: 48,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BFFF),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                      ),
-                      onPressed: () async {
-                        try {
-                          await api.rateDeal(
-                            dealId: dealId,
-                            phone: phoneNumber,
-                            score: selected,
+                    fontSize: 16,
+                    borderRadius: 24,
+                    gradientColors: PrimaryActionButton.primaryShortGradient,
+                    onPressed: () async {
+                      try {
+                        await api.rateDeal(
+                          dealId: dealId,
+                          phone: phoneNumber,
+                          score: selected,
+                        );
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Спасибо за оценку!'),
+                              backgroundColor: Color(0xFF00BFFF),
+                            ),
                           );
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Спасибо за оценку!'),
-                                backgroundColor: Color(0xFF00BFFF),
-                              ),
-                            );
-                          }
-                        } catch (error) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('$error'),
-                                backgroundColor: const Color(0xFFFF5722),
-                              ),
-                            );
-                          }
                         }
-                      },
-                      child: const Text('Отправить', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
+                      } catch (error) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('$error'),
+                              backgroundColor: const Color(0xFFFF5722),
+                            ),
+                          );
+                        }
+                      }
+                    },
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(context),

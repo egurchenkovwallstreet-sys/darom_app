@@ -4,6 +4,7 @@ import '../models/listing.dart';
 import '../services/favorites_api.dart';
 import '../widgets/listing_tile_card.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 import 'listing_screen.dart';
 
 class FavoritesScreen extends StatefulWidget {
@@ -88,13 +89,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          ElevatedButton(
+                          PrimaryActionButton(
+                            label: 'Повторить',
+                            height: 48,
+                            fontSize: 16,
+                            borderRadius: 24,
+                            gradientColors: PrimaryActionButton.primaryShortGradient,
                             onPressed: _reload,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00BFFF),
-                              foregroundColor: const Color(0xFF001F3F),
-                            ),
-                            child: const Text('Повторить'),
                           ),
                         ],
                       ),

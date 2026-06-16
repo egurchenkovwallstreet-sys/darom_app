@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../services/auth_api.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 import 'sms_screen.dart';
 
 class PhoneScreen extends StatefulWidget {
@@ -14,7 +15,6 @@ class PhoneScreen extends StatefulWidget {
 class _PhoneScreenState extends State<PhoneScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final AuthApi _authApi = AuthApi();
-  bool _isButtonPressed = false;
   bool _isSending = false;
 
   @override
@@ -216,51 +216,10 @@ class _PhoneScreenState extends State<PhoneScreen> {
                     
                     const SizedBox(height: 40),
                     
-                    GestureDetector(
-                      onTapDown: (_) => setState(() => _isButtonPressed = true),
-                      onTapUp: (_) {
-                        setState(() => _isButtonPressed = false);
-                        _sendCode();
-                      },
-                      onTapCancel: () => setState(() => _isButtonPressed = false),
-                      child: AnimatedScale(
-                        scale: _isButtonPressed ? 1.08 : 1.0,
-                        duration: const Duration(milliseconds: 150),
-                        curve: Curves.easeOut,
-                        child: Container(
-                          width: double.infinity,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(30),
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF00BFFF),
-                                Color(0xFF008C8C),
-                                Color(0xFF001F3F),
-                              ],
-                            ),
-                          ),
-                          child: Center(
-                            child: _isSending
-                                ? const SizedBox(
-                                    width: 28,
-                                    height: 28,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text(
-                                    'Получить код',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFFFFFFFF),
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
+                    PrimaryActionButton(
+                      label: 'Получить код',
+                      loading: _isSending,
+                      onPressed: _sendCode,
                     ),
                     
                     const SizedBox(height: 20),

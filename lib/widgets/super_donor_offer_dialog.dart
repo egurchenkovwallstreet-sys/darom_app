@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/listing_limit_info.dart';
 import '../services/users_api.dart';
+import 'primary_action_button.dart';
 
 Future<bool?> showSuperDonorOfferDialog(
   BuildContext context, {
@@ -79,7 +80,14 @@ class _LimitDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            _GradientButton(label: primaryLabel, onTap: onPrimary),
+            PrimaryActionButton(
+              label: primaryLabel,
+              height: 50,
+              fontSize: 16,
+              borderRadius: 25,
+              gradientColors: PrimaryActionButton.primaryShortGradient,
+              onPressed: onPrimary,
+            ),
           ],
         ),
       ),
@@ -238,12 +246,15 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
               ),
             ),
             const SizedBox(height: 20),
-            _isActivating
-                ? const CircularProgressIndicator(color: Color(0xFF00BFFF))
-                : _GradientButton(
-                    label: 'Подключить ${upsell.priceRub}₽',
-                    onTap: _activate,
-                  ),
+            PrimaryActionButton(
+              label: 'Подключить ${upsell.priceRub}₽',
+              height: 50,
+              fontSize: 16,
+              borderRadius: 25,
+              loading: _isActivating,
+              gradientColors: PrimaryActionButton.primaryShortGradient,
+              onPressed: _activate,
+            ),
             const SizedBox(height: 10),
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -253,40 +264,6 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GradientButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-
-  const _GradientButton({required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        height: 50,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF00BFFF), Color(0xFF008C8C)],
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFFFFFFF),
-            ),
-          ),
         ),
       ),
     );

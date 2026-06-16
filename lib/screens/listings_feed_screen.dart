@@ -4,6 +4,7 @@ import '../models/listing.dart';
 import '../services/listings_api.dart';
 import '../widgets/listing_photo_image.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/primary_action_button.dart';
 import 'listing_screen.dart';
 
 class ListingsFeedScreen extends StatefulWidget {
@@ -224,13 +225,14 @@ class _ErrorState extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
+            PrimaryActionButton(
+              label: 'Повторить',
+              height: 48,
+              fontSize: 16,
+              borderRadius: 24,
+              gradientColors: PrimaryActionButton.primaryShortGradient,
+              shadowColor: categoryColor,
               onPressed: onRetry,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: categoryColor,
-                foregroundColor: const Color(0xFF001F3F),
-              ),
-              child: const Text('Повторить'),
             ),
           ],
         ),

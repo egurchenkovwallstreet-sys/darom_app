@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/pickup_limit_info.dart';
 import '../services/users_api.dart';
+import 'primary_action_button.dart';
 
 Future<bool?> showPickupPackOfferDialog(
   BuildContext context, {
@@ -133,21 +134,15 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
               style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.5)),
             ),
             const SizedBox(height: 20),
-            _isActivating
-                ? const CircularProgressIndicator(color: Color(0xFF00BFFF))
-                : SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BFFF),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                      ),
-                      onPressed: _activate,
-                      child: Text('Купить ${upsell.priceRub}₽'),
-                    ),
-                  ),
+            PrimaryActionButton(
+              label: 'Купить ${upsell.priceRub}₽',
+              height: 48,
+              fontSize: 16,
+              borderRadius: 24,
+              loading: _isActivating,
+              gradientColors: PrimaryActionButton.primaryShortGradient,
+              onPressed: _activate,
+            ),
             TextButton(
               onPressed: () => Navigator.pop(context, false),
               child: Text('Не сейчас', style: TextStyle(color: Colors.white.withOpacity(0.6))),
