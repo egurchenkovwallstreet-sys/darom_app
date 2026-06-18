@@ -6,11 +6,9 @@ class ListingPhotoGallery extends StatefulWidget {
   const ListingPhotoGallery({
     super.key,
     required this.urls,
-    this.height = 220,
   });
 
   final List<String> urls;
-  final double height;
 
   @override
   State<ListingPhotoGallery> createState() => _ListingPhotoGalleryState();
@@ -35,46 +33,55 @@ class _ListingPhotoGalleryState extends State<ListingPhotoGallery> {
     );
   }
 
+  Widget _squareFrame({required Widget child}) {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final urls = widget.urls;
 
     if (urls.isEmpty) {
-      return Container(
-        height: widget.height,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: const Color(0xFF001F3F).withOpacity(0.85),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF00BFFF), width: 2),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image, size: 72, color: const Color(0xFF00BFFF).withOpacity(0.5)),
-            const SizedBox(height: 8),
-            Text(
-              'Нет фото',
-              style: TextStyle(color: const Color(0xFFFFFFFF).withOpacity(0.7)),
-            ),
-          ],
+      return _squareFrame(
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0xFF001F3F).withOpacity(0.85),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.image, size: 72, color: const Color(0xFF00BFFF).withOpacity(0.5)),
+              const SizedBox(height: 8),
+              Text(
+                'Нет фото',
+                style: TextStyle(color: const Color(0xFFFFFFFF).withOpacity(0.7)),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (urls.length == 1) {
-      return ListingPhotoImage(
-        url: urls.first,
-        height: widget.height,
-        width: double.infinity,
-        borderRadius: 20,
+      return _squareFrame(
+        child: ListingPhotoImage(
+          url: urls.first,
+          width: double.infinity,
+          height: double.infinity,
+          borderRadius: 20,
+        ),
       );
     }
 
     return Column(
       children: [
-        SizedBox(
-          height: widget.height,
+        _squareFrame(
           child: Stack(
             children: [
               ClipRRect(
@@ -85,8 +92,8 @@ class _ListingPhotoGalleryState extends State<ListingPhotoGallery> {
                   onPageChanged: (i) => setState(() => _index = i),
                   itemBuilder: (context, i) => ListingPhotoImage(
                     url: urls[i],
-                    height: widget.height,
                     width: double.infinity,
+                    height: double.infinity,
                     borderRadius: 0,
                   ),
                 ),
