@@ -138,7 +138,9 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                     );
                   }
 
-                  final listings = snapshot.data ?? [];
+                  final listings = (snapshot.data ?? [])
+                      .where((listing) => listing.status != 'hidden')
+                      .toList();
 
                   if (listings.isEmpty) {
                     return Center(
@@ -160,8 +162,8 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       final color = _statusColor(listing.status);
 
                       return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          final deleted = await Navigator.push<bool>(
                             context,
                             MaterialPageRoute(
                               builder: (context) => ListingScreen(
@@ -171,6 +173,9 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                               ),
                             ),
                           );
+                          if (deleted == true && mounted) {
+                            _retry();
+                          }
                         },
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 12),

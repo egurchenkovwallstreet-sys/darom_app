@@ -250,7 +250,12 @@ class _HomeScreenState extends State<HomeScreen> {
           isFavorite: _favoriteIds.contains(listing.id),
         ),
       ),
-    ).then((_) => _loadFavoriteIds());
+    ).then((deleted) {
+      _loadFavoriteIds();
+      if (deleted == true) {
+        _loadNearbyListings();
+      }
+    });
   }
 
   void _openFullMap() {

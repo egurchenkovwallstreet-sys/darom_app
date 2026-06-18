@@ -224,7 +224,7 @@ class _ListingScreenState extends State<ListingScreen> {
           backgroundColor: Color(0xFF00BFFF),
         ),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

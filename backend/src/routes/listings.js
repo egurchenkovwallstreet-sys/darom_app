@@ -74,6 +74,7 @@ router.get('/mine', async (req, res) => {
       FROM listings l
       JOIN users u ON u.id = l.user_id
       WHERE u.phone = $1
+        AND l.status != 'hidden'
       ORDER BY l.created_at DESC
       `,
       [normalizedPhone]
