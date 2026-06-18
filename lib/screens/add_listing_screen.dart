@@ -9,6 +9,7 @@ import '../services/listings_api.dart';
 import '../services/location_service.dart';
 import '../widgets/super_donor_offer_dialog.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/listing_photo_image.dart';
 import '../widgets/primary_action_button.dart';
 
 class _PickedPhoto {
@@ -52,7 +53,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
   bool _isPublishing = false;
   final ImagePicker _imagePicker = ImagePicker();
   final List<_PickedPhoto> _photos = [];
+  List<String> _existingPhotoUrls = [];
   static const int _maxPhotos = 5;
+
+  int get _totalPhotoCount => _existingPhotoUrls.length + _photos.length;
 
   bool get _isEditing => widget.editingListing != null;
 
@@ -76,6 +80,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
       _descriptionController.text = existing.description;
       _selectedCategory = existing.category;
       _selectedSubcategory = existing.subcategory;
+      _existingPhotoUrls = List<String>.from(existing.photoUrls);
     }
   }
 
@@ -107,7 +112,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
     try {
       if (_isEditing) {
-        final updated = await _listingsApi.updateListing(
+        var updated = await _listingsApi.updateListing(
           listingId: widget.editingListing!.id,
           phone: widget.phoneNumber,
           title: title,
@@ -115,6 +120,15 @@ class _AddListingScreenState extends State<AddListingScreen> {
           category: _selectedCategory,
           subcategory: _selectedSubcategory,
         );
+
+        for (final photo in _photos) {
+          updated = await _listingsApi.uploadPhoto(
+            listingId: widget.editingListing!.id,
+            phone: widget.phoneNumber,
+            bytes: photo.bytes,
+            fileName: photo.name,
+          );
+        }
 
         if (!mounted) return;
 
@@ -212,7 +226,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
   }
 
   Future<void> _pickPhotos() async {
-    if (_photos.length >= _maxPhotos) {
+    if (_totalPhotoCount >= _maxPhotos) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Максимум $_maxPhotos фото'),
@@ -228,7 +242,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
     );
     if (picked.isEmpty || !mounted) return;
 
-    final remaining = _maxPhotos - _photos.length;
+    final remaining = _maxPhotos - _totalPhotoCount;
     final toAdd = picked.take(remaining);
 
     final newPhotos = <_PickedPhoto>[];
@@ -512,7 +526,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                   borderRadius: BorderRadius.circular(15),
                                   border: Border.all(color: Color(0xFF00BFFF), width: 2, strokeAlign: BorderSide.strokeAlignOutside),
                                 ),
-                                child: _photos.isEmpty
+                                child: _totalPhotoCount == 0
                                     ? Column(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: const [
@@ -544,7 +558,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Фото: ${_photos.length}/$_maxPhotos',
+                                            'Фото: $_totalPhotoCount/$_maxPhotos',
                                             style: const TextStyle(
                                               color: Color(0xFF00BFFF),
                                               fontWeight: FontWeight.bold,
@@ -555,6 +569,17 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                             spacing: 8,
                                             runSpacing: 8,
                                             children: [
+                                              ...List.generate(_existingPhotoUrls.length, (index) {
+                                                return ClipRRect(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  child: ListingPhotoImage(
+                                                    url: _existingPhotoUrls[index],
+                                                    width: 72,
+                                                    height: 72,
+                                                    borderRadius: 8,
+                                                  ),
+                                                );
+                                              }),
                                               ...List.generate(_photos.length, (index) {
                                                 return Stack(
                                                   children: [
@@ -588,7 +613,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                                   ],
                                                 );
                                               }),
-                                              if (_photos.length < _maxPhotos)
+                                              if (_totalPhotoCount < _maxPhotos)
                                                 Container(
                                                   width: 72,
                                                   height: 72,

@@ -7,6 +7,8 @@ import '../models/map_marker.dart';
 import '../services/favorites_api.dart';
 import '../services/listings_api.dart';
 import '../services/location_service.dart';
+import '../services/users_api.dart';
+import '../widgets/avatar_image.dart';
 import '../widgets/listing_tile_card.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/osm_map_widget.dart';
@@ -43,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final LocationService _locationService = LocationService();
   final ListingsApi _listingsApi = ListingsApi();
+  final UsersApi _usersApi = UsersApi();
   GeoPosition _position = GeoPosition.moscow;
   List<Listing> _nearbyListings = [];
   bool _loadingLocation = true;
@@ -59,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showSearchResults = false;
   String? _searchError;
   String? _lastSearchQuery;
+  String? _avatarUrl;
 
   static const _searchFieldBorder = OutlineInputBorder(
     borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -82,6 +86,15 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _initLocationAndListings();
     _loadFavoriteIds();
+    _loadAvatar();
+  }
+
+  Future<void> _loadAvatar() async {
+    try {
+      final user = await _usersApi.fetchProfile(phone: widget.phoneNumber);
+      if (!mounted) return;
+      setState(() => _avatarUrl = user.avatarUrl);
+    } catch (_) {}
   }
 
   @override
@@ -89,6 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _searchController.dispose();
     _favoritesApi.dispose();
     _listingsApi.dispose();
+    _usersApi.dispose();
     super.dispose();
   }
 
@@ -311,18 +325,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                     child: Row(
                       children: [
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Color(0xFF00BFFF),
-                              width: 2,
-                            ),
-                          ),
-                          child: Icon(Icons.person, color: Color(0xFF00BFFF)),
+                        AvatarImage(
+                          url: _avatarUrl,
+                          size: 42,
+                          borderWidth: 2,
                         )
                             .animate(
                               onPlay: (controller) => controller.repeat(reverse: true),

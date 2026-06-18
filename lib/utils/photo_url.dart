@@ -19,5 +19,10 @@ String resolveAvatarUrl(String? url) {
     return '${ApiConfig.baseUrl}/api/photos/avatars/${match.group(1)}';
   }
 
+  final uploadsMatch = RegExp(r'/uploads/avatars/([^/?#]+)').firstMatch(url);
+  if (uploadsMatch != null) {
+    return '${ApiConfig.baseUrl}/api/photos/avatars/${uploadsMatch.group(1)}';
+  }
+
   return url;
 }

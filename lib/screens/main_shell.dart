@@ -52,7 +52,7 @@ class _MainShellState extends State<MainShell> {
             top: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.25)),
           ),
         ),
-        padding: EdgeInsets.only(top: 14, bottom: bottomInset > 0 ? bottomInset : 8),
+        padding: EdgeInsets.only(top: 12, bottom: bottomInset > 0 ? bottomInset : 8),
         child: SizedBox(
           height: 58,
           child: Row(
@@ -184,18 +184,18 @@ class _NavAddItem extends StatelessWidget {
           alignment: Alignment.bottomCenter,
           children: [
             Positioned(
-              top: -18,
+              top: -14,
               child: Material(
-                elevation: 10,
-                shadowColor: const Color(0xFF00BFFF).withOpacity(0.55),
+                elevation: 8,
+                shadowColor: const Color(0xFF00BFFF).withOpacity(0.5),
                 shape: const CircleBorder(),
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: onTap,
                   customBorder: const CircleBorder(),
                   child: Ink(
-                    width: 58,
-                    height: 58,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
@@ -211,16 +211,16 @@ class _NavAddItem extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: accent.withOpacity(0.45),
-                          blurRadius: 14,
-                          offset: const Offset(0, 5),
+                          color: accent.withOpacity(0.4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: const Icon(
                       Icons.add_rounded,
                       color: Colors.white,
-                      size: 34,
+                      size: 28,
                     ),
                   ),
                 ),
