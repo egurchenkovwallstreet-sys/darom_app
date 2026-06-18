@@ -60,8 +60,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _lastSearchQuery;
 
   static const _searchFieldBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.all(Radius.circular(14)),
-    borderSide: BorderSide(color: Color(0xFF00BFFF), width: 2),
+    borderRadius: BorderRadius.all(Radius.circular(10)),
+    borderSide: BorderSide(color: Color(0xFF00BFFF), width: 1.5),
   );
 
   static const List<double> _radiusKmValues = [1, 2, 5, 10, 50];
@@ -286,12 +286,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                     child: Row(
                       children: [
                         Container(
-                          width: 50,
-                          height: 50,
+                          width: 42,
+                          height: 42,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
@@ -315,15 +315,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               duration: Duration(seconds: 2),
                               curve: Curves.easeInOut,
                             ),
-                        SizedBox(width: 15),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Привет, ${widget.userName}!',
-                                style: TextStyle(
-                                  fontSize: 20,
+                                style: const TextStyle(
+                                  fontSize: 17,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFFFFFFFF),
                                 ),
@@ -336,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 'Что ищешь?',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   color: Color(0xFFFFFFFF).withOpacity(0.7),
                                 ),
                               )
@@ -349,22 +349,22 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: Color(0xFF00BFFF),
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.favorite, color: Colors.white, size: 16),
+                              Icon(Icons.favorite, color: Colors.white, size: 14),
                               SizedBox(width: 4),
                               Text(
                                 'Новичок',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                                  fontSize: 11,
                                 ),
                               ),
                             ],
@@ -380,10 +380,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
                     child: TextField(
                       controller: _searchController,
-                      style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 16),
+                      style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 14),
                       textInputAction: TextInputAction.search,
                       onSubmitted: (_) => _runSearch(),
                       onChanged: (_) {
@@ -394,23 +394,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         }
                       },
                       decoration: InputDecoration(
+                        isDense: true,
                         filled: true,
                         fillColor: const Color(0xFF001F3F).withOpacity(0.9),
                         hintText: 'Поиск: название или описание...',
                         hintStyle: TextStyle(
                           color: const Color(0xFFFFFFFF).withOpacity(0.45),
+                          fontSize: 13,
                         ),
-                        prefixIcon: const Icon(Icons.search, color: Color(0xFF00BFFF)),
+                        prefixIcon: const Icon(Icons.search, color: Color(0xFF00BFFF), size: 20),
+                        prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 36),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, color: Color(0xFF80DEEA)),
+                                icon: const Icon(Icons.clear, color: Color(0xFF80DEEA), size: 18),
                                 onPressed: _clearSearch,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                               )
                             : null,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         enabledBorder: _searchFieldBorder,
                         focusedBorder: _searchFieldBorder.copyWith(
-                          borderSide: const BorderSide(color: Color(0xFF80DEEA), width: 2),
+                          borderSide: const BorderSide(color: Color(0xFF80DEEA), width: 1.5),
                         ),
                       ),
                     ),
@@ -449,13 +454,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ] else ...[
 
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Container(
-                      height: 45,
+                      height: 36,
                       decoration: BoxDecoration(
                         color: Color(0xFF001F3F).withOpacity(0.85),
-                        borderRadius: BorderRadius.circular(25),
-                        border: Border.all(color: Color(0xFF00BFFF), width: 2),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Color(0xFF00BFFF), width: 1.5),
                       ),
                       child: Row(
                         children: [
@@ -474,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: !_showListView
                                         ? Color(0xFF00BFFF)
                                         : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(23),
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Center(
                                     child: Text(
@@ -484,7 +489,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ? Colors.white
                                             : Color(0xFFFFFFFF).withOpacity(0.7),
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                        fontSize: 13,
                                       ),
                                     ),
                                   ),
@@ -508,7 +513,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: _showListView
                                         ? Color(0xFF00BFFF)
                                         : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(23),
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Center(
                                     child: Text(
@@ -518,7 +523,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ? Colors.white
                                             : Color(0xFFFFFFFF).withOpacity(0.7),
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                        fontSize: 13,
                                       ),
                                     ),
                                   ),
@@ -535,16 +540,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         .fadeIn(duration: Duration(milliseconds: 800))
                         .slideY(begin: -0.3, end: 0),
                   ),
-                  SizedBox(height: 15),
+                  const SizedBox(height: 8),
 
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Container(
-                      padding: EdgeInsets.all(15),
+                      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                       decoration: BoxDecoration(
                         color: Color(0xFF001F3F).withOpacity(0.85),
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(color: Color(0xFF00BFFF), width: 2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Color(0xFF00BFFF), width: 1.5),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -555,18 +560,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'Радиус:',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   color: Color(0xFFFFFFFF),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   _radiusLabels[_radiusIndex],
                                   style: const TextStyle(
                                     color: Color(0xFF00BFFF),
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                    fontSize: 13,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -574,7 +579,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               _buildRadiusCountBadge(),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 6),
                           Row(
                             children: List.generate(
                               _radiusButtonLabels.length,
@@ -594,14 +599,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                     duration: const Duration(milliseconds: 150),
                                     curve: Curves.easeOut,
                                     child: Container(
-                                      height: 40,
-                                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                      height: 32,
+                                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                                      padding: const EdgeInsets.symmetric(horizontal: 2),
                                       decoration: BoxDecoration(
                                         color: _radiusIndex == index
                                             ? const Color(0xFF00BFFF)
                                             : const Color(0xFF008C8C).withOpacity(0.3),
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(7),
                                       ),
                                       child: Center(
                                         child: FittedBox(
@@ -614,7 +619,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   ? Colors.white
                                                   : const Color(0xFFFFFFFF).withOpacity(0.85),
                                               fontWeight: FontWeight.bold,
-                                              fontSize: index == 4 ? 11 : 13,
+                                              fontSize: index == 4 ? 10 : 12,
                                             ),
                                           ),
                                         ),
@@ -634,7 +639,38 @@ class _HomeScreenState extends State<HomeScreen> {
                         .fadeIn(duration: Duration(milliseconds: 800))
                         .slideY(begin: -0.3, end: 0),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 8),
+
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                    child: Row(
+                      children: [
+                        const Text(
+                          '📦 Категории',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFFFFFF),
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: const Color(0xFF00BFFF).withOpacity(0.9),
+                          size: 22,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          'листайте',
+                          style: TextStyle(
+                            color: const Color(0xFF00BFFF).withOpacity(0.85),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
                   Expanded(
                     child: SingleChildScrollView(
@@ -642,7 +678,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           if (_locationHint != null)
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                               child: Text(
                                 _locationHint!,
                                 style: TextStyle(
@@ -653,7 +689,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           if (_listingsError != null)
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                               child: Text(
                                 _listingsError!,
                                 style: const TextStyle(
@@ -664,11 +700,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
 
                           Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: _showListView
                                 ? _buildNearbyList()
                                 : SizedBox(
-                                    height: 220,
+                                    height: 130,
                                     child: _loadingLocation
                                         ? _buildMapPlaceholder('Определяем местоположение...')
                                         : OsmMapWidget(
@@ -686,9 +722,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           if (_selectedListing != null && !_showListView)
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF001F3F).withOpacity(0.9),
                                   borderRadius: BorderRadius.circular(14),
@@ -735,57 +771,27 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           if (_loadingListings && !_showListView)
                             const Padding(
-                              padding: EdgeInsets.only(top: 8),
+                              padding: EdgeInsets.only(top: 4),
                               child: SizedBox(
-                                height: 20,
-                                width: 20,
+                                height: 18,
+                                width: 18,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   color: Color(0xFF00BFFF),
                                 ),
                               ),
                             ),
-                          SizedBox(height: 20),
-
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 20),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '📦 Категории',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFFFFFFF),
-                                  ),
-                                ),
-                                Text(
-                                  'Все →',
-                                  style: TextStyle(
-                                    color: Color(0xFF00BFFF),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                              .animate(
-                                delay: Duration(milliseconds: 800),
-                              )
-                              .fadeIn(duration: Duration(milliseconds: 800))
-                              .slideY(begin: 0.3, end: 0),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 8),
 
                           GridView.builder(
                             shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            padding: EdgeInsets.fromLTRB(20, 0, 20, 20),
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 4,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                              childAspectRatio: 0.85,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 0.9,
                             ),
                             itemCount: _categories.length,
                             itemBuilder: (context, index) {
@@ -831,15 +837,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                       children: [
                                         Icon(
                                           _categoryIcons[index],
-                                          size: 30,
+                                          size: 24,
                                           color: AppColors.categoryIcon,
                                         ),
-                                        SizedBox(height: 5),
+                                        const SizedBox(height: 3),
                                         Text(
                                           _categories[index],
                                           textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 11,
+                                          style: const TextStyle(
+                                            fontSize: 10,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.categoryIcon,
                                           ),
@@ -853,7 +859,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             },
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 8),
                         ],
                       ),
                     ),
@@ -947,14 +953,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNearbyList() {
     if (_loadingListings) {
       return SizedBox(
-        height: 180,
+        height: 120,
         child: _buildMapPlaceholder('Загружаем объявления рядом...'),
       );
     }
 
     if (_nearbyListings.isEmpty) {
       return SizedBox(
-        height: 180,
+        height: 120,
         child: _buildMapPlaceholder('В радиусе ${_radiusLabels[_radiusIndex]} объявлений нет'),
       );
     }
