@@ -2,62 +2,25 @@ import 'package:flutter/material.dart';
 import '../services/planet_assets.dart';
 import '../theme/app_colors.dart';
 
-/// Общий экран с фоном Midnight Glow.
-/// С первого кадра — тёмный градиент, затем планета, потом контент.
+/// Общий экран с фоном Midnight Glow: градиент + планета (левая часть) + контент.
 class MidnightGlowScreen extends StatefulWidget {
   const MidnightGlowScreen({
     super.key,
     required this.child,
     this.bottomNavigationBar,
     this.showDecorations = true,
-    /// true — для чатов и форм: поле ввода поднимается над клавиатурой.
-    this.adjustForKeyboard = false,
   });
 
   final Widget child;
   final Widget? bottomNavigationBar;
   final bool showDecorations;
-  final bool adjustForKeyboard;
 
   @override
   State<MidnightGlowScreen> createState() => _MidnightGlowScreenState();
 }
 
-class _MidnightGlowScreenState extends State<MidnightGlowScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _planetController;
-  late Animation<double> _planetScale;
-  late AnimationController _contentFadeController;
-  late Animation<double> _contentFade;
+class _MidnightGlowScreenState extends State<MidnightGlowScreen> {
   bool _didPrecacheImage = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _planetController = AnimationController(
-      duration: const Duration(seconds: 12),
-      vsync: this,
-    )..forward();
-
-    _planetScale = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(parent: _planetController, curve: Curves.easeInOut),
-    );
-
-    // Планета без fade — видна сразу. Контент появляется чуть позже.
-    _contentFadeController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-
-    _contentFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _contentFadeController, curve: Curves.easeIn),
-    );
-
-    Future<void>.delayed(const Duration(milliseconds: 350), () {
-      if (mounted) _contentFadeController.forward();
-    });
-  }
 
   @override
   void didChangeDependencies() {
@@ -69,22 +32,14 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen>
   }
 
   @override
-  void dispose() {
-    _planetController.dispose();
-    _contentFadeController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      resizeToAvoidBottomInset: widget.adjustForKeyboard,
+      backgroundColor: AppColors.darkBlue,
+      resizeToAvoidBottomInset: false,
       bottomNavigationBar: widget.bottomNavigationBar,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Фон без учёта клавиатуры — всегда на весь экран.
           MediaQuery.removeViewInsets(
             context: context,
             removeBottom: true,
@@ -99,7 +54,14 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen>
                     ),
                   ),
                 ),
-                _PlanetLayer(planetScale: _planetScale),
+                const Positioned.fill(
+                  child: Image(
+                    image: AssetImage(PlanetAssets.path),
+                    fit: BoxFit.cover,
+                    alignment: PlanetAssets.alignment,
+                    gaplessPlayback: true,
+                  ),
+                ),
                 Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
@@ -144,40 +106,8 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen>
               ],
             ),
           ),
-
-          FadeTransition(
-            opacity: _contentFade,
-            child: widget.child,
-          ),
+          widget.child,
         ],
-      ),
-    );
-  }
-}
-
-class _PlanetLayer extends StatelessWidget {
-  const _PlanetLayer({required this.planetScale});
-
-  final Animation<double> planetScale;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: planetScale,
-      builder: (context, child) {
-        return Positioned.fill(
-          child: Transform.scale(
-            scale: planetScale.value,
-            alignment: PlanetAssets.scaleAlignment,
-            child: child,
-          ),
-        );
-      },
-      child: Image.asset(
-        PlanetAssets.path,
-        fit: BoxFit.cover,
-        alignment: PlanetAssets.alignment,
-        gaplessPlayback: true,
       ),
     );
   }
