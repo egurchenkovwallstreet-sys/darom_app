@@ -168,6 +168,7 @@ class _PlanetLayer extends StatelessWidget {
         return Positioned.fill(
           child: Transform.scale(
             scale: planetScale.value,
+            alignment: PlanetAssets.scaleAlignment,
             child: child,
           ),
         );
@@ -175,7 +176,7 @@ class _PlanetLayer extends StatelessWidget {
       child: Image.asset(
         PlanetAssets.path,
         fit: BoxFit.cover,
-        alignment: Alignment.centerLeft,
+        alignment: PlanetAssets.alignment,
         gaplessPlayback: true,
       ),
     );
