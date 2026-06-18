@@ -175,7 +175,7 @@ class _PlanetLayer extends StatelessWidget {
       child: Image.asset(
         PlanetAssets.path,
         fit: BoxFit.cover,
-        alignment: Alignment.center,
+        alignment: Alignment.centerLeft,
         gaplessPlayback: true,
       ),
     );
