@@ -15,6 +15,9 @@ class OsmMapWidget extends StatefulWidget {
     required this.markers,
     this.isApproximateLocation = false,
     this.onMarkerTap,
+    this.interactive = true,
+    this.showBorder = true,
+    this.fillParent = false,
   });
 
   final double centerLat;
@@ -24,6 +27,9 @@ class OsmMapWidget extends StatefulWidget {
   final List<MapMarker> markers;
   final bool isApproximateLocation;
   final void Function(MapMarker marker)? onMarkerTap;
+  final bool interactive;
+  final bool showBorder;
+  final bool fillParent;
 
   @override
   State<OsmMapWidget> createState() => _OsmMapWidgetState();
@@ -48,83 +54,97 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
   @override
   Widget build(BuildContext context) {
     final center = LatLng(widget.centerLat, widget.centerLng);
+    final borderRadius = widget.showBorder ? 15.0 : 0.0;
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+    final map = FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        initialCenter: center,
+        initialZoom: widget.zoom.toDouble(),
+        interactionOptions: InteractionOptions(
+          flags: widget.interactive
+              ? InteractiveFlag.all & ~InteractiveFlag.rotate
+              : InteractiveFlag.none,
+        ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(13),
-        child: FlutterMap(
-          mapController: _mapController,
-          options: MapOptions(
-            initialCenter: center,
-            initialZoom: widget.zoom.toDouble(),
-            interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.all,
-            ),
-          ),
-          children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.darom.app',
-            ),
-            if (widget.radiusKm != null && widget.radiusKm! > 0)
-              CircleLayer(
-                circles: [
-                  CircleMarker(
-                    point: center,
-                    radius: widget.radiusKm! * 1000,
-                    color: const Color(0x3300BFFF),
-                    borderColor: const Color(0xFF00BFFF),
-                    borderStrokeWidth: 2,
-                    useRadiusInMeter: true,
-                  ),
-                ],
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.darom.app',
+        ),
+        if (widget.radiusKm != null && widget.radiusKm! > 0)
+          CircleLayer(
+            circles: [
+              CircleMarker(
+                point: center,
+                radius: widget.radiusKm! * 1000,
+                color: const Color(0x3300BFFF),
+                borderColor: const Color(0xFF00BFFF),
+                borderStrokeWidth: 2,
+                useRadiusInMeter: true,
               ),
-            CircleLayer(
-              circles: [
-                CircleMarker(
-                  point: center,
-                  radius: 120,
-                  color: AppColors.gold.withOpacity(0.22),
-                  borderColor: AppColors.gold,
-                  borderStrokeWidth: 3,
-                  useRadiusInMeter: true,
-                ),
-              ],
-            ),
-            MarkerLayer(
-              markers: [
-                Marker(
-                  point: center,
-                  width: 76,
-                  height: 96,
-                  alignment: Alignment.bottomCenter,
-                  child: _UserLocationPin(
-                    isApproximate: widget.isApproximateLocation,
-                  ),
-                ),
-                ...widget.markers.map(
-                  (marker) => Marker(
-                    point: LatLng(marker.lat, marker.lng),
-                    width: 52,
-                    height: 52,
-                    alignment: Alignment.center,
-                    child: _ListingPin(
-                      title: marker.title,
-                      isReserved: marker.isReserved,
-                      onTap: widget.onMarkerTap == null
-                          ? null
-                          : () => widget.onMarkerTap!(marker),
-                    ),
-                  ),
-                ),
-              ],
+            ],
+          ),
+        CircleLayer(
+          circles: [
+            CircleMarker(
+              point: center,
+              radius: 120,
+              color: AppColors.gold.withOpacity(0.22),
+              borderColor: AppColors.gold,
+              borderStrokeWidth: 3,
+              useRadiusInMeter: true,
             ),
           ],
         ),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: center,
+              width: 76,
+              height: 96,
+              alignment: Alignment.bottomCenter,
+              child: _UserLocationPin(
+                isApproximate: widget.isApproximateLocation,
+              ),
+            ),
+            ...widget.markers.map(
+              (marker) => Marker(
+                point: LatLng(marker.lat, marker.lng),
+                width: 52,
+                height: 52,
+                alignment: Alignment.center,
+                child: _ListingPin(
+                  title: marker.title,
+                  isReserved: marker.isReserved,
+                  onTap: widget.onMarkerTap == null
+                      ? null
+                      : () => widget.onMarkerTap!(marker),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    Widget content = map;
+    if (widget.fillParent) {
+      content = SizedBox.expand(child: map);
+    }
+
+    if (!widget.showBorder) {
+      return content;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius - 2),
+        child: content,
       ),
     );
   }

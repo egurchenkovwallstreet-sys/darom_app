@@ -45,16 +45,18 @@ class _MainShellState extends State<MainShell> {
 
     return MidnightGlowScreen(
       bottomNavigationBar: Container(
+        clipBehavior: Clip.none,
         decoration: BoxDecoration(
           color: const Color(0xFF001F3F).withOpacity(0.95),
           border: Border(
             top: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.25)),
           ),
         ),
-        padding: EdgeInsets.only(top: 4, bottom: bottomInset > 0 ? bottomInset - 2 : 4),
+        padding: EdgeInsets.only(top: 14, bottom: bottomInset > 0 ? bottomInset : 8),
         child: SizedBox(
-          height: 50,
+          height: 58,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               _NavItem(
                 icon: Icons.home_rounded,
@@ -172,31 +174,70 @@ class _NavAddItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = selected ? const Color(0xFF00BFFF) : const Color(0xFF80DEEA);
+
     return Expanded(
-      child: Transform.translate(
-        offset: const Offset(0, -8),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.add_circle_rounded,
-                size: 34,
-                color: selected ? const Color(0xFF00BFFF) : const Color(0xFF80DEEA),
+      child: SizedBox(
+        height: 58,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.bottomCenter,
+          children: [
+            Positioned(
+              top: -18,
+              child: Material(
+                elevation: 10,
+                shadowColor: const Color(0xFF00BFFF).withOpacity(0.55),
+                shape: const CircleBorder(),
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onTap,
+                  customBorder: const CircleBorder(),
+                  child: Ink(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: selected
+                            ? const [Color(0xFF66D9FF), Color(0xFF00BFFF), Color(0xFF0088CC)]
+                            : const [Color(0xFF9AE6FF), Color(0xFF80DEEA), Color(0xFF4DB6AC)],
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.45),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: accent.withOpacity(0.45),
+                          blurRadius: 14,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.add_rounded,
+                      color: Colors.white,
+                      size: 34,
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 1),
-              Text(
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
                 'Добавить',
                 style: TextStyle(
                   fontSize: 10,
-                  color: selected ? const Color(0xFF00BFFF) : const Color(0xFF80DEEA),
+                  color: accent,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

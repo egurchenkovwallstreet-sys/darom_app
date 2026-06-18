@@ -13,6 +13,7 @@ import '../widgets/osm_map_widget.dart';
 import '../theme/app_colors.dart';
 import 'subcategories_screen.dart';
 import 'listing_screen.dart';
+import 'nearby_map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -236,6 +237,27 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     ).then((_) => _loadFavoriteIds());
+  }
+
+  void _openFullMap() {
+    if (_loadingLocation) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NearbyMapScreen(
+          position: _position,
+          radiusKm: _currentRadiusKm,
+          zoom: _currentRadiusKm <= 2 ? 14 : 12,
+          markers: _mapMarkers,
+          listings: _nearbyListings,
+          isApproximateLocation: _locationHint != null,
+          phoneNumber: widget.phoneNumber,
+          userId: widget.userId,
+          favoriteIds: _favoriteIds,
+        ),
+      ),
+    );
   }
 
   List<MapMarker> _spreadOverlappingMarkers(List<MapMarker> markers) {
@@ -707,16 +729,51 @@ class _HomeScreenState extends State<HomeScreen> {
                                     height: 130,
                                     child: _loadingLocation
                                         ? _buildMapPlaceholder('Определяем местоположение...')
-                                        : OsmMapWidget(
-                                            centerLat: _position.lat,
-                                            centerLng: _position.lng,
-                                            zoom: _currentRadiusKm <= 2 ? 14 : 12,
-                                            radiusKm: _currentRadiusKm,
-                                            markers: _mapMarkers,
-                                            isApproximateLocation: _locationHint != null,
-                                            onMarkerTap: (marker) {
-                                              setState(() => _selectedMarkerId = marker.id);
-                                            },
+                                        : GestureDetector(
+                                            onTap: _openFullMap,
+                                            child: Stack(
+                                              fit: StackFit.expand,
+                                              children: [
+                                                AbsorbPointer(
+                                                  child: OsmMapWidget(
+                                                    centerLat: _position.lat,
+                                                    centerLng: _position.lng,
+                                                    zoom: _currentRadiusKm <= 2 ? 14 : 12,
+                                                    radiusKm: _currentRadiusKm,
+                                                    markers: _mapMarkers,
+                                                    isApproximateLocation: _locationHint != null,
+                                                    interactive: false,
+                                                  ),
+                                                ),
+                                                Positioned(
+                                                  right: 8,
+                                                  top: 8,
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(0xFF001F3F).withOpacity(0.88),
+                                                      borderRadius: BorderRadius.circular(10),
+                                                      border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
+                                                    ),
+                                                    child: const Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(Icons.fullscreen_rounded, color: Color(0xFF00BFFF), size: 16),
+                                                        SizedBox(width: 4),
+                                                        Text(
+                                                          'Открыть',
+                                                          style: TextStyle(
+                                                            color: Color(0xFF00BFFF),
+                                                            fontSize: 11,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                   ),
                           ),
