@@ -19,8 +19,30 @@ class MidnightGlowScreen extends StatefulWidget {
   State<MidnightGlowScreen> createState() => _MidnightGlowScreenState();
 }
 
-class _MidnightGlowScreenState extends State<MidnightGlowScreen> {
+class _MidnightGlowScreenState extends State<MidnightGlowScreen>
+    with SingleTickerProviderStateMixin {
   bool _didPrecacheImage = false;
+  late final AnimationController _planetZoomController;
+  late final Animation<double> _planetZoom;
+
+  @override
+  void initState() {
+    super.initState();
+    _planetZoomController = AnimationController(
+      vsync: this,
+      duration: PlanetAssets.zoomDuration,
+    );
+    _planetZoom = Tween<double>(begin: 1.0, end: PlanetAssets.zoomScale).animate(
+      CurvedAnimation(parent: _planetZoomController, curve: Curves.easeOut),
+    );
+    _planetZoomController.forward();
+  }
+
+  @override
+  void dispose() {
+    _planetZoomController.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -54,12 +76,24 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen> {
                     ),
                   ),
                 ),
-                const Positioned.fill(
-                  child: Image(
-                    image: AssetImage(PlanetAssets.path),
-                    fit: BoxFit.cover,
-                    alignment: PlanetAssets.alignment,
-                    gaplessPlayback: true,
+                Positioned.fill(
+                  child: ClipRect(
+                    child: AnimatedBuilder(
+                      animation: _planetZoom,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: _planetZoom.value,
+                          alignment: PlanetAssets.alignment,
+                          child: child,
+                        );
+                      },
+                      child: const Image(
+                        image: AssetImage(PlanetAssets.path),
+                        fit: BoxFit.cover,
+                        alignment: PlanetAssets.alignment,
+                        gaplessPlayback: true,
+                      ),
+                    ),
                   ),
                 ),
                 Positioned.fill(

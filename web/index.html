@@ -50,6 +50,13 @@
       height: 100%;
       object-fit: cover;
       object-position: left center;
+      transform-origin: left center;
+      animation: splash-planet-zoom 10s ease-out forwards;
+    }
+
+    @keyframes splash-planet-zoom {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
     }
 
     #darom-splash .splash-overlay {

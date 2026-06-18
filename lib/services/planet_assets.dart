@@ -10,6 +10,10 @@ class PlanetAssets {
   /// Левая часть изображения (не центр).
   static const alignment = Alignment(-1.0, 0.0);
 
+  /// Плавное приближение планеты (100% → 110%), якорь — левый край.
+  static const zoomScale = 1.1;
+  static const zoomDuration = Duration(seconds: 10);
+
   static bool isPreloaded = false;
 
   static Future<void> preload() async {
