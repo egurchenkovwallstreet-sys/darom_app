@@ -290,9 +290,11 @@ class _ListingScreenState extends State<ListingScreen> {
         child: Column(
           children: [
             _buildHeader(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ListingPhotoGallery(urls: _listing.photoUrls),
+            Center(
+              child: FractionallySizedBox(
+                widthFactor: 0.8,
+                child: ListingPhotoGallery(urls: _listing.photoUrls),
+              ),
             ),
             const SizedBox(height: 12),
             Expanded(
@@ -524,6 +526,10 @@ class _ListingScreenState extends State<ListingScreen> {
   }
 
   Widget _buildActionButtons() {
+    const ownerSecondaryButtonHeight = 44.0;
+    const ownerSecondaryButtonFontSize = 14.0;
+    const ownerSecondaryButtonRadius = 22.0;
+
     if (_isOwner && _listing.status == 'reserved') {
       return Column(
         children: [
@@ -552,18 +558,18 @@ class _ListingScreenState extends State<ListingScreen> {
           const SizedBox(height: 10),
           PrimaryActionButton(
             label: 'Редактировать',
-            height: 54,
-            fontSize: 17,
-            borderRadius: 27,
+            height: ownerSecondaryButtonHeight,
+            fontSize: ownerSecondaryButtonFontSize,
+            borderRadius: ownerSecondaryButtonRadius,
             gradientColors: PrimaryActionButton.primaryShortGradient,
             onPressed: _editListing,
           ),
           const SizedBox(height: 10),
           PrimaryActionButton(
             label: 'Удалить объявление',
-            height: 54,
-            fontSize: 17,
-            borderRadius: 27,
+            height: ownerSecondaryButtonHeight,
+            fontSize: ownerSecondaryButtonFontSize,
+            borderRadius: ownerSecondaryButtonRadius,
             gradientColors: PrimaryActionButton.dangerGradient,
             onPressed: _deleteListing,
           ),
@@ -576,18 +582,18 @@ class _ListingScreenState extends State<ListingScreen> {
         children: [
           PrimaryActionButton(
             label: 'Редактировать',
-            height: 54,
-            fontSize: 17,
-            borderRadius: 27,
+            height: ownerSecondaryButtonHeight,
+            fontSize: ownerSecondaryButtonFontSize,
+            borderRadius: ownerSecondaryButtonRadius,
             gradientColors: PrimaryActionButton.primaryShortGradient,
             onPressed: _editListing,
           ),
           const SizedBox(height: 10),
           PrimaryActionButton(
             label: 'Удалить объявление',
-            height: 54,
-            fontSize: 17,
-            borderRadius: 27,
+            height: ownerSecondaryButtonHeight,
+            fontSize: ownerSecondaryButtonFontSize,
+            borderRadius: ownerSecondaryButtonRadius,
             gradientColors: PrimaryActionButton.dangerGradient,
             onPressed: _deleteListing,
           ),
