@@ -48,7 +48,9 @@ class _KeyboardInsetPaddingState extends State<KeyboardInsetPadding> {
     final layoutHeight = html.window.innerHeight?.toDouble();
     if (viewport == null || layoutHeight == null) return;
 
-    final visibleBottom = viewport.offsetTop + viewport.height!;
+    final offsetTop = viewport.offsetTop ?? 0.0;
+    final viewportHeight = viewport.height ?? layoutHeight;
+    final visibleBottom = offsetTop + viewportHeight;
     final height = math.max(0.0, layoutHeight - visibleBottom);
 
     if ((height - _keyboardHeight).abs() > 1 && mounted) {
