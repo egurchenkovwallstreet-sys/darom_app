@@ -34,14 +34,26 @@ class PartnerEmailRequestCard extends StatelessWidget {
   const PartnerEmailRequestCard({super.key});
 
   Future<void> _copyEmail(BuildContext context) async {
-    await Clipboard.setData(const ClipboardData(text: kPartnerRequestEmail));
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Адрес почты скопирован'),
-        backgroundColor: Color(0xFF00BFFF),
-      ),
-    );
+    try {
+      await Clipboard.setData(const ClipboardData(text: kPartnerRequestEmail));
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Адрес почты скопирован'),
+          backgroundColor: Color(0xFF00BFFF),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: SelectableText(kPartnerRequestEmail),
+          backgroundColor: const Color(0xFF00BFFF),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
   Future<void> _openEmail(BuildContext context) async {
@@ -87,43 +99,57 @@ class PartnerEmailRequestCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _openEmail(context),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(left: 12, top: 4, bottom: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF00BFFF).withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00BFFF).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.mail_outline, color: Color(0xFF00BFFF)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        kPartnerRequestEmail,
-                        style: const TextStyle(
-                          color: Color(0xFF80DEEA),
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Color(0xFF80DEEA),
+              border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.mail_outline, color: Color(0xFF00BFFF), size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _openEmail(context),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            kPartnerRequestEmail,
+                            maxLines: 1,
+                            style: const TextStyle(
+                              color: Color(0xFF80DEEA),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                              decorationColor: Color(0xFF80DEEA),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                    IconButton(
-                      tooltip: 'Скопировать',
-                      onPressed: () => _copyEmail(context),
-                      icon: const Icon(Icons.copy_rounded, color: Color(0xFF00BFFF)),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _copyEmail(context),
+                    borderRadius: BorderRadius.circular(8),
+                    child: const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Icon(Icons.copy_rounded, color: Color(0xFF00BFFF), size: 22),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 10),

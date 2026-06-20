@@ -145,21 +145,14 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
                 textInputAction: TextInputAction.next,
                 onSubmitted: (_) => _phoneFocus.requestFocus(),
                 style: const TextStyle(
-                  fontSize: 24,
+                  fontSize: 20,
                   color: Color(0xFFFFFFFF),
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 4,
                 ),
-                decoration: InputDecoration(
-                  hintText: '0001',
+                decoration: const InputDecoration(
                   counterText: '',
-                  hintStyle: TextStyle(
-                    color: const Color(0xFFFFFFFF).withOpacity(0.4),
-                    fontSize: 22,
-                    letterSpacing: 4,
-                  ),
                   border: InputBorder.none,
-                  prefixIcon: const Icon(Icons.vpn_key, color: Color(0xFF00BFFF)),
+                  prefixIcon: Icon(Icons.vpn_key, color: Color(0xFF00BFFF)),
                 ),
               ),
             ),

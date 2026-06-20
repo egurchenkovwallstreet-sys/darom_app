@@ -197,20 +197,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     keyboardType: TextInputType.number,
                     maxLength: 4,
                     style: const TextStyle(
-                      fontSize: 22,
+                      fontSize: 20,
                       color: Color(0xFFFFFFFF),
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 4,
                     ),
-                    decoration: InputDecoration(
-                      hintText: '0001',
+                    decoration: const InputDecoration(
                       counterText: '',
-                      hintStyle: TextStyle(
-                        color: const Color(0xFFFFFFFF).withOpacity(0.4),
-                        letterSpacing: 4,
-                      ),
                       border: InputBorder.none,
-                      prefixIcon: const Icon(Icons.handshake, color: Color(0xFF80DEEA)),
+                      prefixIcon: Icon(Icons.handshake, color: Color(0xFF80DEEA)),
                     ),
                   ),
                 ),
