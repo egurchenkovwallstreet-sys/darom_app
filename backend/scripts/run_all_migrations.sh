@@ -15,6 +15,9 @@ MIGRATIONS=(
   migrate_listing_extra_packs.sql
   migrate_favorites_chats.sql
   migrate_avatar.sql
+  migrate_chat_reads.sql
+  migrate_pin_auth.sql
+  migrate_partners.sql
 )
 
 for file in "${MIGRATIONS[@]}"; do

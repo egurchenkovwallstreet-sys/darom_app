@@ -6,6 +6,7 @@ import '../widgets/auth_form_scroll.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import 'pin_login_screen.dart';
+import 'partner_register_screen.dart';
 import 'sms_screen.dart';
 
 class PhoneScreen extends StatefulWidget {
@@ -186,10 +187,36 @@ class _PhoneScreenState extends State<PhoneScreen> {
             ),
           ),
         ),
-        footer: PrimaryActionButton(
-          label: 'Продолжить',
-          loading: _isLoading,
-          onPressed: _continue,
+        footer: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PrimaryActionButton(
+              label: 'Продолжить',
+              loading: _isLoading,
+              onPressed: _continue,
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _isLoading
+                  ? null
+                  : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PartnerRegisterScreen(),
+                        ),
+                      );
+                    },
+              child: const Text(
+                'Я партнёр / блогер',
+                style: TextStyle(
+                  color: Color(0xFF80DEEA),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

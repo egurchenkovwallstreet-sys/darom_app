@@ -16,6 +16,8 @@ class User {
   final int pickupsFreeRemaining;
   final int pickupCredits;
   final String? avatarUrl;
+  final bool isPartner;
+  final String? partnerPublicCode;
 
   const User({
     required this.id,
@@ -35,6 +37,8 @@ class User {
     this.pickupsFreeRemaining = 7,
     this.pickupCredits = 0,
     this.avatarUrl,
+    this.isPartner = false,
+    this.partnerPublicCode,
   });
 
   int get dealsCount => itemsGiven + itemsTaken;
@@ -58,6 +62,8 @@ class User {
       pickupsFreeRemaining: _toInt(json['pickups_free_remaining'], fallback: 7),
       pickupCredits: _toInt(json['pickup_credits']),
       avatarUrl: json['avatar_url'] as String?,
+      isPartner: json['is_partner'] as bool? ?? false,
+      partnerPublicCode: json['partner_public_code'] as String?,
     );
   }
 

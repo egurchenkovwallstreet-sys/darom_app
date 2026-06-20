@@ -11,7 +11,8 @@ const dealsRouter = require('./routes/deals');
 const photosRouter = require('./routes/photos');
 const favoritesRouter = require('./routes/favorites');
 const chatsRouter = require('./routes/chats');
-const deployWebRouter = require('./routes/deploy_web');
+const partnersRouter = require('./routes/partners');
+const adminRouter = require('./routes/admin');
 
 const app = express();
 
@@ -40,6 +41,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/deals', dealsRouter);
 app.use('/api/favorites', favoritesRouter);
 app.use('/api/chats', chatsRouter);
+app.use('/api/partners', partnersRouter);
+app.use('/api/admin', adminRouter);
 app.use('/api/deploy-web', deployWebRouter);
 
 const server = app.listen(config.port, () => {

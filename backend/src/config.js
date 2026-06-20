@@ -28,6 +28,7 @@ const config = {
   },
   deploySecret: process.env.DEPLOY_SECRET || '',
   webRoot: process.env.WEB_ROOT || '/var/www/darom',
+  adminSecret: process.env.ADMIN_SECRET || '',
 };
 
 if (!config.databaseUrl) {

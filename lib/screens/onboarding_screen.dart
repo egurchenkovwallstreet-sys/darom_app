@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import 'phone_screen.dart';
+import 'partner_register_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -138,6 +139,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 }
               },
             ),
+            if (_currentPage == _pages.length - 1) ...[
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PartnerRegisterScreen(),
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Я партнёр / блогер',
+                  style: TextStyle(
+                    color: Color(0xFF80DEEA),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
             SizedBox(height: 20),
           ],
         ),

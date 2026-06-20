@@ -10,11 +10,13 @@ import 'pin_setup_screen.dart';
 class ProfileSetupScreen extends StatefulWidget {
   final String phoneNumber;
   final String verificationToken;
+  final String? partnerActivationCode;
 
   const ProfileSetupScreen({
     super.key,
     required this.phoneNumber,
     required this.verificationToken,
+    this.partnerActivationCode,
   });
 
   @override
@@ -27,10 +29,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final GlobalKey _formKey = GlobalKey();
   final UsersApi _usersApi = UsersApi();
   bool _isSaving = false;
+  bool _showReferralField = false;
+  final TextEditingController _referralController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
+    _referralController.dispose();
     _nameFocus.dispose();
     _usersApi.dispose();
     super.dispose();
@@ -56,6 +61,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       await _usersApi.register(
         phone: widget.phoneNumber,
         name: name,
+        partnerActivationCode: widget.partnerActivationCode,
+        referralCode: widget.partnerActivationCode == null
+            ? _referralController.text.trim()
+            : null,
       );
 
       if (!mounted) return;
@@ -91,7 +100,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     return MidnightGlowScreen(
       child: AuthFormScroll(
         title: 'Как вас зовут?',
-        subtitle: 'Другие пользователи увидят только имя — не номер телефона',
+        subtitle: widget.partnerActivationCode != null
+            ? 'Партнёрский аккаунт — другие увидят только имя'
+            : 'Другие пользователи увидят только имя — не номер телефона',
         compactSubtitle: 'Введите имя для профиля',
         focusNode: _nameFocus,
         formKey: _formKey,
@@ -125,34 +136,77 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             .scale(duration: 2.seconds, curve: Curves.easeInOut)
             .then()
             .scale(duration: 2.seconds, curve: Curves.easeInOut),
-        form: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFF001F3F).withOpacity(0.85),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF00BFFF), width: 3),
-          ),
-          child: TextField(
-            controller: _nameController,
-            focusNode: _nameFocus,
-            textCapitalization: TextCapitalization.words,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _continue(),
-            style: const TextStyle(
-              fontSize: 20,
-              color: Color(0xFFFFFFFF),
-              fontWeight: FontWeight.bold,
-            ),
-            decoration: InputDecoration(
-              hintText: 'Ваше имя',
-              hintStyle: TextStyle(
-                color: const Color(0xFFFFFFFF).withOpacity(0.4),
-                fontSize: 18,
+        form: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF001F3F).withOpacity(0.85),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFF00BFFF), width: 3),
               ),
-              border: InputBorder.none,
-              prefixIcon: const Icon(Icons.badge, color: Color(0xFF00BFFF), size: 24),
+              child: TextField(
+                controller: _nameController,
+                focusNode: _nameFocus,
+                textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _continue(),
+                style: const TextStyle(
+                  fontSize: 20,
+                  color: Color(0xFFFFFFFF),
+                  fontWeight: FontWeight.bold,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Ваше имя',
+                  hintStyle: TextStyle(
+                    color: const Color(0xFFFFFFFF).withOpacity(0.4),
+                    fontSize: 18,
+                  ),
+                  border: InputBorder.none,
+                  prefixIcon: const Icon(Icons.badge, color: Color(0xFF00BFFF), size: 24),
+                ),
+              ),
             ),
-          ),
+            if (widget.partnerActivationCode == null) ...[
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => setState(() => _showReferralField = !_showReferralField),
+                child: Text(
+                  _showReferralField ? 'Скрыть код блогера' : 'Есть код блогера? (необязательно)',
+                  style: const TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
+                ),
+              ),
+              if (_showReferralField)
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF001F3F).withOpacity(0.85),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFF80DEEA), width: 1.5),
+                  ),
+                  child: TextField(
+                    controller: _referralController,
+                    textCapitalization: TextCapitalization.characters,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Color(0xFFFFFFFF),
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Код блогера',
+                      hintStyle: TextStyle(
+                        color: const Color(0xFFFFFFFF).withOpacity(0.4),
+                        letterSpacing: 0,
+                      ),
+                      border: InputBorder.none,
+                      prefixIcon: const Icon(Icons.handshake, color: Color(0xFF80DEEA)),
+                    ),
+                  ),
+                ),
+            ],
+          ],
         ),
         footer: PrimaryActionButton(
           label: 'Продолжить',

@@ -15,14 +15,27 @@ class UsersApi {
   Future<User> register({
     required String phone,
     required String name,
+    String? partnerActivationCode,
+    String? referralCode,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/users');
+
+    final body = <String, dynamic>{
+      'phone': phone,
+      'name': name,
+    };
+    if (partnerActivationCode != null && partnerActivationCode.isNotEmpty) {
+      body['partner_activation_code'] = partnerActivationCode.trim().toUpperCase();
+    }
+    if (referralCode != null && referralCode.trim().isNotEmpty) {
+      body['referral_code'] = referralCode.trim().toUpperCase();
+    }
 
     final response = await _client
         .post(
           uri,
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'phone': phone, 'name': name}),
+          body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 10));
 

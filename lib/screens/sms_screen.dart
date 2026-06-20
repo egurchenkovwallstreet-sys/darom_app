@@ -16,6 +16,7 @@ class SmsScreen extends StatefulWidget {
   final String? debugCode;
   final SmsPurpose purpose;
   final bool resetPinAfterVerify;
+  final String? partnerActivationCode;
 
   const SmsScreen({
     super.key,
@@ -23,6 +24,7 @@ class SmsScreen extends StatefulWidget {
     this.debugCode,
     this.purpose = SmsPurpose.register,
     this.resetPinAfterVerify = false,
+    this.partnerActivationCode,
   });
 
   @override
@@ -124,6 +126,7 @@ class _SmsScreenState extends State<SmsScreen> {
             builder: (context) => ProfileSetupScreen(
               phoneNumber: result.phone,
               verificationToken: result.verificationToken,
+              partnerActivationCode: widget.partnerActivationCode,
             ),
           ),
         );

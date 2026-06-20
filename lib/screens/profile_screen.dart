@@ -9,6 +9,7 @@ import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import 'my_listings_screen.dart';
 import 'onboarding_screen.dart';
+import 'partner_stats_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userName;
@@ -372,6 +373,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ),
                                   ),
                                 ],
+                                if (user.isPartner) ...[
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF80DEEA).withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: const Color(0xFF80DEEA)),
+                                    ),
+                                    child: const Text(
+                                      '🤝 Партнёр',
+                                      style: TextStyle(
+                                        color: Color(0xFF80DEEA),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                                 SizedBox(height: 10),
                                 Container(
                                   padding: EdgeInsets.symmetric(horizontal: 15, vertical: 6),
@@ -552,6 +572,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                   },
                                 ),
+                                if (user.isPartner) ...[
+                                  Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                  _buildSettingsItem(
+                                    Icons.analytics_outlined,
+                                    'Статистика партнёра',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => PartnerStatsScreen(
+                                            phoneNumber: user.phoneNumber,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(Icons.notifications, 'Уведомления'),
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),

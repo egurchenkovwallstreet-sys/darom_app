@@ -18,6 +18,13 @@ const {
   PICKUP_PACK_SIZE,
   PICKUP_PACK_PRICE,
 } = require('../utils/pickup_limits');
+const {
+  validateActivationCode,
+  findPartnerByPublicCode,
+  generateUniquePartnerPublicCode,
+  recordPartnerPayment,
+  normalizePartnerCode,
+} = require('../utils/partner_helpers');
 
 const router = express.Router();
 
@@ -37,6 +44,8 @@ const userFields = `
   listing_extra_packs,
   avatar_url,
   is_shadow_banned,
+  is_partner,
+  partner_public_code,
   created_at
 `;
 
@@ -70,6 +79,8 @@ async function formatUserWithStats(db, row, { includePhone = false } = {}) {
     pickups_free_remaining: pickup.free_remaining,
     pickup_credits: pickup.pickup_credits,
     avatar_url: normalizeAvatarUrl(row.avatar_url) || null,
+    is_partner: row.is_partner ?? false,
+    partner_public_code: row.partner_public_code ?? null,
     created_at: row.created_at,
   };
 
@@ -95,7 +106,12 @@ async function fetchUserByPhone(normalizedPhone) {
 
 // POST /api/users — регистрация или обновление имени
 router.post('/', async (req, res) => {
-  const { phone, name } = req.body;
+  const {
+    phone,
+    name,
+    partner_activation_code: partnerActivationCode,
+    referral_code: referralCode,
+  } = req.body;
 
   if (!phone || !name) {
     return res.status(400).json({ error: 'Нужны phone и name' });
@@ -108,21 +124,75 @@ router.post('/', async (req, res) => {
 
   try {
     const normalizedPhone = normalizePhone(phone);
+    const existing = await fetchUserByPhone(normalizedPhone);
 
-    await db.query(
-      `
-      INSERT INTO users (phone, name, is_founder, phone_verified_at)
-      VALUES ($1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW())
-      ON CONFLICT (phone) DO UPDATE SET
-        name = EXCLUDED.name,
-        phone_verified_at = COALESCE(users.phone_verified_at, NOW())
-      `,
-      [normalizedPhone, trimmedName]
-    );
+    if (partnerActivationCode) {
+      if (existing) {
+        return res.status(400).json({ error: 'Этот номер уже зарегистрирован' });
+      }
+
+      const validation = await validateActivationCode(db, partnerActivationCode);
+      if (!validation.ok) {
+        return res.status(400).json({ error: validation.error });
+      }
+
+      const partnerPublicCode = await generateUniquePartnerPublicCode(db);
+
+      await db.query('BEGIN');
+
+      const inserted = await db.query(
+        `
+        INSERT INTO users (
+          phone, name, is_founder, phone_verified_at, is_partner, partner_public_code
+        )
+        VALUES (
+          $1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), TRUE, $3
+        )
+        RETURNING id
+        `,
+        [normalizedPhone, trimmedName, partnerPublicCode]
+      );
+
+      await db.query(
+        `
+        UPDATE partner_activation_codes
+        SET used_by_user_id = $2, used_at = NOW()
+        WHERE code = $1
+        `,
+        [validation.code, inserted.rows[0].id]
+      );
+
+      await db.query('COMMIT');
+    } else {
+      let referredByPartnerId = null;
+
+      if (referralCode) {
+        const partner = await findPartnerByPublicCode(db, referralCode);
+        if (!partner) {
+          return res.status(400).json({ error: 'Код блогера не найден' });
+        }
+        referredByPartnerId = partner.id;
+      }
+
+      await db.query(
+        `
+        INSERT INTO users (phone, name, is_founder, phone_verified_at, referred_by_partner_id)
+        VALUES ($1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), $3)
+        ON CONFLICT (phone) DO UPDATE SET
+          name = EXCLUDED.name,
+          phone_verified_at = COALESCE(users.phone_verified_at, NOW()),
+          referred_by_partner_id = COALESCE(users.referred_by_partner_id, EXCLUDED.referred_by_partner_id)
+        `,
+        [normalizedPhone, trimmedName, referredByPartnerId]
+      );
+    }
 
     const user = await fetchUserByPhone(normalizedPhone);
     res.status(201).json({ user: await formatUserWithStats(db, user, { includePhone: true }) });
   } catch (error) {
+    try {
+      await db.query('ROLLBACK');
+    } catch (_) {}
     res.status(500).json({ error: error.message });
   }
 });
@@ -176,6 +246,8 @@ router.post('/super-donor', async (req, res) => {
       [normalizedPhone, String(SUPER_DONOR_DAYS)]
     );
 
+    await recordPartnerPayment(db, user.id, 'super_donor', 99);
+
     const updated = await fetchUserByPhone(normalizedPhone);
     const newLimit = getListingLimit(updated);
     res.json({
@@ -207,6 +279,8 @@ router.post('/pickup-pack', async (req, res) => {
       'UPDATE users SET pickup_credits = pickup_credits + $2 WHERE phone = $1',
       [normalizedPhone, PICKUP_PACK_SIZE],
     );
+
+    await recordPartnerPayment(db, user.id, 'pickup_pack', PICKUP_PACK_PRICE);
 
     const updated = await fetchUserByPhone(normalizedPhone);
     res.json({
