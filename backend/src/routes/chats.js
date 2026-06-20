@@ -73,9 +73,41 @@ function mapConversationRow(row, userId) {
       row.listing_status === 'reserved' && row.reserved_by_user_id === userId,
     last_message: row.last_message ?? null,
     last_message_at: row.last_message_at ?? row.updated_at,
+    unread_count: Number(row.unread_count ?? 0),
     created_at: row.created_at,
   };
 }
+
+async function markConversationRead(conversationId, userId) {
+  await db.query(
+    `
+    INSERT INTO conversation_reads (conversation_id, user_id, last_read_at)
+    VALUES (
+      $1,
+      $2,
+      COALESCE(
+        (SELECT MAX(created_at) FROM chat_messages WHERE conversation_id = $1),
+        NOW()
+      )
+    )
+    ON CONFLICT (conversation_id, user_id)
+    DO UPDATE SET last_read_at = EXCLUDED.last_read_at
+    `,
+    [conversationId, userId]
+  );
+}
+
+const unreadCountSelect = `
+  COALESCE((
+    SELECT COUNT(*)::int
+    FROM chat_messages cm
+    LEFT JOIN conversation_reads cr
+      ON cr.conversation_id = cm.conversation_id AND cr.user_id = $1
+    WHERE cm.conversation_id = c.id
+      AND cm.sender_id != $1
+      AND cm.created_at > COALESCE(cr.last_read_at, TIMESTAMPTZ '1970-01-01')
+  ), 0) AS unread_count
+`;
 
 // GET /api/chats?phone=
 router.get('/', async (req, res) => {
@@ -107,7 +139,8 @@ router.get('/', async (req, res) => {
         du.name AS donor_name,
         ru.name AS recipient_name,
         lm.body AS last_message,
-        lm.created_at AS last_message_at
+        lm.created_at AS last_message_at,
+        ${unreadCountSelect}
       FROM conversations c
       JOIN listings l ON l.id = c.listing_id
       JOIN users du ON du.id = c.donor_id
@@ -127,7 +160,45 @@ router.get('/', async (req, res) => {
 
     res.json({
       items: result.rows.map((row) => mapConversationRow(row, user.id)),
+      total_unread: result.rows.reduce(
+        (sum, row) => sum + Number(row.unread_count ?? 0),
+        0
+      ),
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/chats/unread-summary?phone= — только число для бейджа в меню
+router.get('/unread-summary', async (req, res) => {
+  const { phone } = req.query;
+
+  if (!phone) {
+    return res.status(400).json({ error: 'Нужен параметр phone' });
+  }
+
+  try {
+    const user = await getUserByPhone(db, normalizePhone(phone));
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const result = await db.query(
+      `
+      SELECT COUNT(*)::int AS total_unread
+      FROM chat_messages cm
+      JOIN conversations c ON c.id = cm.conversation_id
+      LEFT JOIN conversation_reads cr
+        ON cr.conversation_id = c.id AND cr.user_id = $1
+      WHERE (c.donor_id = $1 OR c.recipient_id = $1)
+        AND cm.sender_id != $1
+        AND cm.created_at > COALESCE(cr.last_read_at, TIMESTAMPTZ '1970-01-01')
+      `,
+      [user.id]
+    );
+
+    res.json({ total_unread: result.rows[0]?.total_unread ?? 0 });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -236,6 +307,33 @@ router.get('/:id/messages', async (req, res) => {
       conversation: mapConversationRow(conversation, user.id),
       messages: result.rows,
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/chats/:id/read { phone } — отметить чат прочитанным
+router.post('/:id/read', async (req, res) => {
+  const { phone } = req.body;
+  const { id } = req.params;
+
+  if (!phone) {
+    return res.status(400).json({ error: 'Нужен phone' });
+  }
+
+  try {
+    const user = await getUserByPhone(db, normalizePhone(phone));
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const conversation = await getConversationForUser(id, user.id);
+    if (!conversation) {
+      return res.status(404).json({ error: 'Чат не найден' });
+    }
+
+    await markConversationRead(id, user.id);
+    res.json({ ok: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

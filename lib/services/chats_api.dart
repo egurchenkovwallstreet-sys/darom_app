@@ -34,6 +34,36 @@ class ChatsApi {
         .toList();
   }
 
+  Future<int> fetchUnreadSummary({required String phone}) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/chats/unread-summary').replace(
+      queryParameters: {'phone': phone},
+    );
+
+    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      return 0;
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return (data['total_unread'] as num?)?.toInt() ?? 0;
+  }
+
+  Future<void> markConversationRead({
+    required String phone,
+    required String conversationId,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/chats/$conversationId/read');
+
+    await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'phone': phone}),
+        )
+        .timeout(const Duration(seconds: 10));
+  }
+
   Future<Conversation> startConversation({
     required String phone,
     required String listingId,

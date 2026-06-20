@@ -121,6 +121,11 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         _messages = merged;
       });
 
+      await _api.markConversationRead(
+        phone: widget.phoneNumber,
+        conversationId: _conversation.id,
+      );
+
       if (initial || data.messages.isNotEmpty) {
         _scrollToBottom();
       }

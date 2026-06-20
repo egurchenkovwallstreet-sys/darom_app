@@ -11,6 +11,7 @@ class Conversation {
   final bool isReservedByMe;
   final String? lastMessage;
   final DateTime? lastMessageAt;
+  final int unreadCount;
 
   const Conversation({
     required this.id,
@@ -25,6 +26,7 @@ class Conversation {
     this.isReservedByMe = false,
     this.lastMessage,
     this.lastMessageAt,
+    this.unreadCount = 0,
   });
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class Conversation {
       isReservedByMe: json['is_reserved_by_me'] as bool? ?? false,
       lastMessage: json['last_message'] as String?,
       lastMessageAt: _parseDate(json['last_message_at']),
+      unreadCount: _parseInt(json['unread_count']),
     );
   }
 
@@ -50,6 +53,7 @@ class Conversation {
     bool? isReservedByMe,
     String? lastMessage,
     DateTime? lastMessageAt,
+    int? unreadCount,
   }) {
     return Conversation(
       id: id,
@@ -64,7 +68,15 @@ class Conversation {
       isReservedByMe: isReservedByMe ?? this.isReservedByMe,
       lastMessage: lastMessage ?? this.lastMessage,
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+      unreadCount: unreadCount ?? this.unreadCount,
     );
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString()) ?? 0;
   }
 
   static DateTime? _parseDate(dynamic value) {

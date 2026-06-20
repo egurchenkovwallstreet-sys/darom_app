@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'add_listing_screen.dart';
@@ -5,6 +7,8 @@ import 'chats_screen.dart';
 import 'favorites_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
+import '../services/chats_api.dart';
+import '../services/refresh_intervals.dart';
 import '../widgets/midnight_glow_screen.dart';
 
 /// Главная оболочка приложения с нижним меню на всех вкладках.
@@ -28,15 +32,45 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   late int _currentIndex;
+  final ChatsApi _chatsApi = ChatsApi();
+  int _unreadChatCount = 0;
+  Timer? _unreadPollTimer;
+  bool _unreadLoadInFlight = false;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _refreshUnreadCount();
+    _unreadPollTimer = Timer.periodic(RefreshIntervals.chats, (_) => _refreshUnreadCount());
+  }
+
+  @override
+  void dispose() {
+    _unreadPollTimer?.cancel();
+    _chatsApi.dispose();
+    super.dispose();
+  }
+
+  Future<void> _refreshUnreadCount() async {
+    if (_unreadLoadInFlight) return;
+    _unreadLoadInFlight = true;
+    try {
+      final count = await _chatsApi.fetchUnreadSummary(phone: widget.phoneNumber);
+      if (!mounted || count == _unreadChatCount) return;
+      setState(() => _unreadChatCount = count);
+    } catch (_) {
+      // Бейдж необязателен — не ломаем меню при ошибке сети.
+    } finally {
+      _unreadLoadInFlight = false;
+    }
   }
 
   void _onTabTap(int index) {
     setState(() => _currentIndex = index);
+    if (index == 3) {
+      _refreshUnreadCount();
+    }
   }
 
   @override
@@ -78,6 +112,7 @@ class _MainShellState extends State<MainShell> {
                 icon: Icons.chat_bubble_rounded,
                 label: 'Чаты',
                 selected: _currentIndex == 3,
+                badgeCount: _unreadChatCount,
                 onTap: () => _onTabTap(3),
               ),
               _NavItem(
@@ -133,16 +168,19 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.badgeCount = 0,
   });
 
   final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
     final color = selected ? const Color(0xFF00BFFF) : const Color(0xFF80DEEA);
+    final badgeLabel = badgeCount > 99 ? '99+' : '$badgeCount';
 
     return Expanded(
       child: InkWell(
@@ -150,7 +188,36 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 22, color: color),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon, size: 22, color: color),
+                if (badgeCount > 0)
+                  Positioned(
+                    right: -10,
+                    top: -6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF5722),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFF001F3F), width: 1.5),
+                      ),
+                      child: Text(
+                        badgeLabel,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          height: 1.1,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(height: 2),
             Text(
               label,

@@ -282,12 +282,35 @@ class _ChatsScreenState extends State<ChatsScreen> {
                         ],
                       ),
                     ),
-                    Text(
-                      _formatTime(chat.lastMessageAt),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: const Color(0xFFFFFFFF).withOpacity(0.5),
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          _formatTime(chat.lastMessageAt),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: const Color(0xFFFFFFFF).withOpacity(0.5),
+                          ),
+                        ),
+                        if (chat.unreadCount > 0) ...[
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF5722),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              chat.unreadCount > 99 ? '99+' : '${chat.unreadCount}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
