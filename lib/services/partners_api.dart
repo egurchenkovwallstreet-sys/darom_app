@@ -66,7 +66,8 @@ class PartnerStats {
     required this.referredUsers,
     required this.paymentsCount,
     required this.totalPaymentsRub,
-    required this.payoutRub,
+    required this.payoutRubMonth,
+    required this.payoutRubTotal,
     required this.commissionPercent,
     required this.referralTtlDays,
   });
@@ -76,7 +77,8 @@ class PartnerStats {
   final int referredUsers;
   final int paymentsCount;
   final int totalPaymentsRub;
-  final int payoutRub;
+  final int payoutRubMonth;
+  final int payoutRubTotal;
   final int commissionPercent;
   final int referralTtlDays;
 
@@ -90,7 +92,12 @@ class PartnerStats {
       referredUsers: (stats['referred_users'] as num?)?.toInt() ?? 0,
       paymentsCount: (stats['payments_count'] as num?)?.toInt() ?? 0,
       totalPaymentsRub: (stats['total_payments_rub'] as num?)?.toInt() ?? 0,
-      payoutRub: (stats['payout_rub'] as num?)?.toInt() ?? 0,
+      payoutRubMonth: (stats['payout_rub_month'] as num?)?.toInt()
+          ?? (stats['payout_rub'] as num?)?.toInt()
+          ?? 0,
+      payoutRubTotal: (stats['payout_rub_total'] as num?)?.toInt()
+          ?? (stats['payout_rub'] as num?)?.toInt()
+          ?? 0,
       commissionPercent: (stats['commission_percent'] as num?)?.toInt() ?? 30,
       referralTtlDays: (stats['referral_ttl_days'] as num?)?.toInt() ?? 365,
     );

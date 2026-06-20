@@ -124,18 +124,26 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                         ),
                         const SizedBox(height: 12),
                         _statCard(
-                          icon: Icons.account_balance_wallet_rounded,
-                          title: 'К выплате (${stats.commissionPercent}%)',
-                          value: '${stats.payoutRub} ₽',
-                          subtitle: '${stats.commissionPercent}% от оплат активных рефералов за ${stats.referralTtlDays} дней',
+                          icon: Icons.calendar_month_rounded,
+                          title: 'К выплате за месяц (${stats.commissionPercent}%)',
+                          value: '${stats.payoutRubMonth} ₽',
+                          subtitle: 'обнуляется после ежемесячной выплаты',
                           accent: true,
+                        ),
+                        const SizedBox(height: 12),
+                        _statCard(
+                          icon: Icons.account_balance_wallet_rounded,
+                          title: 'Всего заработано',
+                          value: '${stats.payoutRubTotal} ₽',
+                          subtitle: 'за всё время, сумма не обнуляется',
                         ),
                         const SizedBox(height: 20),
                         Text(
                           'Делитесь кодом ${stats.partnerPublicCode ?? ''} при регистрации. '
                           'Реферал привязан к вам ${stats.referralTtlDays} дней — '
                           'вы получаете ${stats.commissionPercent}% со всех его оплат в этот период. '
-                          'После ${stats.referralTtlDays} дней реферал отключается.',
+                          'После ${stats.referralTtlDays} дней реферал отключается. '
+                          'Выплаты партнёрам — раз в месяц.',
                           style: TextStyle(
                             color: const Color(0xFFFFFFFF).withOpacity(0.65),
                             height: 1.45,

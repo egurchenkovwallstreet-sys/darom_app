@@ -154,8 +154,7 @@ async function fetchPartnerStats(db, partnerId) {
     `
     SELECT
       COUNT(*)::int AS payments_count,
-      COALESCE(SUM(pp.amount_rub), 0)::int AS total_payments_rub,
-      COALESCE(SUM(pp.partner_commission_rub), 0)::int AS payout_rub
+      COALESCE(SUM(pp.amount_rub), 0)::int AS total_payments_rub
     FROM partner_payments pp
     INNER JOIN users u ON u.id = pp.user_id
     WHERE pp.partner_id = $1
@@ -164,6 +163,25 @@ async function fetchPartnerStats(db, partnerId) {
       AND pp.created_at <= u.referred_at + ($2::int * INTERVAL '1 day')
     `,
     [partnerId, REFERRAL_TTL_DAYS]
+  );
+
+  const pendingPayoutResult = await db.query(
+    `
+    SELECT COALESCE(SUM(partner_commission_rub), 0)::int AS payout_rub_month
+    FROM partner_payments
+    WHERE partner_id = $1
+      AND paid_out_at IS NULL
+    `,
+    [partnerId]
+  );
+
+  const totalPayoutResult = await db.query(
+    `
+    SELECT COALESCE(SUM(partner_commission_rub), 0)::int AS payout_rub_total
+    FROM partner_payments
+    WHERE partner_id = $1
+    `,
+    [partnerId]
   );
 
   const partnerResult = await db.query(
@@ -179,10 +197,34 @@ async function fetchPartnerStats(db, partnerId) {
     referred_users: usersResult.rows[0]?.referred_users ?? 0,
     payments_count: paymentsResult.rows[0]?.payments_count ?? 0,
     total_payments_rub: paymentsResult.rows[0]?.total_payments_rub ?? 0,
-    payout_rub: paymentsResult.rows[0]?.payout_rub ?? 0,
+    payout_rub_month: pendingPayoutResult.rows[0]?.payout_rub_month ?? 0,
+    payout_rub_total: totalPayoutResult.rows[0]?.payout_rub_total ?? 0,
     commission_percent: COMMISSION_PERCENT,
     referral_ttl_days: REFERRAL_TTL_DAYS,
     partner_public_code: partnerResult.rows[0]?.partner_public_code ?? null,
+  };
+}
+
+async function markPartnerPayoutComplete(db, partnerId) {
+  const result = await db.query(
+    `
+    UPDATE partner_payments
+    SET paid_out_at = NOW()
+    WHERE partner_id = $1
+      AND paid_out_at IS NULL
+    RETURNING partner_commission_rub
+    `,
+    [partnerId]
+  );
+
+  const paidRub = result.rows.reduce(
+    (sum, row) => sum + (row.partner_commission_rub ?? 0),
+    0
+  );
+
+  return {
+    paid_rub: paidRub,
+    payments_settled: result.rowCount,
   };
 }
 
@@ -216,6 +258,7 @@ module.exports = {
   recordPartnerPayment,
   fetchPartnerStats,
   fetchPartnerCodeStatus,
+  markPartnerPayoutComplete,
   calcCommission,
   isUserReferralActive,
 };

@@ -20,6 +20,7 @@ MIGRATIONS=(
   migrate_partners.sql
   migrate_partner_sequential_codes.sql
   migrate_partner_referral_365.sql
+  migrate_partner_payout_period.sql
 )
 
 for file in "${MIGRATIONS[@]}"; do
