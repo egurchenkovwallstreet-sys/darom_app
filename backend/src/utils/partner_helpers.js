@@ -1,5 +1,11 @@
 const COMMISSION_PERCENT = Number(process.env.PARTNER_COMMISSION_PERCENT) || 30;
+const REFERRAL_TTL_DAYS = Number(process.env.PARTNER_REFERRAL_DAYS) || 365;
 const MAX_PARTNER_SEQUENCE = 1000;
+
+const ACTIVE_REFERRAL_SQL = `
+  u.referred_at IS NOT NULL
+  AND u.referred_at + ($2::int * INTERVAL '1 day') > NOW()
+`;
 
 function normalizePartnerCode(code) {
   const digits = String(code ?? '').replace(/\D/g, '');
@@ -88,13 +94,34 @@ function calcCommission(amountRub) {
   return Math.floor((amountRub * COMMISSION_PERCENT) / 100);
 }
 
-async function recordPartnerPayment(db, userId, paymentType, amountRub) {
-  const userResult = await db.query(
-    'SELECT referred_by_partner_id FROM users WHERE id = $1',
-    [userId]
+async function isUserReferralActive(db, userId) {
+  const result = await db.query(
+    `
+    SELECT referred_by_partner_id AS partner_id
+    FROM users u
+    WHERE u.id = $1
+      AND u.referred_by_partner_id IS NOT NULL
+      AND u.referred_at IS NOT NULL
+      AND u.referred_at + ($2::int * INTERVAL '1 day') > NOW()
+    `,
+    [userId, REFERRAL_TTL_DAYS]
   );
-  const partnerId = userResult.rows[0]?.referred_by_partner_id;
-  if (!partnerId) return null;
+
+  if (result.rowCount === 0) {
+    return { active: false, partnerId: null };
+  }
+
+  return {
+    active: true,
+    partnerId: result.rows[0].partner_id,
+  };
+}
+
+async function recordPartnerPayment(db, userId, paymentType, amountRub) {
+  const referral = await isUserReferralActive(db, userId);
+  if (!referral.active || !referral.partnerId) {
+    return null;
+  }
 
   const commission = calcCommission(amountRub);
 
@@ -106,32 +133,37 @@ async function recordPartnerPayment(db, userId, paymentType, amountRub) {
     VALUES ($1, $2, $3, $4, $5)
     RETURNING id, partner_commission_rub
     `,
-    [userId, partnerId, paymentType, amountRub, commission]
+    [userId, referral.partnerId, paymentType, amountRub, commission]
   );
 
-  return inserted.rows[0];
+  return inserted.rows[0] ?? null;
 }
 
 async function fetchPartnerStats(db, partnerId) {
   const usersResult = await db.query(
     `
     SELECT COUNT(*)::int AS referred_users
-    FROM users
-    WHERE referred_by_partner_id = $1
+    FROM users u
+    WHERE u.referred_by_partner_id = $1
+      AND ${ACTIVE_REFERRAL_SQL}
     `,
-    [partnerId]
+    [partnerId, REFERRAL_TTL_DAYS]
   );
 
   const paymentsResult = await db.query(
     `
     SELECT
       COUNT(*)::int AS payments_count,
-      COALESCE(SUM(amount_rub), 0)::int AS total_payments_rub,
-      COALESCE(SUM(partner_commission_rub), 0)::int AS payout_rub
-    FROM partner_payments
-    WHERE partner_id = $1
+      COALESCE(SUM(pp.amount_rub), 0)::int AS total_payments_rub,
+      COALESCE(SUM(pp.partner_commission_rub), 0)::int AS payout_rub
+    FROM partner_payments pp
+    INNER JOIN users u ON u.id = pp.user_id
+    WHERE pp.partner_id = $1
+      AND u.referred_at IS NOT NULL
+      AND ${ACTIVE_REFERRAL_SQL}
+      AND pp.created_at <= u.referred_at + ($2::int * INTERVAL '1 day')
     `,
-    [partnerId]
+    [partnerId, REFERRAL_TTL_DAYS]
   );
 
   const partnerResult = await db.query(
@@ -149,6 +181,7 @@ async function fetchPartnerStats(db, partnerId) {
     total_payments_rub: paymentsResult.rows[0]?.total_payments_rub ?? 0,
     payout_rub: paymentsResult.rows[0]?.payout_rub ?? 0,
     commission_percent: COMMISSION_PERCENT,
+    referral_ttl_days: REFERRAL_TTL_DAYS,
     partner_public_code: partnerResult.rows[0]?.partner_public_code ?? null,
   };
 }
@@ -174,6 +207,7 @@ async function fetchPartnerCodeStatus(db) {
 
 module.exports = {
   COMMISSION_PERCENT,
+  REFERRAL_TTL_DAYS,
   MAX_PARTNER_SEQUENCE,
   normalizePartnerCode,
   getNextAvailableActivationCode,
@@ -183,4 +217,5 @@ module.exports = {
   fetchPartnerStats,
   fetchPartnerCodeStatus,
   calcCommission,
+  isUserReferralActive,
 };

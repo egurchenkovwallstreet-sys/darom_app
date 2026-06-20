@@ -19,6 +19,7 @@ MIGRATIONS=(
   migrate_pin_auth.sql
   migrate_partners.sql
   migrate_partner_sequential_codes.sql
+  migrate_partner_referral_365.sql
 )
 
 for file in "${MIGRATIONS[@]}"; do

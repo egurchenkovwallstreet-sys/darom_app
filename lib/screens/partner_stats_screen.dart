@@ -111,29 +111,31 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                         ],
                         _statCard(
                           icon: Icons.people_alt_rounded,
-                          title: 'Зарегистрировались по вашей ссылке',
+                          title: 'Активные рефералы',
                           value: '${stats.referredUsers}',
-                          subtitle: 'пользователей',
+                          subtitle: 'привязаны к вам в течение ${stats.referralTtlDays} дней',
                         ),
                         const SizedBox(height: 12),
                         _statCard(
                           icon: Icons.payments_rounded,
-                          title: 'Оплат от ваших пользователей',
+                          title: 'Оплат от активных рефералов',
                           value: '${stats.paymentsCount}',
-                          subtitle: 'на сумму ${stats.totalPaymentsRub} ₽',
+                          subtitle: 'на сумму ${stats.totalPaymentsRub} ₽ за ${stats.referralTtlDays} дней',
                         ),
                         const SizedBox(height: 12),
                         _statCard(
                           icon: Icons.account_balance_wallet_rounded,
                           title: 'К выплате (${stats.commissionPercent}%)',
                           value: '${stats.payoutRub} ₽',
-                          subtitle: 'расчёт от оплат привлечённых пользователей',
+                          subtitle: '${stats.commissionPercent}% от оплат активных рефералов за ${stats.referralTtlDays} дней',
                           accent: true,
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Делитесь своим кодом ${stats.partnerPublicCode ?? ''} при регистрации — '
-                          'так пользователи будут привязаны к вам.',
+                          'Делитесь кодом ${stats.partnerPublicCode ?? ''} при регистрации. '
+                          'Реферал привязан к вам ${stats.referralTtlDays} дней — '
+                          'вы получаете ${stats.commissionPercent}% со всех его оплат в этот период. '
+                          'После ${stats.referralTtlDays} дней реферал отключается.',
                           style: TextStyle(
                             color: const Color(0xFFFFFFFF).withOpacity(0.65),
                             height: 1.45,

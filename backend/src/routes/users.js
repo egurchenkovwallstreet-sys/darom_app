@@ -175,12 +175,21 @@ router.post('/', async (req, res) => {
 
       await db.query(
         `
-        INSERT INTO users (phone, name, is_founder, phone_verified_at, referred_by_partner_id)
-        VALUES ($1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), $3)
+        INSERT INTO users (
+          phone, name, is_founder, phone_verified_at, referred_by_partner_id, referred_at
+        )
+        VALUES (
+          $1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), $3,
+          CASE WHEN $3 IS NOT NULL THEN NOW() ELSE NULL END
+        )
         ON CONFLICT (phone) DO UPDATE SET
           name = EXCLUDED.name,
           phone_verified_at = COALESCE(users.phone_verified_at, NOW()),
-          referred_by_partner_id = COALESCE(users.referred_by_partner_id, EXCLUDED.referred_by_partner_id)
+          referred_by_partner_id = COALESCE(users.referred_by_partner_id, EXCLUDED.referred_by_partner_id),
+          referred_at = COALESCE(
+            users.referred_at,
+            CASE WHEN EXCLUDED.referred_by_partner_id IS NOT NULL THEN NOW() ELSE NULL END
+          )
         `,
         [normalizedPhone, trimmedName, referredByPartnerId]
       );

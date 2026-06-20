@@ -68,6 +68,7 @@ class PartnerStats {
     required this.totalPaymentsRub,
     required this.payoutRub,
     required this.commissionPercent,
+    required this.referralTtlDays,
   });
 
   final String partnerName;
@@ -77,6 +78,7 @@ class PartnerStats {
   final int totalPaymentsRub;
   final int payoutRub;
   final int commissionPercent;
+  final int referralTtlDays;
 
   factory PartnerStats.fromJson(Map<String, dynamic> json) {
     final partner = json['partner'] as Map<String, dynamic>? ?? {};
@@ -90,6 +92,7 @@ class PartnerStats {
       totalPaymentsRub: (stats['total_payments_rub'] as num?)?.toInt() ?? 0,
       payoutRub: (stats['payout_rub'] as num?)?.toInt() ?? 0,
       commissionPercent: (stats['commission_percent'] as num?)?.toInt() ?? 30,
+      referralTtlDays: (stats['referral_ttl_days'] as num?)?.toInt() ?? 365,
     );
   }
 }
