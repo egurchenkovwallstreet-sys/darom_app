@@ -10,6 +10,8 @@ import '../widgets/primary_action_button.dart';
 import 'my_listings_screen.dart';
 import 'onboarding_screen.dart';
 import 'partner_stats_screen.dart';
+import 'admin_dashboard_screen.dart';
+import 'admin_login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userName;
@@ -107,6 +109,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const OnboardingScreen()),
       (_) => false,
+    );
+  }
+
+  void _openAdminPanel(String phoneNumber) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AdminLoginScreen(
+          prefilledPhone: phoneNumber,
+          showBackButton: true,
+          onLoggedIn: (session) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AdminDashboardScreen(
+                  session: session,
+                  showBackToApp: true,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -587,6 +612,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       );
                                     },
+                                  ),
+                                ],
+                                if (user.canAccessAdminPanel) ...[
+                                  Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                  _buildSettingsItem(
+                                    Icons.admin_panel_settings_outlined,
+                                    'Админ-панель',
+                                    onTap: () => _openAdminPanel(user.phoneNumber),
                                   ),
                                 ],
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),

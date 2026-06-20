@@ -8,9 +8,14 @@ import '../widgets/primary_action_button.dart';
 import 'admin_login_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
-  const AdminDashboardScreen({super.key, required this.session});
+  const AdminDashboardScreen({
+    super.key,
+    required this.session,
+    this.showBackToApp = false,
+  });
 
   final AdminSessionData session;
+  final bool showBackToApp;
 
   @override
   State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
@@ -189,6 +194,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         backgroundColor: AppColors.darkBlue,
         foregroundColor: Colors.white,
         title: const Text('Админ-панель «Даром»'),
+        leading: widget.showBackToApp
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         actions: [
           IconButton(onPressed: _loadAll, icon: const Icon(Icons.refresh)),
           IconButton(onPressed: _logout, icon: const Icon(Icons.logout)),

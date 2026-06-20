@@ -152,10 +152,24 @@ function requireAdminRole(session, allowedRoles) {
   return allowedRoles.includes(session.role);
 }
 
+async function checkAdminAccessByPhone(dbConn, phoneRaw) {
+  const phone = normalizePhone(phoneRaw);
+  if (!phone) return false;
+
+  await ensureSuperAdmin(dbConn);
+
+  const result = await dbConn.query(
+    'SELECT 1 FROM admin_users WHERE phone = $1 AND is_active = TRUE LIMIT 1',
+    [phone]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
 module.exports = {
   startAdminLogin,
   verifyAdminLogin,
   getAdminSession,
   requireAdminRole,
   ensureSuperAdmin,
+  checkAdminAccessByPhone,
 };

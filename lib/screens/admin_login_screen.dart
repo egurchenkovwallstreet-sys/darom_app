@@ -9,9 +9,18 @@ import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 
 class AdminLoginScreen extends StatefulWidget {
-  const AdminLoginScreen({super.key, required this.onLoggedIn});
+  const AdminLoginScreen({
+    super.key,
+    required this.onLoggedIn,
+    this.prefilledPhone,
+    this.showBackButton = false,
+  });
 
   final void Function(AdminSessionData session) onLoggedIn;
+
+  /// Если задан — телефон уже известен (вход из профиля админа).
+  final String? prefilledPhone;
+  final bool showBackButton;
 
   @override
   State<AdminLoginScreen> createState() => _AdminLoginScreenState();
@@ -19,7 +28,7 @@ class AdminLoginScreen extends StatefulWidget {
 
 class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final AdminApi _api = AdminApi();
-  final TextEditingController _phoneController = TextEditingController(text: '+7');
+  late final TextEditingController _phoneController;
   final TextEditingController _smsController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
@@ -27,6 +36,19 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   bool _codesSent = false;
   String? _normalizedPhone;
   String? _emailHint;
+
+  bool get _fromProfile => widget.prefilledPhone != null && widget.prefilledPhone!.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneController = TextEditingController(
+      text: _fromProfile ? widget.prefilledPhone! : '+7',
+    );
+    if (_fromProfile) {
+      _normalizedPhone = widget.prefilledPhone;
+    }
+  }
 
   @override
   void dispose() {
@@ -41,7 +63,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     if (_loading) return;
     setState(() => _loading = true);
     try {
-      final result = await _api.startLogin(phone: _phoneController.text);
+      final phone = _fromProfile ? widget.prefilledPhone! : _phoneController.text;
+      final result = await _api.startLogin(phone: phone);
       if (!mounted) return;
       setState(() {
         _loading = false;
@@ -101,11 +124,22 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         title: 'Админ-панель',
         subtitle: _codesSent
             ? 'Коды отправлены на телефон и ${_emailHint ?? 'почту'}'
-            : 'Двухфакторный вход: SMS + код с почты',
+            : _fromProfile
+                ? 'Подтвердите доступ: SMS + код с почты'
+                : 'Двухфакторный вход: SMS + код с почты',
+        leading: widget.showBackButton
+            ? Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back, color: AppColors.cyan),
+                ),
+              )
+            : null,
         form: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (!_codesSent)
+            if (!_fromProfile && !_codesSent)
               TextField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
@@ -121,7 +155,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   ),
                 ),
               )
-            else ...[
+            else if (_codesSent) ...[
               TextField(
                 controller: _smsController,
                 keyboardType: TextInputType.number,

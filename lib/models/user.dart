@@ -18,6 +18,7 @@ class User {
   final String? avatarUrl;
   final bool isPartner;
   final String? partnerPublicCode;
+  final bool canAccessAdminPanel;
 
   const User({
     required this.id,
@@ -39,6 +40,7 @@ class User {
     this.avatarUrl,
     this.isPartner = false,
     this.partnerPublicCode,
+    this.canAccessAdminPanel = false,
   });
 
   int get dealsCount => itemsGiven + itemsTaken;
@@ -64,6 +66,7 @@ class User {
       avatarUrl: json['avatar_url'] as String?,
       isPartner: json['is_partner'] as bool? ?? false,
       partnerPublicCode: json['partner_public_code'] as String?,
+      canAccessAdminPanel: json['can_access_admin_panel'] as bool? ?? false,
     );
   }
 

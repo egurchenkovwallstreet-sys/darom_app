@@ -24,6 +24,7 @@ const {
   recordPartnerPayment,
   normalizePartnerCode,
 } = require('../utils/partner_helpers');
+const { checkAdminAccessByPhone } = require('../utils/admin_auth');
 
 const router = express.Router();
 
@@ -85,6 +86,7 @@ async function formatUserWithStats(db, row, { includePhone = false } = {}) {
 
   if (includePhone) {
     user.phone = row.phone;
+    user.can_access_admin_panel = await checkAdminAccessByPhone(db, row.phone);
   }
 
   return user;
