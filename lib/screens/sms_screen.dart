@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/auth_api.dart';
+import '../widgets/auth_form_scroll.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/pin_code_fields.dart';
 import '../widgets/primary_action_button.dart';
@@ -30,6 +31,8 @@ class SmsScreen extends StatefulWidget {
 
 class _SmsScreenState extends State<SmsScreen> {
   final AuthApi _authApi = AuthApi();
+  final FocusNode _codeFocus = FocusNode();
+  final GlobalKey _formKey = GlobalKey();
   bool _isVerifying = false;
   final _controllers = PinCodeFields.createControllers();
 
@@ -55,6 +58,7 @@ class _SmsScreenState extends State<SmsScreen> {
     for (final c in _controllers) {
       c.dispose();
     }
+    _codeFocus.dispose();
     _authApi.dispose();
     super.dispose();
   }
@@ -179,65 +183,48 @@ class _SmsScreenState extends State<SmsScreen> {
         : 'Код для регистрации отправлен на ${widget.phoneNumber}';
 
     return MidnightGlowScreen(
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(30),
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF001F3F),
-                      const Color(0xFF008C8C).withOpacity(0.3),
-                    ],
-                  ),
-                  border: Border.all(color: const Color(0xFF00BFFF), width: 5),
-                ),
-                child: const Icon(Icons.sms, size: 60, color: Color(0xFF00BFFF)),
-              ),
-              const SizedBox(height: 40),
-              const Text(
-                'Введите код из SMS',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFFFFFFF),
-                ),
-              ),
-              const SizedBox(height: 15),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: const Color(0xFFFFFFFF).withOpacity(0.7),
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 40),
-              PinCodeFields(controllers: _controllers, onCompleted: _verify),
-              const SizedBox(height: 24),
-              TextButton(
-                onPressed: _resend,
-                child: const Text(
-                  'Отправить код ещё раз',
-                  style: TextStyle(color: Color(0xFF00BFFF)),
-                ),
-              ),
-              const SizedBox(height: 24),
-              PrimaryActionButton(
-                label: 'Подтвердить',
-                loading: _isVerifying,
-                onPressed: _verify,
-              ),
-            ],
+      child: AuthFormScroll(
+        title: 'Введите код из SMS',
+        subtitle: subtitle,
+        compactSubtitle: 'Введите 4 цифры из сообщения',
+        focusNode: _codeFocus,
+        formKey: _formKey,
+        leading: Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF001F3F),
+                const Color(0xFF008C8C).withOpacity(0.3),
+              ],
+            ),
+            border: Border.all(color: const Color(0xFF00BFFF), width: 5),
           ),
+          child: const Icon(Icons.sms, size: 60, color: Color(0xFF00BFFF)),
+        ),
+        form: PinCodeFields(
+          controllers: _controllers,
+          firstFocusNode: _codeFocus,
+          onCompleted: _verify,
+        ),
+        footer: Column(
+          children: [
+            TextButton(
+              onPressed: _resend,
+              child: const Text(
+                'Отправить код ещё раз',
+                style: TextStyle(color: Color(0xFF00BFFF)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            PrimaryActionButton(
+              label: 'Подтвердить',
+              loading: _isVerifying,
+              onPressed: _verify,
+            ),
+          ],
         ),
       ),
     );

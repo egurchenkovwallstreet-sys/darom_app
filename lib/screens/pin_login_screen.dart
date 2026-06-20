@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_api.dart';
 import '../services/session_service.dart';
 import '../services/users_api.dart';
+import '../widgets/auth_form_scroll.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/pin_code_fields.dart';
 import '../widgets/primary_action_button.dart';
@@ -26,6 +27,8 @@ class PinLoginScreen extends StatefulWidget {
 class _PinLoginScreenState extends State<PinLoginScreen> {
   final AuthApi _authApi = AuthApi();
   final UsersApi _usersApi = UsersApi();
+  final FocusNode _pinFocus = FocusNode();
+  final GlobalKey _formKey = GlobalKey();
   final _controllers = PinCodeFields.createControllers();
   bool _isLoading = false;
   bool _obscure = true;
@@ -35,6 +38,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
     for (final c in _controllers) {
       c.dispose();
     }
+    _pinFocus.dispose();
     _authApi.dispose();
     _usersApi.dispose();
     super.dispose();
@@ -129,63 +133,49 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return MidnightGlowScreen(
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(30),
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              const Icon(Icons.lock, size: 72, color: Color(0xFF00BFFF)),
-              const SizedBox(height: 24),
-              const Text(
-                'Введите пароль',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFFFFFFF),
-                ),
+      child: AuthFormScroll(
+        title: 'Введите пароль',
+        subtitle: widget.infoMessage ??
+            '4 цифры, которые вы задали при регистрации',
+        compactSubtitle: '4 цифры для входа',
+        focusNode: _pinFocus,
+        formKey: _formKey,
+        leading: const Icon(Icons.lock, size: 72, color: Color(0xFF00BFFF)),
+        form: Column(
+          children: [
+            PinCodeFields(
+              controllers: _controllers,
+              firstFocusNode: _pinFocus,
+              obscure: _obscure,
+              onCompleted: _login,
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => setState(() => _obscure = !_obscure),
+              child: Text(
+                _obscure ? 'Показать цифры' : 'Скрыть цифры',
+                style: const TextStyle(color: Color(0xFF00BFFF)),
               ),
-              const SizedBox(height: 12),
-              Text(
-                widget.infoMessage ??
-                    '4 цифры, которые вы задали при регистрации',
+            ),
+          ],
+        ),
+        footer: Column(
+          children: [
+            PrimaryActionButton(
+              label: 'Войти',
+              loading: _isLoading,
+              onPressed: _login,
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _isLoading ? null : _goToSmsReverify,
+              child: const Text(
+                'Забыли пароль? Подтвердить номер по SMS',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: const Color(0xFFFFFFFF).withOpacity(0.7),
-                ),
+                style: TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
               ),
-              const SizedBox(height: 36),
-              PinCodeFields(
-                controllers: _controllers,
-                obscure: _obscure,
-                onCompleted: _login,
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => setState(() => _obscure = !_obscure),
-                child: Text(
-                  _obscure ? 'Показать цифры' : 'Скрыть цифры',
-                  style: const TextStyle(color: Color(0xFF00BFFF)),
-                ),
-              ),
-              const SizedBox(height: 24),
-              PrimaryActionButton(
-                label: 'Войти',
-                loading: _isLoading,
-                onPressed: _login,
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: _isLoading ? null : _goToSmsReverify,
-                child: const Text(
-                  'Забыли пароль? Подтвердить номер по SMS',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

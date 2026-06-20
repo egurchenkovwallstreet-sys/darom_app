@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_api.dart';
 import '../services/session_service.dart';
 import '../services/users_api.dart';
+import '../widgets/auth_form_scroll.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/pin_code_fields.dart';
 import '../widgets/primary_action_button.dart';
@@ -27,6 +28,8 @@ class PinSetupScreen extends StatefulWidget {
 class _PinSetupScreenState extends State<PinSetupScreen> {
   final AuthApi _authApi = AuthApi();
   final UsersApi _usersApi = UsersApi();
+  final FocusNode _pinFocus = FocusNode();
+  final GlobalKey _formKey = GlobalKey();
   final _pinControllers = PinCodeFields.createControllers();
   final _confirmControllers = PinCodeFields.createControllers();
   bool _isSaving = false;
@@ -40,6 +43,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     for (final c in _confirmControllers) {
       c.dispose();
     }
+    _pinFocus.dispose();
     _authApi.dispose();
     _usersApi.dispose();
     super.dispose();
@@ -102,61 +106,46 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final subtitle = widget.userName != null
+        ? '${widget.userName}, введите 4 цифры для входа в приложение'
+        : '4 цифры — для входа без SMS';
+
     return MidnightGlowScreen(
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(30),
-          child: Column(
-            children: [
-              const SizedBox(height: 30),
-              const Icon(Icons.lock_outline, size: 72, color: Color(0xFF00BFFF)),
-              const SizedBox(height: 24),
-              const Text(
-                'Придумайте пароль',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFFFFFFF),
-                ),
+      child: AuthFormScroll(
+        title: 'Придумайте пароль',
+        subtitle: subtitle,
+        compactSubtitle: 'Введите и повторите 4 цифры',
+        focusNode: _pinFocus,
+        formKey: _formKey,
+        leading: const Icon(Icons.lock_outline, size: 72, color: Color(0xFF00BFFF)),
+        form: Column(
+          children: [
+            PinCodeFields(
+              controllers: _pinControllers,
+              firstFocusNode: _pinFocus,
+              obscure: _obscure,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Повторите пароль',
+              style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            PinCodeFields(controllers: _confirmControllers, obscure: _obscure),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => setState(() => _obscure = !_obscure),
+              child: Text(
+                _obscure ? 'Показать цифры' : 'Скрыть цифры',
+                style: const TextStyle(color: Color(0xFF00BFFF)),
               ),
-              const SizedBox(height: 12),
-              Text(
-                widget.userName != null
-                    ? '${widget.userName}, введите 4 цифры для входа в приложение'
-                    : '4 цифры — для входа без SMS',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: const Color(0xFFFFFFFF).withOpacity(0.7),
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 32),
-              PinCodeFields(controllers: _pinControllers, obscure: _obscure),
-              const SizedBox(height: 20),
-              const Text(
-                'Повторите пароль',
-                style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 16),
-              ),
-              const SizedBox(height: 12),
-              PinCodeFields(controllers: _confirmControllers, obscure: _obscure),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => setState(() => _obscure = !_obscure),
-                child: Text(
-                  _obscure ? 'Показать цифры' : 'Скрыть цифры',
-                  style: const TextStyle(color: Color(0xFF00BFFF)),
-                ),
-              ),
-              const SizedBox(height: 24),
-              PrimaryActionButton(
-                label: 'Сохранить пароль',
-                loading: _isSaving,
-                onPressed: _savePin,
-              ),
-            ],
-          ),
+            ),
+          ],
+        ),
+        footer: PrimaryActionButton(
+          label: 'Сохранить пароль',
+          loading: _isSaving,
+          onPressed: _savePin,
         ),
       ),
     );

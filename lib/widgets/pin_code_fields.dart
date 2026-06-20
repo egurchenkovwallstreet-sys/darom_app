@@ -6,11 +6,13 @@ class PinCodeFields extends StatelessWidget {
   const PinCodeFields({
     super.key,
     required this.controllers,
+    this.firstFocusNode,
     this.obscure = false,
     this.onCompleted,
   });
 
   final List<TextEditingController> controllers;
+  final FocusNode? firstFocusNode;
   final bool obscure;
   final VoidCallback? onCompleted;
 
@@ -29,6 +31,7 @@ class PinCodeFields extends StatelessWidget {
           ),
           child: TextField(
             controller: controllers[index],
+            focusNode: index == 0 ? firstFocusNode : null,
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             obscureText: obscure,
