@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import '../data/app_categories.dart';
 import '../models/listing.dart';
 import '../services/listings_api.dart';
 import '../services/location_service.dart';
@@ -60,16 +61,15 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
   bool get _isEditing => widget.editingListing != null;
 
-  final Map<String, List<String>> _subcategories = {
-    'Одежда': ['Мужская', 'Женская', 'Детская', 'Обувь', 'Аксессуары'],
-    'Мебель': ['Гостиная', 'Спальня', 'Кухня', 'Офис', 'Детская'],
-    'Детское': ['Коляски', 'Автокресла', 'Игрушки', 'Одежда', 'Книги'],
-    'Электроника': ['Телефоны', 'Компьютеры', 'Планшеты', 'Аудио', 'Бытовая техника'],
-    'Книги': ['Художественная', 'Учебная', 'Научная', 'Детская', 'Комиксы'],
-    'Посуда': ['Кастрюли', 'Тарелки', 'Чашки', 'Столовые приборы', 'Контейнеры'],
-    'Спорт': ['Велосипеды', 'Тренажеры', 'Инвентарь', 'Одежда', 'Туризм'],
-    'Другое': ['Разное', 'Стройматериалы', 'Коллекционное', 'Товары для дома', 'Прочее'],
-  };
+  Map<String, List<String>> get _subcategories => AppCategories.listingSubcategoryMap;
+
+  List<String> get _currentSubcategoryOptions {
+    final options = List<String>.from(_subcategories[_selectedCategory] ?? const []);
+    if (!options.contains(_selectedSubcategory)) {
+      options.insert(0, _selectedSubcategory);
+    }
+    return options;
+  }
 
   @override
   void initState() {
@@ -78,8 +78,12 @@ class _AddListingScreenState extends State<AddListingScreen> {
     if (existing != null) {
       _titleController.text = existing.title;
       _descriptionController.text = existing.description;
-      _selectedCategory = existing.category;
-      _selectedSubcategory = existing.subcategory;
+      final normalized = AppCategories.normalizeLegacy(
+        category: existing.category,
+        subcategory: existing.subcategory,
+      );
+      _selectedCategory = normalized.category;
+      _selectedSubcategory = normalized.subcategory;
       _existingPhotoUrls = List<String>.from(existing.photoUrls);
     }
   }
@@ -445,7 +449,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                       icon: Icon(Icons.arrow_drop_down, color: Color(0xFF008C8C)),
-                                      items: _subcategories[_selectedCategory]!.map((String subcategory) {
+                                      items: _currentSubcategoryOptions.map((String subcategory) {
                                         return DropdownMenuItem<String>(
                                           value: subcategory,
                                           child: Text(subcategory),

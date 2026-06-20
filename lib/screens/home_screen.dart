@@ -10,6 +10,7 @@ import '../services/favorites_api.dart';
 import '../services/listings_api.dart';
 import '../services/location_service.dart';
 import '../services/refresh_intervals.dart';
+import '../data/app_categories.dart';
 import '../services/users_api.dart';
 import '../widgets/avatar_image.dart';
 import '../widgets/listing_tile_card.dart';
@@ -79,14 +80,8 @@ class _HomeScreenState extends State<HomeScreen> {
   static const List<double> _radiusKmValues = [1, 2, 5, 10, 50];
   final List<String> _radiusLabels = ['1 км', '2 км', '5 км', '10 км', 'Весь город'];
   static const List<String> _radiusButtonLabels = ['1', '2', '5', '10', 'Город'];
-  final List<String> _categories = [
-    'Одежда', 'Мебель', 'Детское', 'Электроника',
-    'Книги', 'Посуда', 'Спорт', 'Другое',
-  ];
-  final List<IconData> _categoryIcons = [
-    Icons.checkroom, Icons.chair, Icons.toys, Icons.smartphone,
-    Icons.menu_book, Icons.restaurant, Icons.fitness_center, Icons.category,
-  ];
+  final List<String> _categories = AppCategories.categoryNames;
+  final List<IconData> _categoryIcons = AppCategories.all.map((c) => c.icon).toList();
 
   @override
   void initState() {

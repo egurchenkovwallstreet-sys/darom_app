@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+
+import '../data/app_categories.dart';
 import '../theme/app_colors.dart';
 import '../widgets/midnight_glow_screen.dart';
 import 'listings_feed_screen.dart';
@@ -9,6 +11,7 @@ class SubcategoriesScreen extends StatefulWidget {
   final Color categoryColor;
   final String phoneNumber;
   final String? currentUserId;
+  final String? nestedGroup;
 
   const SubcategoriesScreen({
     super.key,
@@ -16,6 +19,7 @@ class SubcategoriesScreen extends StatefulWidget {
     required this.categoryColor,
     required this.phoneNumber,
     this.currentUserId,
+    this.nestedGroup,
   });
 
   @override
@@ -23,177 +27,138 @@ class SubcategoriesScreen extends StatefulWidget {
 }
 
 class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
-  final Map<String, List<Map<String, dynamic>>> _subcategories = {
-    'Одежда': [
-      {'name': 'Мужская', 'icon': Icons.man, 'count': 124},
-      {'name': 'Женская', 'icon': Icons.woman, 'count': 256},
-      {'name': 'Детская', 'icon': Icons.child_care, 'count': 89},
-      {'name': 'Обувь', 'icon': Icons.directions_walk, 'count': 67},
-      {'name': 'Аксессуары', 'icon': Icons.watch, 'count': 45},
-    ],
-    'Мебель': [
-      {'name': 'Гостиная', 'icon': Icons.weekend, 'count': 34},
-      {'name': 'Спальня', 'icon': Icons.bed, 'count': 28},
-      {'name': 'Кухня', 'icon': Icons.kitchen, 'count': 42},
-      {'name': 'Офис', 'icon': Icons.business_center, 'count': 19},
-      {'name': 'Детская', 'icon': Icons.toys, 'count': 15},
-    ],
-    'Детское': [
-      {'name': 'Коляски', 'icon': Icons.stroller, 'count': 23},
-      {'name': 'Автокресла', 'icon': Icons.event_seat, 'count': 18},
-      {'name': 'Игрушки', 'icon': Icons.toys, 'count': 156},
-      {'name': 'Одежда', 'icon': Icons.checkroom, 'count': 89},
-      {'name': 'Книги', 'icon': Icons.menu_book, 'count': 67},
-    ],
-    'Электроника': [
-      {'name': 'Телефоны', 'icon': Icons.phone_android, 'count': 45},
-      {'name': 'Компьютеры', 'icon': Icons.computer, 'count': 32},
-      {'name': 'Планшеты', 'icon': Icons.tablet_android, 'count': 21},
-      {'name': 'Аудио', 'icon': Icons.headphones, 'count': 38},
-      {'name': 'Бытовая техника', 'icon': Icons.microwave, 'count': 56},
-    ],
-    'Книги': [
-      {'name': 'Художественная', 'icon': Icons.auto_stories, 'count': 78},
-      {'name': 'Учебная', 'icon': Icons.school, 'count': 45},
-      {'name': 'Научная', 'icon': Icons.science, 'count': 34},
-      {'name': 'Детская', 'icon': Icons.child_friendly, 'count': 56},
-      {'name': 'Комиксы', 'icon': Icons.draw, 'count': 23},
-    ],
-    'Посуда': [
-      {'name': 'Кастрюли', 'icon': Icons.soup_kitchen, 'count': 23},
-      {'name': 'Тарелки', 'icon': Icons.rice_bowl, 'count': 34},
-      {'name': 'Чашки', 'icon': Icons.local_cafe, 'count': 45},
-      {'name': 'Столовые приборы', 'icon': Icons.dinner_dining, 'count': 28},
-      {'name': 'Контейнеры', 'icon': Icons.inventory_2, 'count': 19},
-    ],
-    'Спорт': [
-      {'name': 'Велосипеды', 'icon': Icons.pedal_bike, 'count': 12},
-      {'name': 'Тренажеры', 'icon': Icons.fitness_center, 'count': 18},
-      {'name': 'Инвентарь', 'icon': Icons.sports, 'count': 34},
-      {'name': 'Одежда', 'icon': Icons.checkroom, 'count': 45},
-      {'name': 'Туризм', 'icon': Icons.terrain, 'count': 23},
-    ],
-    'Другое': [
-      {'name': 'Разное', 'icon': Icons.category, 'count': 234},
-      {'name': 'Стройматериалы', 'icon': Icons.construction, 'count': 67},
-      {'name': 'Коллекционное', 'icon': Icons.museum, 'count': 23},
-      {'name': 'Товары для дома', 'icon': Icons.home, 'count': 89},
-      {'name': 'Прочее', 'icon': Icons.more_horiz, 'count': 156},
-    ],
-  };
+  List<AppSubcategory> get _subcategories {
+    return AppCategories.subcategoriesFor(
+      widget.categoryName,
+      nestedGroup: widget.nestedGroup,
+    );
+  }
 
-  List<Map<String, dynamic>> _getSubcategories() {
-    return _subcategories[widget.categoryName] ?? [
-      {'name': 'Все подкатегории', 'icon': Icons.category, 'count': 0},
-    ];
+  String get _screenTitle {
+    if (widget.nestedGroup != null) {
+      return '${widget.categoryName} · ${widget.nestedGroup}';
+    }
+    return widget.categoryName;
   }
 
   @override
   Widget build(BuildContext context) {
-    final subcategories = _getSubcategories();
-    
+    final subcategories = _subcategories;
+
     return MidnightGlowScreen(
       child: SafeArea(
-              child: Column(
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: Row(
                 children: [
-                  // Шапка
-                  Container(
-                    padding: EdgeInsets.all(20),
-                    child: Row(
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 45,
+                      height: 45,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF001F3F).withOpacity(0.85),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                      ),
+                      child: const Icon(Icons.arrow_back, color: Color(0xFF00BFFF)),
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 45,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: Color(0xFF001F3F).withOpacity(0.85),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Color(0xFF00BFFF), width: 2),
-                            ),
-                            child: Icon(Icons.arrow_back, color: Color(0xFF00BFFF)),
-                          ),
-                        ),
-                        SizedBox(width: 15),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.categoryName,
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFFFFFF),
-                                  shadows: [
-                                    Shadow(
-                                      color: AppColors.categoryIcon.withOpacity(0.6),
-                                      offset: Offset(0, 4),
-                                      blurRadius: 8,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                '${subcategories.length} подкатегорий',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFFFFFFFF).withOpacity(0.7),
-                                ),
+                        Text(
+                          _screenTitle,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFFFFFFFF),
+                            shadows: [
+                              Shadow(
+                                color: AppColors.categoryIcon.withOpacity(0.6),
+                                offset: const Offset(0, 4),
+                                blurRadius: 8,
                               ),
                             ],
+                          ),
+                        ),
+                        Text(
+                          '${subcategories.length} подкатегорий',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: const Color(0xFFFFFFFF).withOpacity(0.7),
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  // Список подкатегорий
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        children: [
-                          SizedBox(height: 10),
-                          ...List.generate(
-                            subcategories.length,
-                            (index) => _buildSubcategoryCard(
-                              subcategories[index],
-                              index,
-                            ),
-                          ),
-                          SizedBox(height: 20),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    ...List.generate(
+                      subcategories.length,
+                      (index) => _buildSubcategoryCard(subcategories[index], index),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSubcategoryCard(Map<String, dynamic> subcategory, int index) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ListingsFeedScreen(
-              categoryName: widget.categoryName,
-              subcategoryName: subcategory['name'] as String,
-              categoryColor: AppColors.categoryIcon,
-              phoneNumber: widget.phoneNumber,
-              currentUserId: widget.currentUserId,
-            ),
+  void _onSubcategoryTap(AppSubcategory subcategory) {
+    if (subcategory.hasChildren) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SubcategoriesScreen(
+            categoryName: widget.categoryName,
+            categoryColor: widget.categoryColor,
+            phoneNumber: widget.phoneNumber,
+            currentUserId: widget.currentUserId,
+            nestedGroup: subcategory.name,
           ),
-        );
-      },
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ListingsFeedScreen(
+          categoryName: widget.categoryName,
+          subcategoryName: subcategory.resolveListingSubcategory(),
+          categoryColor: AppColors.categoryIcon,
+          phoneNumber: widget.phoneNumber,
+          currentUserId: widget.currentUserId,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubcategoryCard(AppSubcategory subcategory, int index) {
+    return GestureDetector(
+      onTap: () => _onSubcategoryTap(subcategory),
       child: Container(
-        margin: EdgeInsets.only(bottom: 12),
-        padding: EdgeInsets.all(20),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Color(0xFF001F3F).withOpacity(0.85),
+          color: const Color(0xFF001F3F).withOpacity(0.85),
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
             color: AppColors.categoryIcon,
@@ -203,7 +168,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
             BoxShadow(
               color: AppColors.categoryIcon.withOpacity(0.2),
               blurRadius: 10,
-              offset: Offset(0, 5),
+              offset: const Offset(0, 5),
             ),
           ],
         ),
@@ -217,38 +182,41 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                subcategory['icon'] as IconData,
+                subcategory.icon,
                 size: 35,
                 color: AppColors.categoryIcon,
               ),
             ),
-            SizedBox(width: 15),
+            const SizedBox(width: 15),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    subcategory['name'] as String,
-                    style: TextStyle(
+                    subcategory.name,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFFFFFFFF),
                     ),
                   ),
-                  SizedBox(height: 5),
-                  Text(
-                    '${subcategory['count']} объявлений',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFFFFFFFF).withOpacity(0.6),
+                  if (subcategory.hasChildren)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5),
+                      child: Text(
+                        '${subcategory.children!.length} разделов',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: const Color(0xFFFFFFFF).withOpacity(0.6),
+                        ),
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
             Icon(
-              Icons.arrow_forward_ios,
-              color: Color(0xFFFFFFFF).withOpacity(0.4),
+              subcategory.hasChildren ? Icons.arrow_forward_ios : Icons.arrow_forward_ios,
+              color: const Color(0xFFFFFFFF).withOpacity(0.4),
               size: 20,
             ),
           ],
@@ -257,9 +225,9 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
           .animate(
             delay: Duration(milliseconds: 200 + (index * 100)),
           )
-          .fadeIn(duration: Duration(milliseconds: 600))
+          .fadeIn(duration: const Duration(milliseconds: 600))
           .slideX(begin: -0.2, end: 0)
-          .scale(begin: Offset(0.95, 0.95), end: Offset(1.0, 1.0)),
+          .scale(begin: const Offset(0.95, 0.95), end: const Offset(1.0, 1.0)),
     );
   }
 }

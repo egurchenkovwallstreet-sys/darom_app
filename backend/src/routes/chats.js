@@ -109,6 +109,40 @@ const unreadCountSelect = `
   ), 0) AS unread_count
 `;
 
+// GET /api/chats/unread-summary?phone= — только число для бейджа в меню
+router.get('/unread-summary', async (req, res) => {
+  const { phone } = req.query;
+
+  if (!phone) {
+    return res.status(400).json({ error: 'Нужен параметр phone' });
+  }
+
+  try {
+    const user = await getUserByPhone(db, normalizePhone(phone));
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const result = await db.query(
+      `
+      SELECT COUNT(*)::int AS total_unread
+      FROM chat_messages cm
+      JOIN conversations c ON c.id = cm.conversation_id
+      LEFT JOIN conversation_reads cr
+        ON cr.conversation_id = c.id AND cr.user_id = $1
+      WHERE (c.donor_id = $1 OR c.recipient_id = $1)
+        AND cm.sender_id != $1
+        AND cm.created_at > COALESCE(cr.last_read_at, TIMESTAMPTZ '1970-01-01')
+      `,
+      [user.id]
+    );
+
+    res.json({ total_unread: result.rows[0]?.total_unread ?? 0 });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/chats?phone=
 router.get('/', async (req, res) => {
   const { phone } = req.query;
@@ -165,40 +199,6 @@ router.get('/', async (req, res) => {
         0
       ),
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET /api/chats/unread-summary?phone= — только число для бейджа в меню
-router.get('/unread-summary', async (req, res) => {
-  const { phone } = req.query;
-
-  if (!phone) {
-    return res.status(400).json({ error: 'Нужен параметр phone' });
-  }
-
-  try {
-    const user = await getUserByPhone(db, normalizePhone(phone));
-    if (!user) {
-      return res.status(404).json({ error: 'Пользователь не найден' });
-    }
-
-    const result = await db.query(
-      `
-      SELECT COUNT(*)::int AS total_unread
-      FROM chat_messages cm
-      JOIN conversations c ON c.id = cm.conversation_id
-      LEFT JOIN conversation_reads cr
-        ON cr.conversation_id = c.id AND cr.user_id = $1
-      WHERE (c.donor_id = $1 OR c.recipient_id = $1)
-        AND cm.sender_id != $1
-        AND cm.created_at > COALESCE(cr.last_read_at, TIMESTAMPTZ '1970-01-01')
-      `,
-      [user.id]
-    );
-
-    res.json({ total_unread: result.rows[0]?.total_unread ?? 0 });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

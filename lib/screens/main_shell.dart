@@ -86,11 +86,11 @@ class _MainShellState extends State<MainShell> {
             top: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.25)),
           ),
         ),
-        padding: EdgeInsets.only(top: 12, bottom: bottomInset > 0 ? bottomInset : 8),
+        padding: EdgeInsets.only(top: 8, bottom: bottomInset > 0 ? bottomInset : 8),
         child: SizedBox(
-          height: 58,
+          height: 62,
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _NavItem(
                 icon: Icons.home_rounded,
@@ -188,42 +188,58 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(icon, size: 22, color: color),
-                if (badgeCount > 0)
-                  Positioned(
-                    right: -10,
-                    top: -6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF5722),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFF001F3F), width: 1.5),
-                      ),
-                      child: Text(
-                        badgeLabel,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          height: 1.1,
+            SizedBox(
+              width: 36,
+              height: 30,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Icon(icon, size: 22, color: color),
+                  if (badgeCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF5722),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white, width: 1.5),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x88000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          badgeLabel,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            height: 1.0,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 2),
             Text(
-              label,
+              badgeCount > 0 ? '$label ($badgeCount)' : label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 10, color: color, fontWeight: selected ? FontWeight.w600 : FontWeight.normal),
+              style: TextStyle(
+                fontSize: 10,
+                color: badgeCount > 0 ? const Color(0xFFFF5722) : color,
+                fontWeight: badgeCount > 0 || selected ? FontWeight.w600 : FontWeight.normal,
+              ),
             ),
           ],
         ),

@@ -35,7 +35,24 @@ class ChatsApi {
   }
 
   Future<int> fetchUnreadSummary({required String phone}) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}/api/chats/unread-summary').replace(
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}/api/chats/unread-summary').replace(
+        queryParameters: {'phone': phone},
+      );
+
+      final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return (data['total_unread'] as num?)?.toInt() ?? 0;
+      }
+    } catch (_) {}
+
+    return _fetchUnreadTotalFromList(phone);
+  }
+
+  Future<int> _fetchUnreadTotalFromList(String phone) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/chats').replace(
       queryParameters: {'phone': phone},
     );
 
@@ -46,7 +63,18 @@ class ChatsApi {
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
-    return (data['total_unread'] as num?)?.toInt() ?? 0;
+    final total = data['total_unread'];
+    if (total is num) {
+      return total.toInt();
+    }
+
+    final items = data['items'] as List<dynamic>? ?? [];
+    var sum = 0;
+    for (final item in items) {
+      final map = item as Map<String, dynamic>;
+      sum += (map['unread_count'] as num?)?.toInt() ?? 0;
+    }
+    return sum;
   }
 
   Future<void> markConversationRead({
