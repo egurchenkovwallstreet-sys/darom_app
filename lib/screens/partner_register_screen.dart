@@ -38,11 +38,11 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
   Future<void> _continue() async {
     if (_isLoading) return;
 
-    final code = _codeController.text.trim();
+    final code = normalizePartnerCode(_codeController.text);
     final rawPhone = _phoneController.text.replaceAll(RegExp(r'\D'), '');
 
-    if (code.length < 4) {
-      _showError('Введите код партнёра от администратора');
+    if (code.isEmpty) {
+      _showError('Введите код партнёра: 0001–1000');
       return;
     }
 
@@ -88,7 +88,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
             phoneNumber: result.phone,
             debugCode: result.debugCode,
             purpose: SmsPurpose.register,
-            partnerActivationCode: code.trim().toUpperCase(),
+            partnerActivationCode: code,
           ),
         ),
       );
@@ -113,7 +113,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
         title: 'Регистрация партнёра',
         subtitle:
             'Для блогеров и партнёров.\n'
-            'Введите код от администратора и номер телефона.',
+            'Введите код от администратора (0001, 0002…) и номер телефона.',
         compactSubtitle: 'Код партнёра и номер телефона',
         focusNode: _codeFocus,
         formKey: _formKey,
@@ -130,21 +130,23 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
               child: TextField(
                 controller: _codeController,
                 focusNode: _codeFocus,
-                textCapitalization: TextCapitalization.characters,
+                keyboardType: TextInputType.number,
+                maxLength: 4,
                 textInputAction: TextInputAction.next,
                 onSubmitted: (_) => _phoneFocus.requestFocus(),
                 style: const TextStyle(
-                  fontSize: 20,
+                  fontSize: 24,
                   color: Color(0xFFFFFFFF),
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
+                  letterSpacing: 4,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Код партнёра',
+                  hintText: '0001',
+                  counterText: '',
                   hintStyle: TextStyle(
                     color: const Color(0xFFFFFFFF).withOpacity(0.4),
-                    fontSize: 18,
-                    letterSpacing: 0,
+                    fontSize: 22,
+                    letterSpacing: 4,
                   ),
                   border: InputBorder.none,
                   prefixIcon: const Icon(Icons.vpn_key, color: Color(0xFF00BFFF)),

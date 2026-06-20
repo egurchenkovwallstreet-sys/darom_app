@@ -5,6 +5,7 @@ const {
   validateActivationCode,
   fetchPartnerStats,
   normalizePartnerCode,
+  getNextAvailableActivationCode,
 } = require('../utils/partner_helpers');
 
 const router = express.Router();
@@ -27,7 +28,21 @@ router.post('/validate-activation-code', async (req, res) => {
       ok: true,
       code: validation.code,
       label: validation.label ?? null,
+      sequence_num: validation.sequence_num ?? null,
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/partners/next-code — какой код сейчас активен (для администратора в приложении)
+router.get('/next-code', async (_req, res) => {
+  try {
+    const next = await getNextAvailableActivationCode(db);
+    if (!next) {
+      return res.json({ code: null, message: 'Все 1000 кодов использованы' });
+    }
+    res.json({ code: next.code, sequence_num: next.sequence_num });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

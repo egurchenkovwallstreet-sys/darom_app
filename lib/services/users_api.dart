@@ -6,6 +6,7 @@ import 'package:http_parser/http_parser.dart';
 
 import '../models/user.dart';
 import 'api_config.dart';
+import 'partners_api.dart';
 
 class UsersApi {
   UsersApi({http.Client? client}) : _client = client ?? http.Client();
@@ -25,10 +26,10 @@ class UsersApi {
       'name': name,
     };
     if (partnerActivationCode != null && partnerActivationCode.isNotEmpty) {
-      body['partner_activation_code'] = partnerActivationCode.trim().toUpperCase();
+      body['partner_activation_code'] = normalizePartnerCode(partnerActivationCode);
     }
     if (referralCode != null && referralCode.trim().isNotEmpty) {
-      body['referral_code'] = referralCode.trim().toUpperCase();
+      body['referral_code'] = normalizePartnerCode(referralCode);
     }
 
     final response = await _client

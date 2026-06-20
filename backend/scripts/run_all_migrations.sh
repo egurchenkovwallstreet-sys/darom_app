@@ -18,6 +18,7 @@ MIGRATIONS=(
   migrate_chat_reads.sql
   migrate_pin_auth.sql
   migrate_partners.sql
+  migrate_partner_sequential_codes.sql
 )
 
 for file in "${MIGRATIONS[@]}"; do

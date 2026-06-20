@@ -13,6 +13,7 @@ const favoritesRouter = require('./routes/favorites');
 const chatsRouter = require('./routes/chats');
 const partnersRouter = require('./routes/partners');
 const adminRouter = require('./routes/admin');
+const deployWebRouter = require('./routes/deploy_web');
 
 const app = express();
 

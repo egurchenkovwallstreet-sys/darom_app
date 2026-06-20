@@ -4,19 +4,32 @@ import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
 
+String normalizePartnerCode(String code) {
+  final digits = code.replaceAll(RegExp(r'\D'), '');
+  if (digits.isEmpty) return '';
+  final num = int.tryParse(digits);
+  if (num == null || num < 1 || num > 1000) return '';
+  return num.toString().padLeft(4, '0');
+}
+
 class PartnersApi {
   PartnersApi({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
 
   Future<void> validateActivationCode({required String code}) async {
+    final normalized = normalizePartnerCode(code);
+    if (normalized.isEmpty) {
+      throw PartnersApiException('Код партнёра: 4 цифры от 0001 до 1000');
+    }
+
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/partners/validate-activation-code');
 
     final response = await _client
         .post(
           uri,
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'code': code.trim().toUpperCase()}),
+          body: jsonEncode({'code': normalized}),
         )
         .timeout(const Duration(seconds: 10));
 

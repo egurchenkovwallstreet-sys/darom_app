@@ -21,7 +21,6 @@ const {
 const {
   validateActivationCode,
   findPartnerByPublicCode,
-  generateUniquePartnerPublicCode,
   recordPartnerPayment,
   normalizePartnerCode,
 } = require('../utils/partner_helpers');
@@ -136,7 +135,7 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ error: validation.error });
       }
 
-      const partnerPublicCode = await generateUniquePartnerPublicCode(db);
+      const partnerPublicCode = validation.code;
 
       await db.query('BEGIN');
 

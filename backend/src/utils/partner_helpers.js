@@ -1,33 +1,29 @@
-const crypto = require('crypto');
-
 const COMMISSION_PERCENT = Number(process.env.PARTNER_COMMISSION_PERCENT) || 30;
-const PUBLIC_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const MAX_PARTNER_SEQUENCE = 1000;
 
 function normalizePartnerCode(code) {
-  return String(code ?? '').trim().toUpperCase();
+  const digits = String(code ?? '').replace(/\D/g, '');
+  if (!digits) return null;
+
+  const num = parseInt(digits, 10);
+  if (!Number.isFinite(num) || num < 1 || num > MAX_PARTNER_SEQUENCE) {
+    return null;
+  }
+
+  return String(num).padStart(4, '0');
 }
 
-function generatePartnerPublicCode(length = 8) {
-  let result = '';
-  for (let i = 0; i < length; i += 1) {
-    const index = crypto.randomInt(0, PUBLIC_CODE_CHARS.length);
-    result += PUBLIC_CODE_CHARS[index];
-  }
-  return result;
-}
-
-async function generateUniquePartnerPublicCode(db) {
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    const code = generatePartnerPublicCode();
-    const exists = await db.query(
-      'SELECT 1 FROM users WHERE partner_public_code = $1',
-      [code]
-    );
-    if (exists.rowCount === 0) {
-      return code;
-    }
-  }
-  throw new Error('Не удалось сгенерировать код партнёра');
+async function getNextAvailableActivationCode(db) {
+  const result = await db.query(
+    `
+    SELECT code, sequence_num, label
+    FROM partner_activation_codes
+    WHERE used_by_user_id IS NULL
+    ORDER BY sequence_num ASC NULLS LAST, code ASC
+    LIMIT 1
+    `
+  );
+  return result.rows[0] ?? null;
 }
 
 async function findPartnerByPublicCode(db, code) {
@@ -51,7 +47,7 @@ async function getActivationCode(db, code) {
 
   const result = await db.query(
     `
-    SELECT code, label, used_by_user_id, used_at
+    SELECT code, label, used_by_user_id, used_at, sequence_num
     FROM partner_activation_codes
     WHERE code = $1
     `,
@@ -61,14 +57,31 @@ async function getActivationCode(db, code) {
 }
 
 async function validateActivationCode(db, code) {
-  const row = await getActivationCode(db, code);
+  const normalized = normalizePartnerCode(code);
+  if (!normalized) {
+    return { ok: false, error: 'Код партнёра: 4 цифры от 0001 до 1000' };
+  }
+
+  const row = await getActivationCode(db, normalized);
   if (!row) {
     return { ok: false, error: 'Неверный код партнёра' };
   }
   if (row.used_by_user_id) {
     return { ok: false, error: 'Этот код уже использован' };
   }
-  return { ok: true, code: row.code, label: row.label };
+
+  const next = await getNextAvailableActivationCode(db);
+  if (!next) {
+    return { ok: false, error: 'Коды партнёров закончились (лимит 1000)' };
+  }
+  if (next.code !== normalized) {
+    return {
+      ok: false,
+      error: `Сейчас активен код ${next.code}. Следующий откроется после регистрации предыдущего партнёра`,
+    };
+  }
+
+  return { ok: true, code: row.code, label: row.label, sequence_num: row.sequence_num };
 }
 
 function calcCommission(amountRub) {
@@ -140,13 +153,34 @@ async function fetchPartnerStats(db, partnerId) {
   };
 }
 
+async function fetchPartnerCodeStatus(db) {
+  const next = await getNextAvailableActivationCode(db);
+  const usedResult = await db.query(
+    `
+    SELECT COUNT(*)::int AS used_count
+    FROM partner_activation_codes
+    WHERE used_by_user_id IS NOT NULL
+    `
+  );
+
+  return {
+    next_code: next?.code ?? null,
+    next_sequence: next?.sequence_num ?? null,
+    used_count: usedResult.rows[0]?.used_count ?? 0,
+    total_codes: MAX_PARTNER_SEQUENCE,
+    remaining: next ? MAX_PARTNER_SEQUENCE - (usedResult.rows[0]?.used_count ?? 0) : 0,
+  };
+}
+
 module.exports = {
   COMMISSION_PERCENT,
+  MAX_PARTNER_SEQUENCE,
   normalizePartnerCode,
-  generateUniquePartnerPublicCode,
+  getNextAvailableActivationCode,
   findPartnerByPublicCode,
   validateActivationCode,
   recordPartnerPayment,
   fetchPartnerStats,
+  fetchPartnerCodeStatus,
   calcCommission,
 };

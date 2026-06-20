@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../services/users_api.dart';
+import '../services/partners_api.dart';
 import '../widgets/auth_form_scroll.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
@@ -187,18 +188,20 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   ),
                   child: TextField(
                     controller: _referralController,
-                    textCapitalization: TextCapitalization.characters,
+                    keyboardType: TextInputType.number,
+                    maxLength: 4,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 22,
                       color: Color(0xFFFFFFFF),
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
+                      letterSpacing: 4,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Код блогера',
+                      hintText: '0001',
+                      counterText: '',
                       hintStyle: TextStyle(
                         color: const Color(0xFFFFFFFF).withOpacity(0.4),
-                        letterSpacing: 0,
+                        letterSpacing: 4,
                       ),
                       border: InputBorder.none,
                       prefixIcon: const Icon(Icons.handshake, color: Color(0xFF80DEEA)),

@@ -53,8 +53,15 @@ jobs:
 
       - name: Upload to server via API
         run: |
-          curl -f -S --connect-timeout 30 --max-time 120 \
+          HTTP_CODE=$(curl -sS -w "%{http_code}" -o /tmp/deploy-response.txt \
+            --connect-timeout 30 --max-time 120 \
             -X POST \
             -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" \
             -F "archive=@web-build.tar.gz" \
-            "http://${{ secrets.VPS_HOST }}:3000/api/deploy-web"
+            "http://${{ secrets.VPS_HOST }}:3000/api/deploy-web")
+          echo "HTTP $HTTP_CODE"
+          cat /tmp/deploy-response.txt || true
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "❌ Загрузка на сервер не удалась (код $HTTP_CODE). Проверьте: pm2 status, pm2 logs darom-api"
+            exit 1
+          fi
