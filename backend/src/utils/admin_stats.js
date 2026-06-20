@@ -36,7 +36,8 @@ async function fetchPlatformStats(db, period = 'all') {
     `
     SELECT COUNT(*)::int AS cnt
     FROM users
-    WHERE is_super_donor = TRUE AND ${where}
+    WHERE super_donor_until IS NOT NULL
+      AND super_donor_until > NOW()
     `
   );
 

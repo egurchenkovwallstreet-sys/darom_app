@@ -49,33 +49,43 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       _loading = true;
       _error = null;
     });
+
+    final token = widget.session.token;
+    var listingReports = <Map<String, dynamic>>[];
+    var chatReports = <Map<String, dynamic>>[];
+    var stats = <String, dynamic>{};
+    AdminBloggersData? bloggers;
+    String? loadError;
+
     try {
-      final token = widget.session.token;
-      final listingReports = await _api.fetchListingReports(token: token);
-      final chatReports = await _api.fetchChatReports(token: token);
-
-      Map<String, dynamic> stats = {};
-      AdminBloggersData? bloggers;
-      if (widget.session.isSuperAdmin) {
-        stats = await _api.fetchPlatformStats(token: token, period: _period);
-        bloggers = await _api.fetchBloggers(token: token, period: _period);
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _listingReports = listingReports;
-        _chatReports = chatReports;
-        _platformStats = stats;
-        _bloggers = bloggers;
-        _loading = false;
-      });
+      listingReports = await _api.fetchListingReports(token: token);
+      chatReports = await _api.fetchChatReports(token: token);
     } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = '$error';
-      });
+      loadError = '$error';
     }
+
+    if (widget.session.isSuperAdmin) {
+      try {
+        stats = await _api.fetchPlatformStats(token: token, period: _period);
+      } catch (error) {
+        loadError ??= '$error';
+      }
+      try {
+        bloggers = await _api.fetchBloggers(token: token, period: _period);
+      } catch (error) {
+        loadError ??= '$error';
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _listingReports = listingReports;
+      _chatReports = chatReports;
+      _platformStats = stats;
+      _bloggers = bloggers;
+      _loading = false;
+      _error = loadError;
+    });
   }
 
   Future<void> _logout() async {
@@ -197,7 +207,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.cyan))
-          : _error != null
+          : _error != null && _listingReports.isEmpty && _chatReports.isEmpty && _bloggers == null
               ? Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -208,12 +218,26 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     ],
                   ),
                 )
-              : TabBarView(
-                  controller: _tabs,
+              : Column(
                   children: [
-                    _buildReportsTab(),
-                    if (widget.session.isSuperAdmin) _buildStatsTab(),
-                    if (widget.session.isSuperAdmin) _buildBloggersTab(),
+                    if (_error != null)
+                      Material(
+                        color: AppColors.red.withOpacity(0.15),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(_error!, style: const TextStyle(color: AppColors.red, fontSize: 12)),
+                        ),
+                      ),
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabs,
+                        children: [
+                          _buildReportsTab(),
+                          if (widget.session.isSuperAdmin) _buildStatsTab(),
+                          if (widget.session.isSuperAdmin) _buildBloggersTab(),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
     );
