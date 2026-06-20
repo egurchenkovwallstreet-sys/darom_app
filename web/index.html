@@ -75,7 +75,7 @@
       );
     }
 
-    /* Скрытие — через JS: 1 с после появления flutter-view (см. script внизу). */
+    /* Скрытие — через JS: 2 с после появления flutter-view (см. script внизу). */
   </style>
 </head>
 <body>
@@ -89,7 +89,7 @@
       var splash = document.getElementById('darom-splash');
       if (!splash) return;
 
-      var hideDelayMs = 1000;
+      var hideDelayMs = 2000;
       var fadeMs = 350;
       var scheduled = false;
 
