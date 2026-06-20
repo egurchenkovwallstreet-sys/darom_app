@@ -232,6 +232,21 @@ class AppCategories {
     return {for (final c in all) c.name: listingSubcategoriesFor(c.name)};
   }
 
+  /// Число активных объявлений для подкатегории (сумма для вложенных).
+  static int countForSubcategory(
+    AppSubcategory subcategory,
+    Map<String, int> counts,
+  ) {
+    if (subcategory.hasChildren) {
+      var sum = 0;
+      for (final child in subcategory.children!) {
+        sum += counts[child.resolveListingSubcategory()] ?? 0;
+      }
+      return sum;
+    }
+    return counts[subcategory.resolveListingSubcategory()] ?? 0;
+  }
+
   /// Перевод старых категорий (до реструктуризации) в новые.
   static ({String category, String subcategory}) normalizeLegacy({
     required String category,

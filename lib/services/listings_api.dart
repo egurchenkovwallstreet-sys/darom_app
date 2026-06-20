@@ -108,6 +108,27 @@ class ListingsApi {
         .toList();
   }
 
+  Future<Map<String, int>> fetchSubcategoryCounts({
+    required String category,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/listings/subcategory-counts').replace(
+      queryParameters: {'category': category},
+    );
+
+    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      throw ListingsApiException(
+        body['error'] as String? ?? 'Не удалось загрузить счётчики',
+      );
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final raw = data['counts'] as Map<String, dynamic>? ?? {};
+    return raw.map((key, value) => MapEntry(key, (value as num).toInt()));
+  }
+
   Future<List<Listing>> fetchMine({required String phone}) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/listings/mine').replace(
       queryParameters: {'phone': phone},

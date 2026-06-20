@@ -196,6 +196,53 @@ router.get('/search', async (req, res) => {
   }
 });
 
+// GET /api/listings/subcategory-counts?category=... — число активных объявлений по подкатегориям
+router.get('/subcategory-counts', async (req, res) => {
+  const { category } = req.query;
+
+  if (!category) {
+    return res.status(400).json({ error: 'Нужен параметр category' });
+  }
+
+  try {
+    await expireReservations(db);
+
+    const result = await db.query(
+      `
+      SELECT mapped.subcategory, COUNT(*)::int AS count
+      FROM listings l
+      JOIN users u ON u.id = l.user_id
+      CROSS JOIN LATERAL (
+        SELECT CASE
+          WHEN l.category = 'Мебель' THEN 'Мебель — ' || l.subcategory
+          WHEN l.category = 'Посуда' THEN 'Посуда'
+          WHEN l.category = $1 THEN l.subcategory
+          ELSE NULL
+        END AS subcategory
+      ) mapped
+      WHERE l.status IN ('active', 'reserved')
+        AND u.is_shadow_banned = FALSE
+        AND mapped.subcategory IS NOT NULL
+        AND (
+          l.category = $1
+          OR ($1 = 'Для дома' AND l.category IN ('Мебель', 'Посуда'))
+        )
+      GROUP BY mapped.subcategory
+      `,
+      [category]
+    );
+
+    const counts = {};
+    for (const row of result.rows) {
+      counts[row.subcategory] = row.count;
+    }
+
+    res.json({ counts });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/listings?category=...&subcategory=...
 router.get('/', async (req, res) => {
   const { category, subcategory } = req.query;
