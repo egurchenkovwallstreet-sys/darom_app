@@ -449,4 +449,42 @@ router.post('/:id/reserve', async (req, res) => {
   }
 });
 
+// POST /api/chats/:id/report { phone, reason? }
+router.post('/:id/report', async (req, res) => {
+  const { phone, reason } = req.body;
+  const { id } = req.params;
+
+  if (!phone) {
+    return res.status(400).json({ error: 'Нужен phone' });
+  }
+
+  try {
+    const user = await getUserByPhone(db, normalizePhone(phone));
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const conversation = await getConversationForUser(id, user.id);
+    if (!conversation) {
+      return res.status(404).json({ error: 'Чат не найден' });
+    }
+
+    await db.query(
+      `
+      INSERT INTO chat_reports (conversation_id, reporter_id, reason)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (conversation_id, reporter_id) DO UPDATE SET
+        reason = EXCLUDED.reason,
+        status = 'open',
+        created_at = NOW()
+      `,
+      [id, user.id, reason?.trim() || null]
+    );
+
+    res.status(201).json({ ok: true, message: 'Жалоба отправлена модераторам' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

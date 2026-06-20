@@ -6,15 +6,15 @@
 
 ---
 
-## Снимок на 20.06.2026
+## Снимок на 16.06.2026
 
 | | |
 |---|---|
-| **Текущий этап** | **B — сайт на сервере** (GitHub Actions ✅, партнёры ✅) |
+| **Текущий этап** | **B — сайт на сервере** (GitHub Actions ✅, партнёры ✅, админка ✅) |
 | **Backend** | VPS `5.129.243.246:3000`, PM2 `darom-api`, **S3 ✅** |
 | **Flutter** | Сайт http://5.129.243.246/ + разработка ПК `:8080` |
-| **Ядро MVP** | ~**95%** |
-| **Полное ТЗ** | ~**52%** |
+| **Ядро MVP** | ~**96%** |
+| **Полное ТЗ** | ~**54%** |
 | **Пользователь** | новичок, нужны **пошаговые** инструкции |
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
 
@@ -36,7 +36,7 @@
 - **Категории:** «Для дома» (мебель по комнатам), «Строй материалы», «Прочее»; единый справочник `lib/data/app_categories.dart`
 - **Счётчики объявлений** в подкатегориях (live, polling 2 с)
 - **Вход PIN 4 цифры** + SMS раз в ~35 дней (`pin_setup`, `pin_login`)
-- **Клавиатура** не перекрывает поля телефона (`auth_form_scroll.dart`)
+- **Клавиатура** не перекрывает поля (`auth_form_scroll.dart`, `KeyboardInsetPadding` — auth, чат, поиск, создание объявления)
 - **Защита номера в чате:** предупреждение при отправке телефона в сообщении
 - **GitHub Actions:** автодеплой Flutter Web на сервер (`deploy-web.yml`)
 
@@ -54,8 +54,22 @@
 | **30%** со **всех оплат** реферала в период 365 дней | ✅ |
 | После 365 дней реферал не в статистике, новые оплаты не идут | ✅ |
 | Две суммы: **к выплате за месяц** (обнуляется) + **всего заработано** | ✅ |
-| API выплаты админом (`POST /api/admin/partner-payout`) | ✅ (curl) |
-| Вкладка «Блогеры» в админке с кнопкой «Оплатить» | ⏳ запланировано |
+| API выплаты админом (`POST /api/admin/partner-payout`) | ✅ UI + curl |
+| Вкладка «Блогеры» в админке с кнопкой «Оплатить» | ✅ |
+
+### Админ-панель ✅
+| Функция | Статус |
+|---------|--------|
+| URL `/admin` (Flutter Web) | ✅ |
+| Вход 2FA: SMS на +79138931428 + код на e.gurchenkov@yandex.ru | ✅ |
+| Роль **super_admin** (полный доступ) | ✅ |
+| Роль **moderator** (только жалобы/блоки — без монетизации) | ⏳ позже |
+| Жалобы на объявления (с контекстом объявления) | ✅ |
+| Жалобы на чаты (полная переписка) + кнопка в чате | ✅ |
+| Блокировка пользователя/объявления: 1–7 дней или навсегда | ✅ |
+| Статистика платформы (день/неделя/месяц/всего) | ✅ super |
+| Блогеры: следующий код, выплаты, статистика по периодам | ✅ super |
+| Почта SMTP для кодов админа | ⏳ mock (код в логах backend) |
 
 ### Сервер Timeweb
 - VPS `5.129.243.246`, проект `/opt/darom_app`
@@ -83,8 +97,8 @@
 - SMS.ru боевой (`SMS_MOCK=false` + API-ключ)
 - Firebase push, Yandex Vision
 - **Робокасса** (реальная оплата вместо тест-активации)
-- **Админ-панель** (в т.ч. вкладка «Блогеры» + кнопка «Оплатить»)
-- Генерация кодов партнёров через UI админа (пока API/curl)
+- SMTP для кодов админа (сейчас mock — код в логах PM2)
+- Роль модератора (отдельные аккаунты без доступа к деньгам)
 - Android/iOS
 
 ---
@@ -159,6 +173,7 @@ cat backend/db/migrate_partner_sequential_codes.sql | docker exec -i darom_db ps
 cat backend/db/migrate_partner_referral_365.sql | docker exec -i darom_db psql -U darom -d darom
 cat backend/db/migrate_partner_payout_period.sql | docker exec -i darom_db psql -U darom -d darom
 cat backend/db/migrate_pin_auth.sql | docker exec -i darom_db psql -U darom -d darom
+cat backend/db/migrate_admin.sql | docker exec -i darom_db psql -U darom -d darom
 ```
 
 ---
@@ -173,8 +188,17 @@ cat backend/db/migrate_pin_auth.sql | docker exec -i darom_db psql -U darom -d d
 | POST | `/api/partners/validate-activation-code` | Проверка кода партнёра |
 | GET | `/api/partners/stats?phone=` | Статистика партнёра |
 | GET | `/api/partners/next-code` | Текущий активный код (0001…) |
-| POST | `/api/admin/partner-payout` | Выплата партнёру (обнулить месяц) |
-| GET | `/api/admin/partner-codes/status` | Статус кодов партнёров |
+| POST | `/api/admin/auth/start` | Начать вход в админку (SMS + email) |
+| POST | `/api/admin/auth/verify` | Подтвердить коды, получить token |
+| GET | `/api/admin/reports/listings` | Жалобы на объявления |
+| GET | `/api/admin/reports/chats` | Жалобы на чаты (с перепиской) |
+| POST | `/api/admin/block/user` | Блок пользователя |
+| POST | `/api/admin/block/listing` | Скрыть объявление |
+| GET | `/api/admin/stats/platform?period=` | Статистика (super) |
+| GET | `/api/admin/stats/bloggers?period=` | Блогеры (super) |
+| POST | `/api/admin/partner-payout` | Выплата партнёру (UI или curl + admin_secret) |
+| GET | `/api/admin/partner-codes/status` | Следующий код партнёра |
+| POST | `/api/chats/:id/report` | Жалоба на чат |
 | POST | `/api/deploy-web` | Деплой Flutter Web (GitHub Actions) |
 | GET | `/api/listings/subcategory-counts` | Счётчики в подкатегориях |
 | GET | `/api/chats/unread-summary` | Непрочитанные чаты |
@@ -199,15 +223,15 @@ cat backend/db/migrate_pin_auth.sql | docker exec -i darom_db psql -U darom -d d
 
 ```
 lib/
-  screens/     auth_gate, phone, sms, pin_*, partner_register, partner_stats, profile, ...
-  services/    auth_api, partners_api, listings_api, users_api, chats_api, ...
-  widgets/     midnight_glow_screen, partner_email_request_card, auth_form_scroll, ...
-  data/        app_categories.dart
+  screens/     auth_gate, admin_gate, admin_login, admin_dashboard, phone, pin_*, partner_*, profile, ...
+  services/    auth_api, admin_api, partners_api, listings_api, users_api, chats_api, ...
+  widgets/     midnight_glow_screen, auth_form_scroll, keyboard_inset_padding, ...
   models/      user, listing, deal_info, ...
 backend/
   src/routes/  auth.js, users.js, listings.js, partners.js, admin.js, chats.js, deploy_web.js, ...
-  src/utils/   partner_helpers.js, limits.js, phone_detect.js, ...
-  db/          init.sql, migrate_*.sql (partners, pin_auth, partner_referral_365, ...)
+  src/utils/   admin_auth.js, admin_stats.js, block_helpers.js, partner_helpers.js, ...
+  src/services/ email_service.js
+  db/          migrate_admin.sql, migrate_partners.sql, migrate_pin_auth.sql, ...
 ```
 
 ---
@@ -247,12 +271,13 @@ backend/
 
 ## ⏳ Дальше (приоритет)
 
-1. **Админ-панель:** вкладка «Блогеры» + кнопка «Оплатить»
-2. **Робокасса** — реальная оплата
+1. **Робокасса** — реальная оплата
+2. **SMTP** для кодов админа (сейчас mock)
 3. **SMS.ru** боевой режим
 4. **Firebase** push
 5. **Домен + HTTPS**
-6. Android/iOS
+6. Роль **модератора** (отдельные аккаунты)
+7. Android/iOS
 
 ---
 
@@ -270,8 +295,8 @@ backend/
 - [x] A: Timeweb VPS, PM2, S3 ✅
 - [x] B: Flutter Web (GitHub Actions) ✅
 - [x] PIN, чаты, категории, партнёры ✅
+- [x] Админ-панель (2FA, жалобы, блоки, статистика, блогеры) ✅
 - [ ] B+: Домен + HTTPS
-- [ ] Админка (вкладка «Блогеры»)
 - [ ] 8: Робокасса
 
 ---

@@ -115,6 +115,27 @@ class ChatsApi {
     return Conversation.fromJson(data['conversation'] as Map<String, dynamic>);
   }
 
+  Future<void> reportChat({
+    required String phone,
+    required String conversationId,
+    String? reason,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/chats/$conversationId/report');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'phone': phone, if (reason != null) 'reason': reason}),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 201 && response.statusCode != 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      throw ChatsApiException(body['error'] as String? ?? 'Не удалось отправить жалобу');
+    }
+  }
+
   Future<ChatThreadData> fetchMessages({
     required String phone,
     required String conversationId,

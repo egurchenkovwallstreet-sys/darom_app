@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:darom_app/screens/admin_gate.dart';
 import 'package:darom_app/screens/auth_gate.dart';
 import 'package:darom_app/services/planet_assets.dart';
 import 'package:darom_app/services/session_service.dart';
@@ -14,6 +16,16 @@ Future<void> main() async {
 class DaromApp extends StatelessWidget {
   const DaromApp({super.key});
 
+  Widget _homeWidget() {
+    if (kIsWeb) {
+      final path = Uri.base.path;
+      if (path.startsWith('/admin')) {
+        return const AdminGate();
+      }
+    }
+    return const AuthGate();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -27,7 +39,7 @@ class DaromApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const AuthGate(),
+      home: _homeWidget(),
     );
   }
 }

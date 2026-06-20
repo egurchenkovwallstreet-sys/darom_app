@@ -263,6 +263,58 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     );
   }
 
+  Future<void> _reportChat() async {
+    final reasonController = TextEditingController();
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF001F3F),
+        title: const Text('Пожаловаться на чат', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: reasonController,
+          maxLines: 3,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            hintText: 'Причина (необязательно)',
+            hintStyle: TextStyle(color: Colors.white54),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, reasonController.text.trim()),
+            child: const Text('Отправить'),
+          ),
+        ],
+      ),
+    );
+    reasonController.dispose();
+    if (reason == null || !mounted) return;
+
+    try {
+      await _api.reportChat(
+        phone: widget.phoneNumber,
+        conversationId: _conversation.id,
+        reason: reason.isEmpty ? null : reason,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Жалоба отправлена модераторам'),
+          backgroundColor: Color(0xFF00BFFF),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error is ChatsApiException ? error.message : '$error'),
+          backgroundColor: const Color(0xFFFF5722),
+        ),
+      );
+    }
+  }
+
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
@@ -297,6 +349,11 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            onPressed: _reportChat,
+            icon: const Icon(Icons.flag_outlined, color: Color(0xFFFF5722)),
+            tooltip: 'Пожаловаться на чат',
           ),
         ],
       ),

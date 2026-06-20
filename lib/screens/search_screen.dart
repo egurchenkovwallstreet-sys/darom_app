@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/listing.dart';
 import '../services/listings_api.dart';
+import '../widgets/keyboard_inset_padding.dart';
 import '../widgets/listing_photo_image.dart';
 import '../widgets/midnight_glow_screen.dart';
 import 'listing_screen.dart';
@@ -109,7 +110,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final content = SafeArea(child: _buildContent());
+    final content = KeyboardInsetPadding(child: SafeArea(child: _buildContent()));
     if (widget.inShell) return content;
     return MidnightGlowScreen(child: content);
   }

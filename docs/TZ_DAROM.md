@@ -51,7 +51,23 @@
 | После 365 дней | Реферал не в статистике, новые оплаты не идут |
 | Выплаты | Ежемесячно; «за месяц» обнуляется после оплаты админом |
 | Всего заработано | Накопительная сумма, не обнуляется |
-| Статус | ✅ backend + Flutter; ⏳ админ-вкладка «Блогеры» |
+| Статус | ✅ backend + Flutter + админ-UI «Блогеры» |
+
+### Админ-панель
+
+| Правило | Описание |
+|---------|----------|
+| URL | `/admin` (Flutter Web) |
+| Вход | **2FA:** SMS на телефон super admin + код на email |
+| Super admin | Полный доступ: жалобы, блоки, статистика, блогеры, выплаты |
+| Moderator (позже) | Только жалобы и блокировки — **без** монетизации и статистики |
+| Жалобы объявлений | С контекстом объявления |
+| Жалобы чатов | Полная переписка; кнопка «Пожаловаться на чат» в каждом чате |
+| Блокировка | Временная **1–7 дней** (ручной выбор) или **навсегда** |
+| Статистика | Пользователи, активные объявления, оплаты — периоды: день/неделя/месяц/всего |
+| Блогеры | Следующий код (копировать), по каждому: телефон, рефералы, суммы, кнопка «Оплатить» |
+| SMTP кодов | ⏳ mock (код в логах backend); боевой SMTP позже |
+| Статус | ✅ backend + Flutter UI |
 
 ## 3. Технологический стек
 
@@ -98,8 +114,8 @@
 | Профиль | ✅ + основатель, партнёр, заборы |
 | Мои объявления | ✅ |
 | Бронирование 24 ч | ✅ |
-| Чаты + непрочитанные | ✅; push ⏳ |
-| Админ-панель + вкладка «Блогеры» | ⏳ |
+| Чаты + непрочитанные + жалоба на чат | ✅; push ⏳ |
+| Админ-панель (2FA, жалобы, блоки, stats, блогеры) | ✅ |
 | Оплата (Робокасса) | 🟡 диалоги ✅, реальная оплата ⏳ |
 
 ## 7. Системные правила
@@ -107,7 +123,8 @@
 - **Модерация:** Vision ⏳ + стоп-слова ✅; 3 жалобы → скрытие ✅
 - **Рейтинг:** 1–5 после сделки ✅; <4.0 → теневой бан ✅ (backend)
 - **Лимиты:** объявления 10/20 + Супер даритель (+10 за 99₽, безлимитные повторные пакеты) ✅; заборы 7/мес + пакет ✅ (тестовая «оплата»)
-- **Безопасность:** 1 телефон = 1 аккаунт ✅; PIN 4 цифры ✅; предупреждение о номере в чате ✅
+- **Клавиатура на Web:** поля ввода не перекрываются (`KeyboardInsetPadding` / `AuthFormScroll`) ✅
+- **Безопасность:** 1 телефон = 1 аккаунт ✅; PIN 4 цифры ✅; предупреждение о номере в чате ✅; блокировка пользователей ✅
 - **Забронировано:** 24ч, серый статус ✅; push дарителю ⏳
 
 ## 8. Уровни дарителей
@@ -123,12 +140,12 @@
 5. 🟡 Чаты ✅; Firebase push ⏳
 6. 🟡 Модерация (стоп-слова ✅) + фото (S3 ✅, Vision ⏳)
 7. 🟡 Лимиты и диалоги ✅; Робокасса ⏳
-8. 🟡 **Партнёры / блогеры** ✅ (админ-UI ⏳)
-9. ⏳ **Админ-панель** (вкладка «Блогеры», выплаты)
+8. 🟡 **Партнёры / блогеры** ✅
+9. ✅ **Админ-панель** (2FA, жалобы, блоки, stats, блогеры)
 10. ⏳ Домен + HTTPS
 11. ⏳ Публикация в магазины
 
-**Оценка прогресса (20.06.2026):** ядро MVP ~**95%** | полное ТЗ ~**52%**. Подробности: `docs/PROGRESS.md`.
+**Оценка прогресса (16.06.2026):** ядро MVP ~**96%** | полное ТЗ ~**54%**. Подробности: `docs/PROGRESS.md`.
 
 ## 10. Структура кода (актуальная)
 
@@ -138,11 +155,12 @@ lib/
   data/         app_categories.dart
   models/       user.dart, listing.dart, ...
   services/     api_config, auth_api, partners_api, listings_api, users_api, chats_api, ...
-  screens/      auth_gate, phone, pin_*, partner_register, partner_stats, profile, ...
-  widgets/      midnight_glow_screen, partner_email_request_card, auth_form_scroll, ...
-  theme/        app_colors.dart
+  screens/      auth_gate, admin_gate, admin_login, admin_dashboard, phone, pin_*, partner_*, profile, ...
+  services/     api_config, auth_api, admin_api, partners_api, listings_api, users_api, chats_api, ...
+  widgets/      midnight_glow_screen, auth_form_scroll, keyboard_inset_padding, ...
 backend/
   src/routes/   auth.js, users.js, listings.js, partners.js, admin.js, chats.js, deploy_web.js, ...
-  src/utils/    partner_helpers.js, limits.js, phone_detect.js, ...
-  db/           init.sql, migrate_partners.sql, migrate_pin_auth.sql, migrate_partner_*.sql, ...
+  src/utils/    admin_auth.js, admin_stats.js, block_helpers.js, partner_helpers.js, ...
+  src/services/ email_service.js
+  db/           migrate_admin.sql, migrate_partners.sql, migrate_pin_auth.sql, ...
 ```

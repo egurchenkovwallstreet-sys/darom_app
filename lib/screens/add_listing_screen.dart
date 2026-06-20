@@ -8,6 +8,7 @@ import '../data/app_categories.dart';
 import '../models/listing.dart';
 import '../services/listings_api.dart';
 import '../services/location_service.dart';
+import '../widgets/keyboard_inset_padding.dart';
 import '../widgets/super_donor_offer_dialog.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/listing_photo_image.dart';
@@ -277,7 +278,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final content = SafeArea(child: _buildContent());
+    final content = KeyboardInsetPadding(child: SafeArea(child: _buildContent()));
     if (widget.inShell) return content;
     return MidnightGlowScreen(child: content);
   }

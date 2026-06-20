@@ -29,6 +29,15 @@ const config = {
   deploySecret: process.env.DEPLOY_SECRET || '',
   webRoot: process.env.WEB_ROOT || '/var/www/darom',
   adminSecret: process.env.ADMIN_SECRET || '',
+  adminPhone: process.env.ADMIN_PHONE || '79138931428',
+  adminEmail: process.env.ADMIN_EMAIL || 'e.gurchenkov@yandex.ru',
+  adminEmailMock: process.env.ADMIN_EMAIL_MOCK !== 'false',
+  smtp: {
+    host: process.env.SMTP_HOST || '',
+    port: Number(process.env.SMTP_PORT || 465),
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+  },
 };
 
 if (!config.databaseUrl) {

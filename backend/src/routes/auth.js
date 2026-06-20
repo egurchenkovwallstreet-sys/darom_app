@@ -26,13 +26,21 @@ function needsPhoneReverify(phoneVerifiedAt) {
 async function fetchAuthUser(normalizedPhone) {
   const result = await db.query(
     `
-    SELECT id, phone, name, pin_hash, phone_verified_at, pin_set_at
+    SELECT id, phone, name, pin_hash, phone_verified_at, pin_set_at,
+           is_blocked_permanent, blocked_until
     FROM users
     WHERE phone = $1
     `,
     [normalizedPhone]
   );
   return result.rows[0] ?? null;
+}
+
+function isBlockedUser(user) {
+  if (!user) return false;
+  if (user.is_blocked_permanent) return true;
+  if (user.blocked_until && new Date(user.blocked_until) > new Date()) return true;
+  return false;
 }
 
 async function storeVerifyToken(normalizedPhone) {
@@ -145,6 +153,10 @@ router.post('/check-phone', async (req, res) => {
       });
     }
 
+    if (isBlockedUser(user)) {
+      return res.status(403).json({ error: 'Аккаунт заблокирован. Обратитесь в поддержку.' });
+    }
+
     const hasPin = Boolean(user.pin_hash);
     const reverify = needsPhoneReverify(user.phone_verified_at);
 
@@ -185,6 +197,11 @@ router.post('/send-code', async (req, res) => {
   try {
     const normalizedPhone = normalizePhone(phone);
     const user = await fetchAuthUser(normalizedPhone);
+
+    if (user && isBlockedUser(user)) {
+      return res.status(403).json({ error: 'Аккаунт заблокирован. Обратитесь в поддержку.' });
+    }
+
     const hasPin = Boolean(user?.pin_hash);
     const reverify = user ? needsPhoneReverify(user.phone_verified_at) : false;
 
@@ -330,6 +347,10 @@ router.post('/login-pin', async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ error: 'Пользователь не найден. Пройдите регистрацию' });
+    }
+
+    if (isBlockedUser(user)) {
+      return res.status(403).json({ error: 'Аккаунт заблокирован. Обратитесь в поддержку.' });
     }
 
     if (!user.pin_hash) {
