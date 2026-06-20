@@ -43,7 +43,7 @@ class User {
     return User(
       id: json['id'] as String,
       name: json['name'] as String,
-      phoneNumber: json['phone'] as String,
+      phoneNumber: json['phone'] as String? ?? '',
       donorLevel: json['donor_level'] as String,
       rating: _toDouble(json['rating']),
       isFounder: json['is_founder'] as bool? ?? false,

@@ -9,6 +9,7 @@ import '../services/listings_api.dart' show PickupLimitException;
 import '../services/refresh_intervals.dart';
 import '../theme/app_colors.dart';
 import '../widgets/keyboard_inset_padding.dart';
+import '../widgets/phone_sharing_dialog.dart';
 import '../widgets/primary_action_button.dart';
 import '../widgets/pickup_pack_offer_dialog.dart';
 
@@ -155,21 +156,29 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     final text = _inputController.text.trim();
     if (text.isEmpty || _sending) return;
 
+    if (messageMayContainPhone(text)) {
+      final confirmed = await confirmPhoneSharing(context);
+      if (!confirmed || !mounted) return;
+    }
+
     _sending = true;
     _inputController.clear();
     setState(() {});
 
     try {
-      final message = await _api.sendMessage(
+      final result = await _api.sendMessage(
         phone: widget.phoneNumber,
         conversationId: _conversation.id,
         body: text,
       );
       if (!mounted) return;
       setState(() {
-        _messages = _mergeMessages(_messages, [message]);
+        _messages = _mergeMessages(_messages, [result.message]);
         _sending = false;
       });
+      if (result.phoneSharingWarning) {
+        showPhoneSharingReminder(context);
+      }
       _scrollToBottom();
     } catch (error) {
       if (!mounted) return;

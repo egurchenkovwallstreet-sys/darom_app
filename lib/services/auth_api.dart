@@ -9,14 +9,37 @@ class AuthApi {
 
   final http.Client _client;
 
-  Future<SendCodeResult> sendCode({required String phone}) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/send-code');
+  Future<CheckPhoneResult> checkPhone({required String phone}) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/check-phone');
 
     final response = await _client
         .post(
           uri,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'phone': phone}),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Не удалось проверить номер');
+    }
+
+    return CheckPhoneResult.fromJson(body);
+  }
+
+  Future<SendCodeResult> sendCode({
+    required String phone,
+    String purpose = 'register',
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/send-code');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'phone': phone, 'purpose': purpose}),
         )
         .timeout(const Duration(seconds: 15));
 
@@ -33,7 +56,10 @@ class AuthApi {
     );
   }
 
-  Future<String> verifyCode({required String phone, required String code}) async {
+  Future<VerifyCodeResult> verifyCode({
+    required String phone,
+    required String code,
+  }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/verify-code');
 
     final response = await _client
@@ -50,10 +76,96 @@ class AuthApi {
       throw AuthApiException(body['error'] as String? ?? 'Неверный код');
     }
 
-    return body['phone'] as String;
+    return VerifyCodeResult.fromJson(body);
+  }
+
+  Future<void> setPin({
+    required String phone,
+    required String pin,
+    required String verificationToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/set-pin');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': phone,
+            'pin': pin,
+            'verification_token': verificationToken,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Не удалось сохранить пароль');
+    }
+  }
+
+  Future<PinLoginResult> loginWithPin({
+    required String phone,
+    required String pin,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/login-pin');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'phone': phone, 'pin': pin}),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Неверный пароль');
+    }
+
+    final user = body['user'] as Map<String, dynamic>;
+    return PinLoginResult(
+      id: user['id'] as String,
+      phone: user['phone'] as String,
+      name: user['name'] as String,
+    );
   }
 
   void dispose() => _client.close();
+}
+
+class CheckPhoneResult {
+  const CheckPhoneResult({
+    required this.phone,
+    required this.registered,
+    required this.hasPin,
+    required this.needsSms,
+    required this.authMethod,
+    this.userName,
+    this.reverifyDays = 35,
+  });
+
+  final String phone;
+  final bool registered;
+  final bool hasPin;
+  final bool needsSms;
+  final String authMethod;
+  final String? userName;
+  final int reverifyDays;
+
+  factory CheckPhoneResult.fromJson(Map<String, dynamic> json) {
+    return CheckPhoneResult(
+      phone: json['phone'] as String,
+      registered: json['registered'] as bool? ?? false,
+      hasPin: json['has_pin'] as bool? ?? false,
+      needsSms: json['needs_sms'] as bool? ?? true,
+      authMethod: json['auth_method'] as String? ?? 'sms_register',
+      userName: json['user_name'] as String?,
+      reverifyDays: (json['reverify_days'] as num?)?.toInt() ?? 35,
+    );
+  }
 }
 
 class SendCodeResult {
@@ -66,6 +178,44 @@ class SendCodeResult {
     required this.mock,
     this.debugCode,
   });
+}
+
+class VerifyCodeResult {
+  const VerifyCodeResult({
+    required this.phone,
+    required this.isNewUser,
+    required this.hasPin,
+    required this.verificationToken,
+    this.userName,
+  });
+
+  final String phone;
+  final bool isNewUser;
+  final bool hasPin;
+  final String verificationToken;
+  final String? userName;
+
+  factory VerifyCodeResult.fromJson(Map<String, dynamic> json) {
+    return VerifyCodeResult(
+      phone: json['phone'] as String,
+      isNewUser: json['is_new_user'] as bool? ?? true,
+      hasPin: json['has_pin'] as bool? ?? false,
+      verificationToken: json['verification_token'] as String,
+      userName: json['user_name'] as String?,
+    );
+  }
+}
+
+class PinLoginResult {
+  const PinLoginResult({
+    required this.id,
+    required this.phone,
+    required this.name,
+  });
+
+  final String id;
+  final String phone;
+  final String name;
 }
 
 class AuthApiException implements Exception {

@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../services/session_service.dart';
+
 import '../services/users_api.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
-import 'main_shell.dart';
+import 'pin_setup_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   final String phoneNumber;
+  final String verificationToken;
 
-  const ProfileSetupScreen({super.key, required this.phoneNumber});
+  const ProfileSetupScreen({
+    super.key,
+    required this.phoneNumber,
+    required this.verificationToken,
+  });
 
   @override
   State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
@@ -45,22 +50,20 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     setState(() => _isSaving = true);
 
     try {
-      final user = await _usersApi.register(
+      await _usersApi.register(
         phone: widget.phoneNumber,
         name: name,
       );
-
-      await SessionService.save(user);
 
       if (!mounted) return;
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => MainShell(
-            userName: user.name,
-            phoneNumber: user.phoneNumber,
-            userId: user.id,
+          builder: (context) => PinSetupScreen(
+            phoneNumber: widget.phoneNumber,
+            verificationToken: widget.verificationToken,
+            userName: name,
           ),
         ),
       );
@@ -138,11 +141,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ).animate(delay: 300.ms).fadeIn(duration: 800.ms).slideY(begin: 0.3, end: 0),
               const SizedBox(height: 15),
               Text(
-                'Это имя увидят другие пользователи',
+                'Другие пользователи увидят только имя — не номер телефона',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
                   color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                  height: 1.4,
                 ),
               ).animate(delay: 500.ms).fadeIn(duration: 800.ms).slideY(begin: 0.3, end: 0),
               const SizedBox(height: 30),

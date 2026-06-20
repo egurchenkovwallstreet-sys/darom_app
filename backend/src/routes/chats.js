@@ -8,6 +8,7 @@ const {
   mapListingRow,
 } = require('../db/listing_helpers');
 const { getPickupStatus, buildPickupLimitResponse } = require('../utils/pickup_limits');
+const { containsPhoneNumber } = require('../utils/phone_detect');
 
 const router = express.Router();
 
@@ -375,7 +376,12 @@ router.post('/:id/messages', async (req, res) => {
 
     await db.query('UPDATE conversations SET updated_at = NOW() WHERE id = $1', [id]);
 
-    res.status(201).json({ message: inserted.rows[0] });
+    const phoneSharingWarning = containsPhoneNumber(validation.text);
+
+    res.status(201).json({
+      message: inserted.rows[0],
+      phone_sharing_warning: phoneSharingWarning,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -46,14 +46,13 @@ const userStatsSubquery = `
   users.items_taken
 `;
 
-async function formatUserWithStats(db, row) {
+async function formatUserWithStats(db, row, { includePhone = false } = {}) {
   if (!row) return null;
 
   const pickup = await getPickupStatus(db, row.id);
 
-  return {
+  const user = {
     id: row.id,
-    phone: row.phone,
     name: row.name,
     donor_level: row.donor_level,
     rating: row.rating,
@@ -73,6 +72,12 @@ async function formatUserWithStats(db, row) {
     avatar_url: normalizeAvatarUrl(row.avatar_url) || null,
     created_at: row.created_at,
   };
+
+  if (includePhone) {
+    user.phone = row.phone;
+  }
+
+  return user;
 }
 
 async function fetchUserByPhone(normalizedPhone) {
@@ -106,15 +111,17 @@ router.post('/', async (req, res) => {
 
     await db.query(
       `
-      INSERT INTO users (phone, name, is_founder)
-      VALUES ($1, $2, (SELECT COUNT(*) < 1000 FROM users))
-      ON CONFLICT (phone) DO UPDATE SET name = EXCLUDED.name
+      INSERT INTO users (phone, name, is_founder, phone_verified_at)
+      VALUES ($1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW())
+      ON CONFLICT (phone) DO UPDATE SET
+        name = EXCLUDED.name,
+        phone_verified_at = COALESCE(users.phone_verified_at, NOW())
       `,
       [normalizedPhone, trimmedName]
     );
 
     const user = await fetchUserByPhone(normalizedPhone);
-    res.status(201).json({ user: await formatUserWithStats(db, user) });
+    res.status(201).json({ user: await formatUserWithStats(db, user, { includePhone: true }) });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -136,7 +143,7 @@ router.get('/', async (req, res) => {
       return res.status(404).json({ error: 'Пользователь не найден' });
     }
 
-    res.json({ user: await formatUserWithStats(db, user) });
+    res.json({ user: await formatUserWithStats(db, user, { includePhone: true }) });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -172,7 +179,7 @@ router.post('/super-donor', async (req, res) => {
     const updated = await fetchUserByPhone(normalizedPhone);
     const newLimit = getListingLimit(updated);
     res.json({
-      user: await formatUserWithStats(db, updated),
+      user: await formatUserWithStats(db, updated, { includePhone: true }),
       message: `+${SUPER_DONOR_EXTRA} объявлений. Теперь до ${newLimit} активных (тестовый режим, без оплаты)`,
     });
   } catch (error) {
@@ -203,7 +210,7 @@ router.post('/pickup-pack', async (req, res) => {
 
     const updated = await fetchUserByPhone(normalizedPhone);
     res.json({
-      user: await formatUserWithStats(db, updated),
+      user: await formatUserWithStats(db, updated, { includePhone: true }),
       message: `Пакет +${PICKUP_PACK_SIZE} заборов за ${PICKUP_PACK_PRICE}₽ (тестовый режим, без оплаты)`,
     });
   } catch (error) {
@@ -250,7 +257,7 @@ router.post('/avatar', upload.single('avatar'), async (req, res) => {
 
     const updated = await fetchUserByPhone(normalizedPhone);
     res.json({
-      user: await formatUserWithStats(db, updated),
+      user: await formatUserWithStats(db, updated, { includePhone: true }),
       message: 'Аватар обновлён',
     });
   } catch (error) {

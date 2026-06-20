@@ -146,7 +146,7 @@ class ChatsApi {
     );
   }
 
-  Future<ChatMessage> sendMessage({
+  Future<SendMessageResult> sendMessage({
     required String phone,
     required String conversationId,
     required String body,
@@ -167,7 +167,10 @@ class ChatsApi {
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
-    return ChatMessage.fromJson(data['message'] as Map<String, dynamic>);
+    return SendMessageResult(
+      message: ChatMessage.fromJson(data['message'] as Map<String, dynamic>),
+      phoneSharingWarning: data['phone_sharing_warning'] as bool? ?? false,
+    );
   }
 
   Future<ChatReserveResult> reserveFromChat({
@@ -203,6 +206,16 @@ class ChatsApi {
   }
 
   void dispose() => _client.close();
+}
+
+class SendMessageResult {
+  const SendMessageResult({
+    required this.message,
+    required this.phoneSharingWarning,
+  });
+
+  final ChatMessage message;
+  final bool phoneSharingWarning;
 }
 
 class ChatThreadData {
