@@ -35,6 +35,11 @@
       z-index: 0;
       overflow: hidden;
       pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    #darom-splash.is-hiding {
+      opacity: 0;
     }
 
     #darom-splash .splash-gradient {
@@ -70,10 +75,7 @@
       );
     }
 
-    /* Когда Flutter готов — убираем HTML-фон, остаётся только Flutter. */
-    body:has(flutter-view) #darom-splash {
-      display: none;
-    }
+    /* Скрытие — через JS: 1 с после появления flutter-view (см. script внизу). */
   </style>
 </head>
 <body>
@@ -82,6 +84,42 @@
     <img class="splash-planet" src="images/earth.png" alt="">
     <div class="splash-overlay"></div>
   </div>
+  <script>
+    (function () {
+      var splash = document.getElementById('darom-splash');
+      if (!splash) return;
+
+      var hideDelayMs = 1000;
+      var fadeMs = 350;
+      var scheduled = false;
+
+      function scheduleHide() {
+        if (scheduled) return;
+        scheduled = true;
+        setTimeout(function () {
+          splash.classList.add('is-hiding');
+          setTimeout(function () {
+            splash.style.display = 'none';
+          }, fadeMs);
+        }, hideDelayMs);
+      }
+
+      function onFlutterReady() {
+        if (document.querySelector('flutter-view')) {
+          scheduleHide();
+          return true;
+        }
+        return false;
+      }
+
+      if (onFlutterReady()) return;
+
+      var observer = new MutationObserver(function () {
+        if (onFlutterReady()) observer.disconnect();
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
