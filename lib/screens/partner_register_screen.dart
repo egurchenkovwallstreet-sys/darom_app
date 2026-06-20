@@ -4,6 +4,7 @@ import '../services/auth_api.dart';
 import '../services/partners_api.dart';
 import '../widgets/auth_form_scroll.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/partner_email_request_card.dart';
 import '../widgets/primary_action_button.dart';
 import 'sms_screen.dart';
 
@@ -111,15 +112,24 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
     return MidnightGlowScreen(
       child: AuthFormScroll(
         title: 'Регистрация партнёра',
-        subtitle:
-            'Для блогеров и партнёров.\n'
-            'Введите код от администратора (0001, 0002…) и номер телефона.',
         compactSubtitle: 'Код партнёра и номер телефона',
         focusNode: _codeFocus,
         formKey: _formKey,
         leading: const Icon(Icons.handshake_rounded, size: 72, color: Color(0xFF00BFFF)),
         form: Column(
           children: [
+            const PartnerEmailRequestCard(),
+            const SizedBox(height: 18),
+            Text(
+              'Если код уже получен — введите ниже',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: const Color(0xFFFFFFFF).withOpacity(0.65),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
