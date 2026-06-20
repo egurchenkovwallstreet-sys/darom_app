@@ -169,13 +169,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
             ),
             if (widget.partnerActivationCode == null) ...[
-              const SizedBox(height: 12),
-              TextButton(
+              const SizedBox(height: 14),
+              PrimaryActionButton(
+                label: _showReferralField
+                    ? 'Скрыть код блогера'
+                    : 'Есть код блогера? Получить расширенные возможности',
+                height: 52,
+                fontSize: 15,
+                borderRadius: 26,
+                icon: _showReferralField ? Icons.expand_less : Icons.auto_awesome,
+                gradientColors: _showReferralField
+                    ? PrimaryActionButton.tealGradient
+                    : PrimaryActionButton.warningGradient,
                 onPressed: () => setState(() => _showReferralField = !_showReferralField),
-                child: Text(
-                  _showReferralField ? 'Скрыть код блогера' : 'Есть код блогера? (необязательно)',
-                  style: const TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
-                ),
               ),
               if (_showReferralField)
                 Container(

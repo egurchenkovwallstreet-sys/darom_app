@@ -195,26 +195,23 @@ class _PhoneScreenState extends State<PhoneScreen> {
               loading: _isLoading,
               onPressed: _continue,
             ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _isLoading
-                  ? null
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PartnerRegisterScreen(),
-                        ),
-                      );
-                    },
-              child: const Text(
-                'Я партнёр / блогер',
-                style: TextStyle(
-                  color: Color(0xFF80DEEA),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            const SizedBox(height: 12),
+            PrimaryActionButton(
+              label: 'Я партнёр / блогер',
+              height: 55,
+              fontSize: 18,
+              borderRadius: 27,
+              icon: Icons.handshake_rounded,
+              gradientColors: PrimaryActionButton.tealGradient,
+              enabled: !_isLoading,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PartnerRegisterScreen(),
+                  ),
+                );
+              },
             ),
           ],
         ),
