@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/listing.dart';
 import '../services/listings_api.dart';
+import '../services/refresh_intervals.dart';
 import '../widgets/listing_photo_image.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
@@ -29,32 +32,58 @@ class ListingsFeedScreen extends StatefulWidget {
 
 class _ListingsFeedScreenState extends State<ListingsFeedScreen> {
   final ListingsApi _api = ListingsApi();
-  late Future<List<Listing>> _listingsFuture;
+  List<Listing> _listings = [];
+  bool _loading = true;
+  String? _error;
+  bool _loadInFlight = false;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
-    _listingsFuture = _loadListings();
+    _bootstrap();
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _api.dispose();
     super.dispose();
   }
 
-  Future<List<Listing>> _loadListings() {
-    return _api.fetchBySubcategory(
-      category: widget.categoryName,
-      subcategory: widget.subcategoryName,
-    );
+  Future<void> _bootstrap() async {
+    await _refresh();
+    if (!mounted) return;
+    _pollTimer = Timer.periodic(RefreshIntervals.categoryListings, (_) => _refresh(silent: true));
   }
 
-  void _retry() {
-    setState(() {
-      _listingsFuture = _loadListings();
-    });
+  Future<void> _refresh({bool silent = false}) async {
+    if (_loadInFlight) return;
+    _loadInFlight = true;
+
+    try {
+      final items = await _api.fetchBySubcategory(
+        category: widget.categoryName,
+        subcategory: widget.subcategoryName,
+      );
+      if (!mounted) return;
+      setState(() {
+        _listings = items;
+        _loading = false;
+        _error = null;
+      });
+    } catch (error) {
+      if (!mounted || silent) return;
+      setState(() {
+        _loading = false;
+        _error = error.toString();
+      });
+    } finally {
+      _loadInFlight = false;
+    }
   }
+
+  void _retry() => _refresh();
 
   @override
   Widget build(BuildContext context) {
@@ -102,75 +131,69 @@ class _ListingsFeedScreenState extends State<ListingsFeedScreen> {
                       ],
                     ),
                   ),
-                  FutureBuilder<List<Listing>>(
-                    future: _listingsFuture,
-                    builder: (context, snapshot) {
-                      final count = snapshot.data?.length;
-                      final label = count == null ? '…' : '$count';
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: widget.categoryColor.withOpacity(0.25),
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(color: widget.categoryColor, width: 2),
-                        ),
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            color: widget.categoryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                    },
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: widget.categoryColor.withOpacity(0.25),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: widget.categoryColor, width: 2),
+                    ),
+                    child: Text(
+                      _loading ? '…' : '${_listings.length}',
+                      style: TextStyle(
+                        color: widget.categoryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
             Expanded(
-              child: FutureBuilder<List<Listing>>(
-                future: _listingsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        color: widget.categoryColor,
-                      ),
-                    );
-                  }
-
-                  if (snapshot.hasError) {
-                    return _ErrorState(
-                      categoryColor: widget.categoryColor,
-                      message: snapshot.error.toString(),
-                      onRetry: _retry,
-                    );
-                  }
-
-                  final listings = snapshot.data ?? [];
-
-                  if (listings.isEmpty) {
-                    return _EmptyState(categoryColor: widget.categoryColor);
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    itemCount: listings.length,
-                    itemBuilder: (context, index) {
-                      return _ListingCard(
-                        listing: listings[index],
-                        categoryColor: widget.categoryColor,
-                        index: index,
-                        phoneNumber: widget.phoneNumber,
-                        currentUserId: widget.currentUserId,
-                      );
-                    },
-                  );
-                },
-              ),
+              child: _buildListBody(),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildListBody() {
+    if (_loading) {
+      return Center(
+        child: CircularProgressIndicator(
+          color: widget.categoryColor,
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return _ErrorState(
+        categoryColor: widget.categoryColor,
+        message: _error!,
+        onRetry: _retry,
+      );
+    }
+
+    if (_listings.isEmpty) {
+      return _EmptyState(categoryColor: widget.categoryColor);
+    }
+
+    return RefreshIndicator(
+      color: widget.categoryColor,
+      onRefresh: () => _refresh(),
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        itemCount: _listings.length,
+        itemBuilder: (context, index) {
+          return _ListingCard(
+            listing: _listings[index],
+            categoryColor: widget.categoryColor,
+            index: index,
+            phoneNumber: widget.phoneNumber,
+            currentUserId: widget.currentUserId,
+          );
+        },
       ),
     );
   }

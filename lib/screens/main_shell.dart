@@ -98,6 +98,7 @@ class _MainShellState extends State<MainShell> {
             phoneNumber: widget.phoneNumber,
             userId: widget.userId,
             inShell: true,
+            isActiveTab: _currentIndex == 0,
           ),
           FavoritesScreen(
             phoneNumber: widget.phoneNumber,
@@ -113,6 +114,7 @@ class _MainShellState extends State<MainShell> {
             phoneNumber: widget.phoneNumber,
             currentUserId: widget.userId,
             inShell: true,
+            isActiveTab: _currentIndex == 3,
           ),
           ProfileScreen(
             userName: widget.userName,

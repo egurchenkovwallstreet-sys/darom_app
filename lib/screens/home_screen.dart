@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/listing.dart';
@@ -7,6 +9,7 @@ import '../models/map_marker.dart';
 import '../services/favorites_api.dart';
 import '../services/listings_api.dart';
 import '../services/location_service.dart';
+import '../services/refresh_intervals.dart';
 import '../services/users_api.dart';
 import '../widgets/avatar_image.dart';
 import '../widgets/listing_tile_card.dart';
@@ -22,6 +25,7 @@ class HomeScreen extends StatefulWidget {
   final String phoneNumber;
   final String? userId;
   final bool inShell;
+  final bool isActiveTab;
 
   const HomeScreen({
     super.key,
@@ -29,6 +33,7 @@ class HomeScreen extends StatefulWidget {
     required this.phoneNumber,
     this.userId,
     this.inShell = false,
+    this.isActiveTab = true,
   });
 
   @override
@@ -63,6 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _searchError;
   String? _lastSearchQuery;
   String? _avatarUrl;
+  Timer? _listingsPollTimer;
+  bool _listingsLoadInFlight = false;
 
   static const _searchFieldBorder = OutlineInputBorder(
     borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -87,6 +94,34 @@ class _HomeScreenState extends State<HomeScreen> {
     _initLocationAndListings();
     _loadFavoriteIds();
     _loadAvatar();
+    if (widget.isActiveTab) {
+      _startListingsPoll();
+    }
+  }
+
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActiveTab == oldWidget.isActiveTab) return;
+    if (widget.isActiveTab) {
+      _startListingsPoll();
+      _loadNearbyListings(silent: true);
+    } else {
+      _stopListingsPoll();
+    }
+  }
+
+  void _startListingsPoll() {
+    _listingsPollTimer?.cancel();
+    _listingsPollTimer = Timer.periodic(RefreshIntervals.homeListings, (_) {
+      if (_showSearchResults || _loadingLocation) return;
+      _loadNearbyListings(silent: true);
+    });
+  }
+
+  void _stopListingsPoll() {
+    _listingsPollTimer?.cancel();
+    _listingsPollTimer = null;
   }
 
   Future<void> _loadAvatar() async {
@@ -99,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _stopListingsPoll();
     _searchController.dispose();
     _favoritesApi.dispose();
     _listingsApi.dispose();
@@ -185,11 +221,16 @@ class _HomeScreenState extends State<HomeScreen> {
     await _loadNearbyListings();
   }
 
-  Future<void> _loadNearbyListings() async {
-    setState(() {
-      _loadingListings = true;
-      _listingsError = null;
-    });
+  Future<void> _loadNearbyListings({bool silent = false}) async {
+    if (_listingsLoadInFlight) return;
+    _listingsLoadInFlight = true;
+
+    if (!silent) {
+      setState(() {
+        _loadingListings = true;
+        _listingsError = null;
+      });
+    }
 
     try {
       final items = await _listingsApi.fetchNearby(
@@ -201,9 +242,15 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _nearbyListings = items;
         _loadingListings = false;
+        _listingsError = null;
+        if (_selectedMarkerId != null &&
+            !items.any((item) => item.id == _selectedMarkerId)) {
+          _selectedMarkerId = null;
+        }
       });
     } catch (error) {
       if (!mounted) return;
+      if (silent) return;
       setState(() {
         _nearbyListings = [];
         _loadingListings = false;
@@ -211,6 +258,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ? error.message
             : 'Сервер не отвечает — запустите backend (Терминал 1: npm run dev)';
       });
+    } finally {
+      _listingsLoadInFlight = false;
     }
   }
 

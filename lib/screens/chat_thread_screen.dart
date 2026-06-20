@@ -6,6 +6,7 @@ import '../models/chat_message.dart';
 import '../models/conversation.dart';
 import '../services/chats_api.dart';
 import '../services/listings_api.dart' show PickupLimitException;
+import '../services/refresh_intervals.dart';
 import '../theme/app_colors.dart';
 import '../widgets/keyboard_inset_padding.dart';
 import '../widgets/primary_action_button.dart';
@@ -61,7 +62,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   Future<void> _bootstrap() async {
     await _loadMessages(initial: true);
     if (!mounted) return;
-    _pollTimer = Timer.periodic(const Duration(seconds: 4), (_) => _loadMessages());
+    _pollTimer = Timer.periodic(RefreshIntervals.chats, (_) => _loadMessages());
   }
 
   @override
