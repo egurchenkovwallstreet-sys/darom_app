@@ -80,7 +80,7 @@ class AuthApi {
     return VerifyCodeResult.fromJson(body);
   }
 
-  Future<SendCodeResult> sendActiveVerifyCode({
+  Future<ActiveVerifySendResult> sendActiveVerifyCode({
     required String accountPhone,
     required String verifyPhone,
   }) async {
@@ -95,7 +95,7 @@ class AuthApi {
             'verify_phone': verifyPhone,
           }),
         )
-        .timeout(const Duration(seconds: 15));
+        .timeout(const Duration(seconds: 20));
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
 
@@ -103,10 +103,58 @@ class AuthApi {
       throw AuthApiException(body['error'] as String? ?? 'Не удалось отправить SMS');
     }
 
-    return SendCodeResult(
+    return ActiveVerifySendResult.fromJson(body);
+  }
+
+  Future<ActiveVerifyPollResult> pollActiveVerifySession({
+    required String accountPhone,
+    required String sessionToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/active-verify/poll').replace(
+      queryParameters: {
+        'phone': accountPhone,
+        'session_token': sessionToken,
+      },
+    );
+
+    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Не удалось проверить статус');
+    }
+
+    return ActiveVerifyPollResult.fromJson(body);
+  }
+
+  Future<ActiveVerifyResult> completeActiveVerifySession({
+    required String accountPhone,
+    required String sessionToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/active-verify/complete');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': accountPhone,
+            'session_token': sessionToken,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Не удалось завершить подтверждение');
+    }
+
+    return ActiveVerifyResult(
       phone: body['phone'] as String,
-      mock: body['mock'] as bool? ?? false,
-      debugCode: body['debug_code'] as String?,
+      phoneChanged: body['phone_changed'] as bool? ?? false,
+      message: body['message'] as String? ??
+          'Теперь вам доступны все функции приложения!',
     );
   }
 
@@ -114,6 +162,7 @@ class AuthApi {
     required String accountPhone,
     required String verifyPhone,
     required String code,
+    String? sessionToken,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/active-verify/confirm');
 
@@ -125,6 +174,7 @@ class AuthApi {
             'phone': accountPhone,
             'verify_phone': verifyPhone,
             'code': code,
+            if (sessionToken != null) 'session_token': sessionToken,
           }),
         )
         .timeout(const Duration(seconds: 10));
@@ -270,6 +320,63 @@ class VerifyCodeResult {
       verificationToken: json['verification_token'] as String,
       userName: json['user_name'] as String?,
       realPhoneVerified: json['real_phone_verified'] as bool? ?? false,
+    );
+  }
+}
+
+class ActiveVerifySendResult {
+  const ActiveVerifySendResult({
+    required this.phone,
+    required this.mode,
+    this.mock = false,
+    this.debugCode,
+    this.sessionToken,
+    this.hint,
+  });
+
+  final String phone;
+  final String mode;
+  final bool mock;
+  final String? debugCode;
+  final String? sessionToken;
+  final String? hint;
+
+  bool get isMobileId => mode == 'mobile_id';
+
+  factory ActiveVerifySendResult.fromJson(Map<String, dynamic> json) {
+    return ActiveVerifySendResult(
+      phone: json['phone'] as String,
+      mode: json['mode'] as String? ?? 'sms',
+      mock: json['mock'] as bool? ?? false,
+      debugCode: json['debug_code'] as String?,
+      sessionToken: json['session_token'] as String?,
+      hint: json['hint'] as String?,
+    );
+  }
+}
+
+class ActiveVerifyPollResult {
+  const ActiveVerifyPollResult({
+    required this.status,
+    required this.statusLabel,
+    required this.needsOtp,
+    required this.verified,
+    required this.failed,
+  });
+
+  final int status;
+  final String statusLabel;
+  final bool needsOtp;
+  final bool verified;
+  final bool failed;
+
+  factory ActiveVerifyPollResult.fromJson(Map<String, dynamic> json) {
+    return ActiveVerifyPollResult(
+      status: (json['status'] as num?)?.toInt() ?? 0,
+      statusLabel: json['status_label'] as String? ?? 'pending',
+      needsOtp: json['needs_otp'] as bool? ?? false,
+      verified: json['verified'] as bool? ?? false,
+      failed: json['failed'] as bool? ?? false,
     );
   }
 }

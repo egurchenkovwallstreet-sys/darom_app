@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../services/auth_api.dart';
@@ -7,8 +9,7 @@ import 'keyboard_inset_padding.dart';
 import 'pin_code_fields.dart';
 import 'primary_action_button.dart';
 
-/// Диалог одноразового подтверждения реального номера (SMS).
-/// Возвращает новый номер телефона, если подтверждение успешно.
+/// Диалог одноразового подтверждения реального номера (SMS Aero Mobile ID или SMS).
 Future<String?> showRealPhoneVerifyDialog(
   BuildContext context, {
   required String phoneNumber,
@@ -50,11 +51,16 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
   final GlobalKey _phoneFieldKey = GlobalKey();
   final GlobalKey _codeFieldKey = GlobalKey();
 
-  bool _codeSent = false;
+  Timer? _pollTimer;
+  bool _started = false;
   bool _loading = false;
   bool _success = false;
+  bool _mobileIdMode = false;
+  bool _needsOtp = false;
   String? _debugCode;
+  String? _sessionToken;
   String? _error;
+  String? _statusMessage;
 
   @override
   void initState() {
@@ -66,6 +72,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _phoneFocus.removeListener(_onPhoneFocus);
     _codeFocus.removeListener(_onCodeFocus);
     _phoneController.dispose();
@@ -114,6 +121,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
     setState(() {
       _loading = true;
       _error = null;
+      _statusMessage = null;
     });
 
     try {
@@ -125,18 +133,92 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
       if (!mounted) return;
 
       setState(() {
-        _codeSent = true;
+        _started = true;
+        _mobileIdMode = result.isMobileId;
+        _sessionToken = result.sessionToken;
         _debugCode = result.debugCode;
         _loading = false;
+        _statusMessage = result.isMobileId
+            ? (result.hint ??
+                'На телефон может прийти запрос «Подтвердить» или SMS с кодом.')
+            : null;
+        _needsOtp = !result.isMobileId;
       });
 
-      _codeFocus.requestFocus();
-      _scrollToKey(_codeFieldKey);
+      if (result.isMobileId && result.sessionToken != null) {
+        _startPolling(result.sessionToken!);
+      } else if (!result.isMobileId) {
+        _codeFocus.requestFocus();
+        _scrollToKey(_codeFieldKey);
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _error = '$error';
         _loading = false;
+      });
+    }
+  }
+
+  void _startPolling(String sessionToken) {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) => _pollOnce(sessionToken));
+    _pollOnce(sessionToken);
+  }
+
+  Future<void> _pollOnce(String sessionToken) async {
+    if (!mounted || _loading || _success) return;
+
+    try {
+      final poll = await widget.authApi.pollActiveVerifySession(
+        accountPhone: widget.phoneNumber,
+        sessionToken: sessionToken,
+      );
+      if (!mounted) return;
+      await _handlePollResult(poll, sessionToken);
+    } catch (_) {}
+  }
+
+  Future<void> _handlePollResult(ActiveVerifyPollResult poll, String sessionToken) async {
+    if (poll.failed) {
+      _pollTimer?.cancel();
+      setState(() {
+        _error = 'Подтверждение не удалось. Попробуйте ещё раз.';
+        _statusMessage = null;
+      });
+      return;
+    }
+
+    if (poll.verified) {
+      _pollTimer?.cancel();
+      setState(() => _loading = true);
+      try {
+        final result = await widget.authApi.completeActiveVerifySession(
+          accountPhone: widget.phoneNumber,
+          sessionToken: sessionToken,
+        );
+        await _finishSuccess(result.phone);
+      } catch (error) {
+        if (!mounted) return;
+        setState(() {
+          _loading = false;
+          _error = '$error';
+        });
+      }
+      return;
+    }
+
+    if (poll.needsOtp && !_needsOtp) {
+      setState(() {
+        _needsOtp = true;
+        _statusMessage = 'Введите код из SMS (4 цифры)';
+      });
+      _codeFocus.requestFocus();
+      _scrollToKey(_codeFieldKey);
+    } else if (!_needsOtp) {
+      setState(() {
+        _statusMessage =
+            'Ожидаем подтверждение на телефоне… Можно нажать «Подтвердить» в уведомлении.';
       });
     }
   }
@@ -160,21 +242,9 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
         accountPhone: widget.phoneNumber,
         verifyPhone: _phoneController.text,
         code: code,
+        sessionToken: _mobileIdMode ? _sessionToken : null,
       );
-
-      final profile = await widget.usersApi.fetchProfile(phone: result.phone);
-      await SessionService.save(profile);
-
-      if (!mounted) return;
-
-      setState(() {
-        _success = true;
-        _loading = false;
-      });
-
-      await Future<void>.delayed(const Duration(milliseconds: 1200));
-      if (!mounted) return;
-      Navigator.pop(context, result.phone);
+      await _finishSuccess(result.phone);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -184,9 +254,26 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
     }
   }
 
+  Future<void> _finishSuccess(String phone) async {
+    final profile = await widget.usersApi.fetchProfile(phone: phone);
+    await SessionService.save(profile);
+
+    if (!mounted) return;
+
+    setState(() {
+      _success = true;
+      _loading = false;
+    });
+
+    await Future<void>.delayed(const Duration(milliseconds: 1200));
+    if (!mounted) return;
+    Navigator.pop(context, phone);
+  }
+
   @override
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.sizeOf(context).height * 0.92;
+    final showOtp = _started && (_needsOtp || !_mobileIdMode);
 
     return Dialog(
       backgroundColor: const Color(0xFF001F3F),
@@ -227,8 +314,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                 ] else ...[
                   const Text(
                     'Чтобы размещать объявления и писать в чате, один раз подтвердите '
-                    'актуальный номер телефона. Он не показывается другим пользователям — '
-                    'это нужно для безопасности активных участников.',
+                    'актуальный номер. Стоимость ~3–6 ₽ (Mobile ID), не обычное SMS.',
                     style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.45),
                   ),
                   const SizedBox(height: 16),
@@ -237,13 +323,8 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                     child: TextField(
                       controller: _phoneController,
                       focusNode: _phoneFocus,
-                      enabled: !_codeSent && !_loading,
+                      enabled: !_started && !_loading,
                       keyboardType: TextInputType.phone,
-                      textInputAction:
-                          _codeSent ? TextInputAction.next : TextInputAction.done,
-                      onSubmitted: (_) {
-                        if (!_codeSent) _sendCode();
-                      },
                       style: const TextStyle(color: Colors.white, fontSize: 18),
                       decoration: InputDecoration(
                         labelText: 'Номер телефона',
@@ -262,6 +343,14 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                       ),
                     ),
                   ),
+                  if (_statusMessage != null) ...[
+                    const SizedBox(height: 14),
+                    Text(
+                      _statusMessage!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Color(0xFF80DEEA), fontSize: 14, height: 1.4),
+                    ),
+                  ],
                   if (_debugCode != null) ...[
                     const SizedBox(height: 14),
                     Container(
@@ -274,7 +363,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                       child: Column(
                         children: [
                           const Text(
-                            'Тестовый код (пока SMS не подключены)',
+                            'Тестовый код (режим SMS_MOCK)',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
                           ),
@@ -293,10 +382,10 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                       ),
                     ),
                   ],
-                  if (_codeSent) ...[
+                  if (showOtp) ...[
                     const SizedBox(height: 16),
                     const Text(
-                      'Код из SMS (4 цифры)',
+                      'Код из SMS',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
@@ -330,23 +419,32 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: !_codeSent
+                        child: !_started
                             ? PrimaryActionButton(
-                                label: 'Отправить SMS',
+                                label: 'Подтвердить номер',
                                 loading: _loading,
                                 height: 44,
                                 fontSize: 15,
                                 borderRadius: 22,
                                 onPressed: _sendCode,
                               )
-                            : PrimaryActionButton(
-                                label: 'Подтвердить',
-                                loading: _loading,
-                                height: 44,
-                                fontSize: 15,
-                                borderRadius: 22,
-                                onPressed: _confirmCode,
-                              ),
+                            : showOtp
+                                ? PrimaryActionButton(
+                                    label: 'Ввести код',
+                                    loading: _loading,
+                                    height: 44,
+                                    fontSize: 15,
+                                    borderRadius: 22,
+                                    onPressed: _confirmCode,
+                                  )
+                                : PrimaryActionButton(
+                                    label: 'Ждём телефон…',
+                                    loading: true,
+                                    height: 44,
+                                    fontSize: 15,
+                                    borderRadius: 22,
+                                    onPressed: null,
+                                  ),
                       ),
                     ],
                   ),

@@ -12,6 +12,8 @@ const config = {
   smsAeroEmail: process.env.SMS_AERO_EMAIL || '',
   smsAeroApiKey: process.env.SMS_AERO_API_KEY || '',
   smsAeroSign: process.env.SMS_AERO_SIGN || 'SMS Aero',
+  smsAeroMobileIdSign: process.env.SMS_AERO_MOBILE_ID_SIGN || '',
+  smsAuthMode: (process.env.SMS_AUTH_MODE || 'mobile_id').toLowerCase(),
   smsMock: process.env.SMS_MOCK !== 'false',
   publicBaseUrl,
   photoStorage:
@@ -76,7 +78,11 @@ if (config.photoStorage === 's3') {
 if (config.smsMock) {
   console.log('SMS: тестовый режим (SMS_MOCK=true или не задано SMS_MOCK=false)');
 } else if (config.smsAeroEmail && config.smsAeroApiKey) {
-  console.log(`✓ SMS Aero: боевой режим, ${config.smsAeroEmail}, sign="${config.smsAeroSign}"`);
+  if (config.smsAeroMobileIdSign && config.smsAuthMode !== 'sms') {
+    console.log(`✓ SMS Aero Mobile ID: ${config.smsAeroMobileIdSign}, webhook ${config.publicBaseUrl}/api/auth/mobile-id/webhook`);
+  } else {
+    console.log(`✓ SMS Aero: обычные SMS, ${config.smsAeroEmail}, sign="${config.smsAeroSign}"`);
+  }
 } else if (config.smsRuApiId) {
   console.log('✓ SMS.ru: боевой режим');
 } else {
