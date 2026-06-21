@@ -75,45 +75,31 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
       );
     } catch (error) {
       if (!mounted) return;
-      final message = '$error';
-      if (message.contains('Подтвердите номер по SMS')) {
-        _showError(message);
-        await Future<void>.delayed(const Duration(milliseconds: 500));
-        if (!mounted) return;
-        _goToSmsReverify();
-        return;
-      }
-      _showError(message);
+      _showError('$error');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _goToSmsReverify() async {
+  Future<void> _resetPinViaSms() async {
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
     try {
       final result = await _authApi.sendCode(
         phone: widget.phoneNumber,
-        purpose: 'reverify',
+        purpose: 'reset_pin',
       );
       if (!mounted) return;
 
-      if (result.mock && result.debugCode != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Тестовый код: ${result.debugCode}'),
-            backgroundColor: const Color(0xFF00BFFF),
-            duration: const Duration(seconds: 8),
-          ),
-        );
-      }
-
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => SmsScreen(
             phoneNumber: result.phone,
             debugCode: result.debugCode,
-            purpose: SmsPurpose.reverify,
+            purpose: SmsPurpose.resetPin,
             resetPinAfterVerify: true,
           ),
         ),
@@ -121,6 +107,8 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
     } catch (error) {
       if (!mounted) return;
       _showError('$error');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -168,7 +156,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
             ),
             const SizedBox(height: 12),
             TextButton(
-              onPressed: _isLoading ? null : _goToSmsReverify,
+              onPressed: _isLoading ? null : _resetPinViaSms,
               child: const Text(
                 'Забыли пароль? Подтвердить номер по SMS',
                 textAlign: TextAlign.center,

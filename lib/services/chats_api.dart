@@ -8,6 +8,7 @@ import '../models/listing.dart';
 import '../models/pickup_limit_info.dart';
 import 'api_config.dart';
 import 'listings_api.dart' show PickupLimitException;
+import 'real_phone_required.dart';
 
 class ChatsApi {
   ChatsApi({http.Client? client}) : _client = client ?? http.Client();
@@ -184,6 +185,11 @@ class ChatsApi {
 
     if (response.statusCode != 201) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode == 403 && decoded['code'] == 'REAL_PHONE_REQUIRED') {
+        throw RealPhoneRequiredException(
+          decoded['message'] as String? ?? RealPhoneRequiredException().message,
+        );
+      }
       throw ChatsApiException(decoded['error'] as String? ?? 'Не удалось отправить сообщение');
     }
 

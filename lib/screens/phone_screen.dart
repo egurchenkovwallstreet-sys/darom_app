@@ -74,20 +74,10 @@ class _PhoneScreenState extends State<PhoneScreen> {
         return;
       }
 
-      final purpose = check.authMethod == 'sms_reverify' ? 'reverify' : 'register';
+      final purpose = 'register';
       final result = await _authApi.sendCode(phone: check.phone, purpose: purpose);
 
       if (!mounted) return;
-
-      if (result.mock && result.debugCode != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Тестовый режим: код ${result.debugCode}'),
-            backgroundColor: const Color(0xFF00BFFF),
-            duration: const Duration(seconds: 8),
-          ),
-        );
-      }
 
       Navigator.push(
         context,
@@ -95,9 +85,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
           builder: (context) => SmsScreen(
             phoneNumber: result.phone,
             debugCode: result.debugCode,
-            purpose: purpose == 'reverify'
-                ? SmsPurpose.reverify
-                : SmsPurpose.register,
+            purpose: SmsPurpose.register,
           ),
         ),
       );
@@ -120,9 +108,9 @@ class _PhoneScreenState extends State<PhoneScreen> {
       child: AuthFormScroll(
         title: 'Введите номер телефона',
         subtitle:
-            'Новым — SMS при регистрации.\n'
+            'Новым — тестовый код при регистрации.\n'
             'Повторный вход — пароль из 4 цифр.\n'
-            'SMS ещё раз — раз в ~35 дней для подтверждения номера.',
+            'Реальный SMS — один раз, когда решите отдать вещь или написать в чат.',
         compactSubtitle: 'Проверьте номер перед продолжением',
         focusNode: _phoneFocus,
         formKey: _formKey,

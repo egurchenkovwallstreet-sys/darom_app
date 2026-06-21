@@ -19,6 +19,7 @@ class User {
   final bool isPartner;
   final String? partnerPublicCode;
   final bool canAccessAdminPanel;
+  final bool realPhoneVerified;
 
   const User({
     required this.id,
@@ -41,6 +42,7 @@ class User {
     this.isPartner = false,
     this.partnerPublicCode,
     this.canAccessAdminPanel = false,
+    this.realPhoneVerified = false,
   });
 
   int get dealsCount => itemsGiven + itemsTaken;
@@ -67,6 +69,7 @@ class User {
       isPartner: json['is_partner'] as bool? ?? false,
       partnerPublicCode: json['partner_public_code'] as String?,
       canAccessAdminPanel: json['can_access_admin_panel'] as bool? ?? false,
+      realPhoneVerified: json['real_phone_verified'] as bool? ?? false,
     );
   }
 

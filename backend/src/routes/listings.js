@@ -20,6 +20,11 @@ const {
 } = require('../utils/pickup_limits');
 const { moderatePhoto, resolveMimeType } = require('../utils/photo_moderation');
 const { savePhoto } = require('../utils/photo_storage');
+const { checkAdminAccessByPhone } = require('../utils/admin_auth');
+const {
+  isRealPhoneVerified,
+  buildRealPhoneRequiredResponse,
+} = require('../utils/real_phone_verify');
 
 const router = express.Router();
 
@@ -330,6 +335,11 @@ router.post('/', async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ error: 'Сначала зарегистрируйтесь в приложении' });
+    }
+
+    const isAdmin = await checkAdminAccessByPhone(db, normalizedPhone);
+    if (!isAdmin && !isRealPhoneVerified(user)) {
+      return res.status(403).json(buildRealPhoneRequiredResponse());
     }
 
     const activeCount = await countActiveListings(user.id);

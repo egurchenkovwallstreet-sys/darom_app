@@ -9,16 +9,28 @@ function generateCode() {
   return String(Math.floor(1000 + Math.random() * 9000));
 }
 
-async function sendSmsCode(phone, code) {
-  const apiId = config.smsRuApiId;
+/**
+ * mode:
+ * - mock — всегда тест (регистрация)
+ * - real — боевое SMS, если есть API-ключ; иначе тест
+ * - default — как SMS_MOCK в .env
+ */
+async function sendSmsCode(phone, code, options = {}) {
+  const mode = options.mode || 'default';
   const to = digitsForSms(phone);
   const message = `Даром: код входа ${code}. Никому не сообщайте.`;
 
-  if (config.smsMock || !apiId) {
-    console.log(`[SMS mock] ${to} → код ${code}`);
+  const useMock =
+    mode === 'mock' ||
+    (mode === 'default' && config.smsMock) ||
+    (mode === 'real' && (!config.smsRuApiId || config.smsMock));
+
+  if (useMock) {
+    console.log(`[SMS mock${mode === 'real' ? ' (real requested, no API)' : ''}] ${to} → код ${code}`);
     return { mock: true, debugCode: code };
   }
 
+  const apiId = config.smsRuApiId;
   const url = new URL('https://sms.ru/sms/send');
   url.searchParams.set('api_id', apiId);
   url.searchParams.set('to', to);

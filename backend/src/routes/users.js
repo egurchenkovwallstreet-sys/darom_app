@@ -47,6 +47,7 @@ const userFields = `
   is_shadow_banned,
   is_partner,
   partner_public_code,
+  real_phone_verified_at,
   created_at
 `;
 
@@ -84,6 +85,7 @@ async function formatUserWithStats(db, row, { includePhone = false } = {}) {
     avatar_url: normalizeAvatarUrl(row.avatar_url) || null,
     is_partner: row.is_partner ?? false,
     partner_public_code: row.partner_public_code ?? null,
+    real_phone_verified: Boolean(row.real_phone_verified_at),
     created_at: row.created_at,
   };
 
@@ -147,10 +149,11 @@ router.post('/', async (req, res) => {
       const inserted = await db.query(
         `
         INSERT INTO users (
-          phone, name, is_founder, phone_verified_at, is_partner, partner_public_code
+          phone, name, is_founder, phone_verified_at, real_phone_verified_at,
+          is_partner, partner_public_code
         )
         VALUES (
-          $1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), TRUE, $3
+          $1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), NOW(), TRUE, $3
         )
         RETURNING id
         `,

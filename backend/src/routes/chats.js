@@ -9,6 +9,12 @@ const {
 } = require('../db/listing_helpers');
 const { getPickupStatus, buildPickupLimitResponse } = require('../utils/pickup_limits');
 const { containsPhoneNumber } = require('../utils/phone_detect');
+const { checkAdminAccessByPhone } = require('../utils/admin_auth');
+const {
+  isRealPhoneVerified,
+  buildRealPhoneRequiredResponse,
+  countUserChatMessages,
+} = require('../utils/real_phone_verify');
 
 const router = express.Router();
 
@@ -366,6 +372,14 @@ router.post('/:id/messages', async (req, res) => {
     const conversation = await getConversationForUser(id, user.id);
     if (!conversation) {
       return res.status(404).json({ error: 'Чат не найден' });
+    }
+
+    const isAdmin = await checkAdminAccessByPhone(db, normalizePhone(phone));
+    if (!isAdmin && !isRealPhoneVerified(user)) {
+      const sentCount = await countUserChatMessages(db, user.id);
+      if (sentCount === 0) {
+        return res.status(403).json(buildRealPhoneRequiredResponse());
+      }
     }
 
     const inserted = await db.query(

@@ -10,6 +10,7 @@ import '../services/listings_api.dart';
 import '../services/location_service.dart';
 import '../widgets/keyboard_inset_padding.dart';
 import '../widgets/super_donor_offer_dialog.dart';
+import '../widgets/real_phone_verify_dialog.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/listing_photo_image.dart';
 import '../widgets/primary_action_button.dart';
@@ -53,6 +54,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
   String _selectedSubcategory = 'Мужская';
   bool _isPhotoPressed = false;
   bool _isPublishing = false;
+  late String _activePhone;
   final ImagePicker _imagePicker = ImagePicker();
   final List<_PickedPhoto> _photos = [];
   List<String> _existingPhotoUrls = [];
@@ -75,6 +77,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
   @override
   void initState() {
     super.initState();
+    _activePhone = widget.phoneNumber;
     final existing = widget.editingListing;
     if (existing != null) {
       _titleController.text = existing.title;
@@ -119,7 +122,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
       if (_isEditing) {
         var updated = await _listingsApi.updateListing(
           listingId: widget.editingListing!.id,
-          phone: widget.phoneNumber,
+          phone: _activePhone,
           title: title,
           description: description,
           category: _selectedCategory,
@@ -129,7 +132,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
         for (final photo in _photos) {
           updated = await _listingsApi.uploadPhoto(
             listingId: widget.editingListing!.id,
-            phone: widget.phoneNumber,
+            phone: _activePhone,
             bytes: photo.bytes,
             fileName: photo.name,
           );
@@ -153,7 +156,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
       final lng = position?.lng ?? GeoPosition.moscow.lng;
 
       final listing = await _listingsApi.create(
-        phone: widget.phoneNumber,
+        phone: _activePhone,
         title: title,
         description: description,
         category: _selectedCategory,
@@ -165,7 +168,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
       for (final photo in _photos) {
         await _listingsApi.uploadPhoto(
           listingId: listing.id,
-          phone: widget.phoneNumber,
+          phone: _activePhone,
           bytes: photo.bytes,
           fileName: photo.name,
         );
@@ -194,12 +197,25 @@ class _AddListingScreenState extends State<AddListingScreen> {
     } catch (error) {
       if (!mounted) return;
 
+      if (error is RealPhoneRequiredException) {
+        setState(() => _isPublishing = false);
+        final verifiedPhone = await showRealPhoneVerifyDialog(
+          context,
+          phoneNumber: _activePhone,
+        );
+        if (verifiedPhone != null && mounted) {
+          setState(() => _activePhone = verifiedPhone);
+          await _publish();
+        }
+        return;
+      }
+
       if (error is ListingLimitException) {
         setState(() => _isPublishing = false);
         final activated = await showSuperDonorOfferDialog(
           context,
           limitInfo: error.limitInfo,
-          phoneNumber: widget.phoneNumber,
+          phoneNumber: _activePhone,
         );
         if (activated == true && mounted) {
           await _publish();

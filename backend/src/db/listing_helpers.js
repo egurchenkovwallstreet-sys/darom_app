@@ -14,7 +14,7 @@ async function expireReservations(db) {
 async function getUserByPhone(db, phone) {
   const normalizedPhone = phone; // already normalized by caller
   const result = await db.query(
-    'SELECT id, phone, name, is_founder, super_donor_until, listing_extra_packs, items_given, items_taken FROM users WHERE phone = $1',
+    'SELECT id, phone, name, is_founder, super_donor_until, listing_extra_packs, items_given, items_taken, real_phone_verified_at FROM users WHERE phone = $1',
     [normalizedPhone]
   );
   return result.rows[0] ?? null;

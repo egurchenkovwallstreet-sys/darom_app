@@ -59,6 +59,7 @@ class AuthApi {
   Future<VerifyCodeResult> verifyCode({
     required String phone,
     required String code,
+    String purpose = 'register',
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/verify-code');
 
@@ -66,7 +67,7 @@ class AuthApi {
         .post(
           uri,
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'phone': phone, 'code': code}),
+          body: jsonEncode({'phone': phone, 'code': code, 'purpose': purpose}),
         )
         .timeout(const Duration(seconds: 10));
 
@@ -77,6 +78,69 @@ class AuthApi {
     }
 
     return VerifyCodeResult.fromJson(body);
+  }
+
+  Future<SendCodeResult> sendActiveVerifyCode({
+    required String accountPhone,
+    required String verifyPhone,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/active-verify/send');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': accountPhone,
+            'verify_phone': verifyPhone,
+          }),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Не удалось отправить SMS');
+    }
+
+    return SendCodeResult(
+      phone: body['phone'] as String,
+      mock: body['mock'] as bool? ?? false,
+      debugCode: body['debug_code'] as String?,
+    );
+  }
+
+  Future<ActiveVerifyResult> confirmActiveVerify({
+    required String accountPhone,
+    required String verifyPhone,
+    required String code,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/active-verify/confirm');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': accountPhone,
+            'verify_phone': verifyPhone,
+            'code': code,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Неверный код');
+    }
+
+    return ActiveVerifyResult(
+      phone: body['phone'] as String,
+      phoneChanged: body['phone_changed'] as bool? ?? false,
+      message: body['message'] as String? ??
+          'Теперь вам доступны все функции приложения!',
+    );
   }
 
   Future<void> setPin({
@@ -130,6 +194,7 @@ class AuthApi {
       id: user['id'] as String,
       phone: user['phone'] as String,
       name: user['name'] as String,
+      realPhoneVerified: user['real_phone_verified'] as bool? ?? false,
     );
   }
 
@@ -144,7 +209,7 @@ class CheckPhoneResult {
     required this.needsSms,
     required this.authMethod,
     this.userName,
-    this.reverifyDays = 35,
+    this.realPhoneVerified = false,
   });
 
   final String phone;
@@ -153,7 +218,7 @@ class CheckPhoneResult {
   final bool needsSms;
   final String authMethod;
   final String? userName;
-  final int reverifyDays;
+  final bool realPhoneVerified;
 
   factory CheckPhoneResult.fromJson(Map<String, dynamic> json) {
     return CheckPhoneResult(
@@ -163,7 +228,7 @@ class CheckPhoneResult {
       needsSms: json['needs_sms'] as bool? ?? true,
       authMethod: json['auth_method'] as String? ?? 'sms_register',
       userName: json['user_name'] as String?,
-      reverifyDays: (json['reverify_days'] as num?)?.toInt() ?? 35,
+      realPhoneVerified: json['real_phone_verified'] as bool? ?? false,
     );
   }
 }
@@ -187,6 +252,7 @@ class VerifyCodeResult {
     required this.hasPin,
     required this.verificationToken,
     this.userName,
+    this.realPhoneVerified = false,
   });
 
   final String phone;
@@ -194,6 +260,7 @@ class VerifyCodeResult {
   final bool hasPin;
   final String verificationToken;
   final String? userName;
+  final bool realPhoneVerified;
 
   factory VerifyCodeResult.fromJson(Map<String, dynamic> json) {
     return VerifyCodeResult(
@@ -202,8 +269,21 @@ class VerifyCodeResult {
       hasPin: json['has_pin'] as bool? ?? false,
       verificationToken: json['verification_token'] as String,
       userName: json['user_name'] as String?,
+      realPhoneVerified: json['real_phone_verified'] as bool? ?? false,
     );
   }
+}
+
+class ActiveVerifyResult {
+  const ActiveVerifyResult({
+    required this.phone,
+    required this.phoneChanged,
+    required this.message,
+  });
+
+  final String phone;
+  final bool phoneChanged;
+  final String message;
 }
 
 class PinLoginResult {
@@ -211,11 +291,13 @@ class PinLoginResult {
     required this.id,
     required this.phone,
     required this.name,
+    this.realPhoneVerified = false,
   });
 
   final String id;
   final String phone;
   final String name;
+  final bool realPhoneVerified;
 }
 
 class AuthApiException implements Exception {

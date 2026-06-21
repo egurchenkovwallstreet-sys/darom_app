@@ -6,12 +6,14 @@ import '../models/chat_message.dart';
 import '../models/conversation.dart';
 import '../services/chats_api.dart';
 import '../services/listings_api.dart' show PickupLimitException;
+import '../services/real_phone_required.dart';
 import '../services/refresh_intervals.dart';
 import '../theme/app_colors.dart';
 import '../widgets/keyboard_inset_padding.dart';
 import '../widgets/phone_sharing_dialog.dart';
 import '../widgets/primary_action_button.dart';
 import '../widgets/pickup_pack_offer_dialog.dart';
+import '../widgets/real_phone_verify_dialog.dart';
 
 class ChatThreadScreen extends StatefulWidget {
   final String phoneNumber;
@@ -36,6 +38,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   final FocusNode _inputFocus = FocusNode();
 
   late Conversation _conversation;
+  late String _activePhone;
   List<ChatMessage> _messages = [];
   bool _loading = true;
   bool _sending = false;
@@ -48,6 +51,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   void initState() {
     super.initState();
     _conversation = widget.conversation;
+    _activePhone = widget.phoneNumber;
     _inputFocus.addListener(_onInputFocusChange);
     _bootstrap();
   }
@@ -104,7 +108,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     _loadInFlight = true;
     try {
       final data = await _api.fetchMessages(
-        phone: widget.phoneNumber,
+        phone: _activePhone,
         conversationId: _conversation.id,
         afterId: initial ? null : _lastMessageId,
       );
@@ -123,7 +127,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       });
 
       await _api.markConversationRead(
-        phone: widget.phoneNumber,
+        phone: _activePhone,
         conversationId: _conversation.id,
       );
 
@@ -167,7 +171,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
 
     try {
       final result = await _api.sendMessage(
-        phone: widget.phoneNumber,
+        phone: _activePhone,
         conversationId: _conversation.id,
         body: text,
       );
@@ -183,6 +187,20 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _sending = false);
+
+      if (error is RealPhoneRequiredException) {
+        _inputController.text = text;
+        final verifiedPhone = await showRealPhoneVerifyDialog(
+          context,
+          phoneNumber: _activePhone,
+        );
+        if (verifiedPhone != null && mounted) {
+          setState(() => _activePhone = verifiedPhone);
+          await _sendMessage();
+        }
+        return;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error is ChatsApiException ? error.message : '$error'),
@@ -198,7 +216,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     setState(() => _reserving = true);
     try {
       final result = await _api.reserveFromChat(
-        phone: widget.phoneNumber,
+        phone: _activePhone,
         conversationId: _conversation.id,
       );
       if (!mounted) return;
@@ -220,7 +238,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         final activated = await showPickupPackOfferDialog(
           context,
           limitInfo: error.limitInfo,
-          phoneNumber: widget.phoneNumber,
+          phoneNumber: _activePhone,
         );
         if (activated == true && mounted) {
           await _reserve();
@@ -293,7 +311,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
 
     try {
       await _api.reportChat(
-        phone: widget.phoneNumber,
+        phone: _activePhone,
         conversationId: _conversation.id,
         reason: reason.isEmpty ? null : reason,
       );

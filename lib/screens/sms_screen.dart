@@ -5,11 +5,10 @@ import '../widgets/auth_form_scroll.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/pin_code_fields.dart';
 import '../widgets/primary_action_button.dart';
-import 'pin_login_screen.dart';
 import 'pin_setup_screen.dart';
 import 'profile_setup_screen.dart';
 
-enum SmsPurpose { register, reverify }
+enum SmsPurpose { register, resetPin, partner }
 
 class SmsScreen extends StatefulWidget {
   final String phoneNumber;
@@ -36,23 +35,24 @@ class _SmsScreenState extends State<SmsScreen> {
   final FocusNode _codeFocus = FocusNode();
   final GlobalKey _formKey = GlobalKey();
   bool _isVerifying = false;
+  String? _debugCode;
   final _controllers = PinCodeFields.createControllers();
+
+  String get _apiPurpose {
+    switch (widget.purpose) {
+      case SmsPurpose.partner:
+        return 'partner';
+      case SmsPurpose.resetPin:
+        return 'reset_pin';
+      case SmsPurpose.register:
+        return 'register';
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    if (widget.debugCode != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Тестовый код: ${widget.debugCode}'),
-            backgroundColor: const Color(0xFF00BFFF),
-            duration: const Duration(seconds: 10),
-          ),
-        );
-      });
-    }
+    _debugCode = widget.debugCode;
   }
 
   @override
@@ -85,11 +85,12 @@ class _SmsScreenState extends State<SmsScreen> {
       final result = await _authApi.verifyCode(
         phone: widget.phoneNumber,
         code: code,
+        purpose: _apiPurpose,
       );
 
       if (!mounted) return;
 
-      if (widget.resetPinAfterVerify) {
+      if (widget.resetPinAfterVerify || widget.purpose == SmsPurpose.resetPin) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -97,19 +98,6 @@ class _SmsScreenState extends State<SmsScreen> {
               phoneNumber: result.phone,
               verificationToken: result.verificationToken,
               userName: result.userName,
-            ),
-          ),
-        );
-        return;
-      }
-
-      if (widget.purpose == SmsPurpose.reverify && result.hasPin) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PinLoginScreen(
-              phoneNumber: result.phone,
-              infoMessage: 'Номер подтверждён. Введите пароль для входа',
             ),
           ),
         );
@@ -158,19 +146,27 @@ class _SmsScreenState extends State<SmsScreen> {
 
   Future<void> _resend() async {
     try {
-      final purpose =
-          widget.purpose == SmsPurpose.reverify ? 'reverify' : 'register';
       final result = await _authApi.sendCode(
         phone: widget.phoneNumber,
-        purpose: purpose,
+        purpose: _apiPurpose,
       );
       if (!mounted) return;
-      final msg = result.mock && result.debugCode != null
-          ? 'Новый тестовый код: ${result.debugCode}'
-          : 'Код отправлен повторно';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: const Color(0xFF00BFFF)),
-      );
+      setState(() => _debugCode = result.debugCode);
+      if (result.debugCode != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Новый тестовый код: ${result.debugCode}'),
+            backgroundColor: const Color(0xFF00BFFF),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Код отправлен повторно'),
+            backgroundColor: Color(0xFF00BFFF),
+          ),
+        );
+      }
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -179,16 +175,23 @@ class _SmsScreenState extends State<SmsScreen> {
     }
   }
 
+  String get _subtitle {
+    switch (widget.purpose) {
+      case SmsPurpose.partner:
+        return 'Подтверждение номера партнёра: ${widget.phoneNumber}';
+      case SmsPurpose.resetPin:
+        return 'Код для смены пароля отправлен на ${widget.phoneNumber}';
+      case SmsPurpose.register:
+        return 'Тестовый код для регистрации (номер ${widget.phoneNumber})';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final subtitle = widget.purpose == SmsPurpose.reverify
-        ? 'Подтверждение номера (раз в ~35 дней)'
-        : 'Код для регистрации отправлен на ${widget.phoneNumber}';
-
     return MidnightGlowScreen(
       child: AuthFormScroll(
         title: 'Введите код из SMS',
-        subtitle: subtitle,
+        subtitle: _subtitle,
         compactSubtitle: 'Введите 4 цифры из сообщения',
         focusNode: _codeFocus,
         formKey: _formKey,
@@ -207,10 +210,55 @@ class _SmsScreenState extends State<SmsScreen> {
           ),
           child: const Icon(Icons.sms, size: 60, color: Color(0xFF00BFFF)),
         ),
-        form: PinCodeFields(
-          controllers: _controllers,
-          firstFocusNode: _codeFocus,
-          onCompleted: _verify,
+        form: Column(
+          children: [
+            if (_debugCode != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF004466),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF00BFFF).withOpacity(0.25),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Тестовый код регистрации',
+                      style: TextStyle(
+                        color: Color(0xFF80DEEA),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      _debugCode!,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 42,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            PinCodeFields(
+              controllers: _controllers,
+              firstFocusNode: _codeFocus,
+              onCompleted: _verify,
+            ),
+          ],
         ),
         footer: Column(
           children: [

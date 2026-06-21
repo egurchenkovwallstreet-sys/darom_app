@@ -4,6 +4,7 @@ const db = require('../db/pool');
 const { normalizePhone } = require('../utils/phone');
 const { generateCode, sendSmsCode } = require('../services/sms_service');
 const { hashPin, verifyPin } = require('../utils/pin_hash');
+const { checkAdminAccessByPhone } = require('../utils/admin_auth');
 const config = require('../config');
 
 const router = express.Router();
@@ -11,23 +12,19 @@ const router = express.Router();
 const CODE_TTL_MINUTES = 5;
 const RESEND_COOLDOWN_SEC = 60;
 const VERIFY_TOKEN_TTL_MINUTES = 15;
-const PHONE_REVERIFY_DAYS = Number(process.env.PHONE_REVERIFY_DAYS) || 35;
 
-function daysSince(dateValue) {
-  if (!dateValue) return Infinity;
-  const ms = Date.now() - new Date(dateValue).getTime();
-  return ms / (1000 * 60 * 60 * 24);
-}
-
-function needsPhoneReverify(phoneVerifiedAt) {
-  return daysSince(phoneVerifiedAt) >= PHONE_REVERIFY_DAYS;
+function smsModeForPurpose(purpose) {
+  if (purpose === 'partner' || purpose === 'active_verify') {
+    return 'real';
+  }
+  return 'mock';
 }
 
 async function fetchAuthUser(normalizedPhone) {
   const result = await db.query(
     `
     SELECT id, phone, name, pin_hash, phone_verified_at, pin_set_at,
-           is_blocked_permanent, blocked_until
+           real_phone_verified_at, is_blocked_permanent, blocked_until
     FROM users
     WHERE phone = $1
     `,
@@ -82,7 +79,7 @@ async function consumeVerifyToken(normalizedPhone, token) {
   return true;
 }
 
-async function sendCodeForPhone(normalizedPhone, res) {
+async function storeSmsCode(normalizedPhone, res, smsMode) {
   const code = generateCode();
   const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000);
 
@@ -114,7 +111,7 @@ async function sendCodeForPhone(normalizedPhone, res) {
     [normalizedPhone, code, expiresAt]
   );
 
-  const sendResult = await sendSmsCode(normalizedPhone, code);
+  const sendResult = await sendSmsCode(normalizedPhone, code, { mode: smsMode });
 
   const body = {
     ok: true,
@@ -123,11 +120,35 @@ async function sendCodeForPhone(normalizedPhone, res) {
     mock: sendResult.mock,
   };
 
-  if (sendResult.mock && config.smsMock) {
+  if (sendResult.mock && sendResult.debugCode) {
     body.debug_code = sendResult.debugCode;
   }
 
   return res.json(body);
+}
+
+async function verifySmsCode(normalizedPhone, trimmedCode) {
+  const result = await db.query(
+    'SELECT code, expires_at FROM sms_codes WHERE phone = $1',
+    [normalizedPhone]
+  );
+  const row = result.rows[0];
+
+  if (!row) {
+    return { ok: false, status: 400, error: 'Сначала запросите код' };
+  }
+
+  if (new Date(row.expires_at) < new Date()) {
+    await db.query('DELETE FROM sms_codes WHERE phone = $1', [normalizedPhone]);
+    return { ok: false, status: 400, error: 'Код истёк. Запросите новый' };
+  }
+
+  if (row.code !== trimmedCode) {
+    return { ok: false, status: 400, error: 'Неверный код' };
+  }
+
+  await db.query('DELETE FROM sms_codes WHERE phone = $1', [normalizedPhone]);
+  return { ok: true };
 }
 
 // POST /api/auth/check-phone { phone }
@@ -149,7 +170,6 @@ router.post('/check-phone', async (req, res) => {
         has_pin: false,
         needs_sms: true,
         auth_method: 'sms_register',
-        reverify_days: PHONE_REVERIFY_DAYS,
       });
     }
 
@@ -158,16 +178,14 @@ router.post('/check-phone', async (req, res) => {
     }
 
     const hasPin = Boolean(user.pin_hash);
-    const reverify = needsPhoneReverify(user.phone_verified_at);
 
-    if (!hasPin || reverify) {
+    if (!hasPin) {
       return res.json({
         phone: normalizedPhone,
         registered: true,
-        has_pin: hasPin,
+        has_pin: false,
         needs_sms: true,
-        auth_method: hasPin ? 'sms_reverify' : 'sms_register',
-        reverify_days: PHONE_REVERIFY_DAYS,
+        auth_method: 'sms_register',
         user_name: user.name,
       });
     }
@@ -178,20 +196,24 @@ router.post('/check-phone', async (req, res) => {
       has_pin: true,
       needs_sms: false,
       auth_method: 'pin',
-      reverify_days: PHONE_REVERIFY_DAYS,
       user_name: user.name,
+      real_phone_verified: Boolean(user.real_phone_verified_at),
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// POST /api/auth/send-code { phone, purpose?: register|reverify }
+// POST /api/auth/send-code { phone, purpose?: register|reset_pin|partner }
 router.post('/send-code', async (req, res) => {
   const { phone, purpose = 'register' } = req.body;
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
+  }
+
+  if (!['register', 'reset_pin', 'partner'].includes(purpose)) {
+    return res.status(400).json({ error: 'Неверный purpose' });
   }
 
   try {
@@ -203,32 +225,33 @@ router.post('/send-code', async (req, res) => {
     }
 
     const hasPin = Boolean(user?.pin_hash);
-    const reverify = user ? needsPhoneReverify(user.phone_verified_at) : false;
 
-    if (user && hasPin && !reverify && purpose !== 'reverify') {
-      return res.status(400).json({
-        error: 'Для входа используйте пароль из 4 цифр',
-        auth_method: 'pin',
-      });
+    if (purpose === 'register') {
+      if (user && hasPin) {
+        return res.status(400).json({
+          error: 'Для входа используйте пароль из 4 цифр',
+          auth_method: 'pin',
+        });
+      }
+    } else if (purpose === 'reset_pin') {
+      if (!user || !hasPin) {
+        return res.status(400).json({ error: 'Сначала пройдите регистрацию' });
+      }
+    } else if (purpose === 'partner') {
+      if (user) {
+        return res.status(400).json({ error: 'Этот номер уже зарегистрирован' });
+      }
     }
 
-    if (user && hasPin && reverify && purpose !== 'reverify') {
-      return res.status(400).json({
-        error: `Подтвердите номер по SMS — прошло более ${PHONE_REVERIFY_DAYS} дней`,
-        needs_reverify: true,
-        auth_method: 'sms_reverify',
-      });
-    }
-
-    return await sendCodeForPhone(normalizedPhone, res);
+    return await storeSmsCode(normalizedPhone, res, smsModeForPurpose(purpose));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// POST /api/auth/verify-code { phone, code }
+// POST /api/auth/verify-code { phone, code, purpose?: register|reset_pin|partner }
 router.post('/verify-code', async (req, res) => {
-  const { phone, code } = req.body;
+  const { phone, code, purpose = 'register' } = req.body;
 
   if (!phone || !code) {
     return res.status(400).json({ error: 'Нужны phone и code' });
@@ -241,27 +264,11 @@ router.post('/verify-code', async (req, res) => {
 
   try {
     const normalizedPhone = normalizePhone(phone);
+    const check = await verifySmsCode(normalizedPhone, trimmedCode);
 
-    const result = await db.query(
-      'SELECT code, expires_at FROM sms_codes WHERE phone = $1',
-      [normalizedPhone]
-    );
-    const row = result.rows[0];
-
-    if (!row) {
-      return res.status(400).json({ error: 'Сначала запросите код' });
+    if (!check.ok) {
+      return res.status(check.status).json({ error: check.error });
     }
-
-    if (new Date(row.expires_at) < new Date()) {
-      await db.query('DELETE FROM sms_codes WHERE phone = $1', [normalizedPhone]);
-      return res.status(400).json({ error: 'Код истёк. Запросите новый' });
-    }
-
-    if (row.code !== trimmedCode) {
-      return res.status(400).json({ error: 'Неверный код' });
-    }
-
-    await db.query('DELETE FROM sms_codes WHERE phone = $1', [normalizedPhone]);
 
     const user = await fetchAuthUser(normalizedPhone);
     const isNewUser = !user;
@@ -284,6 +291,7 @@ router.post('/verify-code', async (req, res) => {
       user_name: user?.name ?? null,
       verification_token: tokenInfo.token,
       verification_expires_in: tokenInfo.expires_in,
+      real_phone_verified: purpose === 'partner',
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -360,14 +368,6 @@ router.post('/login-pin', async (req, res) => {
       });
     }
 
-    if (needsPhoneReverify(user.phone_verified_at)) {
-      return res.status(403).json({
-        error: `Подтвердите номер по SMS — прошло более ${PHONE_REVERIFY_DAYS} дней`,
-        needs_reverify: true,
-        auth_method: 'sms_reverify',
-      });
-    }
-
     if (!verifyPin(trimmedPin, user.pin_hash)) {
       return res.status(401).json({ error: 'Неверный пароль' });
     }
@@ -378,7 +378,115 @@ router.post('/login-pin', async (req, res) => {
         id: user.id,
         phone: user.phone,
         name: user.name,
+        real_phone_verified: Boolean(user.real_phone_verified_at),
       },
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/auth/active-verify/send { phone, verify_phone }
+router.post('/active-verify/send', async (req, res) => {
+  const { phone, verify_phone: verifyPhoneRaw } = req.body;
+
+  if (!phone || !verifyPhoneRaw) {
+    return res.status(400).json({ error: 'Нужны phone и verify_phone' });
+  }
+
+  try {
+    const accountPhone = normalizePhone(phone);
+    const verifyPhone = normalizePhone(verifyPhoneRaw);
+    const user = await fetchAuthUser(accountPhone);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    if (isBlockedUser(user)) {
+      return res.status(403).json({ error: 'Аккаунт заблокирован. Обратитесь в поддержку.' });
+    }
+
+    if (user.real_phone_verified_at) {
+      return res.status(400).json({ error: 'Номер уже подтверждён' });
+    }
+
+    if (verifyPhone !== accountPhone) {
+      const taken = await fetchAuthUser(verifyPhone);
+      if (taken && taken.id !== user.id) {
+        return res.status(400).json({ error: 'Этот номер уже используется другим аккаунтом' });
+      }
+    }
+
+    return await storeSmsCode(verifyPhone, res, smsModeForPurpose('active_verify'));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/auth/active-verify/confirm { phone, verify_phone, code }
+router.post('/active-verify/confirm', async (req, res) => {
+  const { phone, verify_phone: verifyPhoneRaw, code } = req.body;
+
+  if (!phone || !verifyPhoneRaw || !code) {
+    return res.status(400).json({ error: 'Нужны phone, verify_phone и code' });
+  }
+
+  const trimmedCode = String(code).trim();
+  if (!/^\d{4}$/.test(trimmedCode)) {
+    return res.status(400).json({ error: 'Код — 4 цифры' });
+  }
+
+  try {
+    const accountPhone = normalizePhone(phone);
+    const verifyPhone = normalizePhone(verifyPhoneRaw);
+    const user = await fetchAuthUser(accountPhone);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    if (isBlockedUser(user)) {
+      return res.status(403).json({ error: 'Аккаунт заблокирован. Обратитесь в поддержку.' });
+    }
+
+    if (user.real_phone_verified_at) {
+      return res.status(400).json({ error: 'Номер уже подтверждён' });
+    }
+
+    const check = await verifySmsCode(verifyPhone, trimmedCode);
+    if (!check.ok) {
+      return res.status(check.status).json({ error: check.error });
+    }
+
+    if (verifyPhone !== accountPhone) {
+      const taken = await fetchAuthUser(verifyPhone);
+      if (taken && taken.id !== user.id) {
+        return res.status(400).json({ error: 'Этот номер уже используется другим аккаунтом' });
+      }
+    }
+
+    const isAdmin = await checkAdminAccessByPhone(db, accountPhone);
+
+    await db.query(
+      `
+      UPDATE users
+      SET
+        phone = $2,
+        phone_verified_at = NOW(),
+        real_phone_verified_at = NOW()
+      WHERE id = $1
+      `,
+      [user.id, verifyPhone]
+    );
+
+    res.json({
+      ok: true,
+      phone: verifyPhone,
+      real_phone_verified: true,
+      phone_changed: verifyPhone !== accountPhone,
+      message: 'Теперь вам доступны все функции приложения!',
+      admin_bypass: isAdmin,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

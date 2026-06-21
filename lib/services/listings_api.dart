@@ -9,6 +9,9 @@ import '../models/listing.dart';
 import '../models/listing_limit_info.dart';
 import '../models/pickup_limit_info.dart';
 import 'api_config.dart';
+import 'real_phone_required.dart';
+
+export 'real_phone_required.dart' show RealPhoneRequiredException;
 
 class ListingsApi {
   ListingsApi({http.Client? client}) : _client = client ?? http.Client();
@@ -182,6 +185,11 @@ class ListingsApi {
 
     if (response.statusCode != 201) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode == 403 && body['code'] == 'REAL_PHONE_REQUIRED') {
+        throw RealPhoneRequiredException(
+          body['message'] as String? ?? RealPhoneRequiredException().message,
+        );
+      }
       if (response.statusCode == 402 && body['code'] == 'LISTING_LIMIT') {
         throw ListingLimitException(ListingLimitInfo.fromJson(body));
       }

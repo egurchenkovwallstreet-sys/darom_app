@@ -67,20 +67,10 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
 
       final result = await _authApi.sendCode(
         phone: check.phone,
-        purpose: 'register',
+        purpose: 'partner',
       );
 
       if (!mounted) return;
-
-      if (result.mock && result.debugCode != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Тестовый режим: код ${result.debugCode}'),
-            backgroundColor: const Color(0xFF00BFFF),
-            duration: const Duration(seconds: 8),
-          ),
-        );
-      }
 
       Navigator.push(
         context,
@@ -88,7 +78,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
           builder: (context) => SmsScreen(
             phoneNumber: result.phone,
             debugCode: result.debugCode,
-            purpose: SmsPurpose.register,
+            purpose: SmsPurpose.partner,
             partnerActivationCode: code,
           ),
         ),
