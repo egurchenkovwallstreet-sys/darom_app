@@ -54,7 +54,7 @@ jobs:
       - name: Upload to server via API
         run: |
           HTTP_CODE=$(curl -sS -w "%{http_code}" -o /tmp/deploy-response.txt \
-            --connect-timeout 30 --max-time 120 \
+            --connect-timeout 30 --max-time 300 \
             -X POST \
             -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" \
             -F "archive=@web-build.tar.gz" \
