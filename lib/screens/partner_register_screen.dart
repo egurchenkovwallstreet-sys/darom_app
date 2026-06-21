@@ -6,7 +6,7 @@ import '../widgets/auth_form_scroll.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/partner_email_request_card.dart';
 import '../widgets/primary_action_button.dart';
-import 'sms_screen.dart';
+import 'partner_verify_screen.dart';
 
 class PartnerRegisterScreen extends StatefulWidget {
   const PartnerRegisterScreen({super.key});
@@ -65,20 +65,11 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
         return;
       }
 
-      final result = await _authApi.sendCode(
-        phone: check.phone,
-        purpose: 'partner',
-      );
-
-      if (!mounted) return;
-
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SmsScreen(
-            phoneNumber: result.phone,
-            debugCode: result.debugCode,
-            purpose: SmsPurpose.partner,
+          builder: (context) => PartnerVerifyScreen(
+            phoneNumber: check.phone,
             partnerActivationCode: code,
           ),
         ),
@@ -102,7 +93,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
     return MidnightGlowScreen(
       child: AuthFormScroll(
         title: 'Регистрация партнёра',
-        compactSubtitle: 'Код партнёра и номер телефона',
+        compactSubtitle: 'Код партнёра и номер; подтверждение через Mobile ID (~3–6 ₽)',
         focusNode: _codeFocus,
         formKey: _formKey,
         leading: const Icon(Icons.handshake_rounded, size: 72, color: Color(0xFF00BFFF)),
@@ -166,7 +157,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
                   fontWeight: FontWeight.bold,
                 ),
                 decoration: InputDecoration(
-                  hintText: '+7 (___) ___-__-__',
+                  hintText: 'Номер телефона',
                   hintStyle: TextStyle(
                     color: const Color(0xFFFFFFFF).withOpacity(0.4),
                     fontSize: 18,

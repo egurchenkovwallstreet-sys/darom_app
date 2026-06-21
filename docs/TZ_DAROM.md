@@ -11,10 +11,16 @@
 ## 2. Роли и монетизация
 
 ### Бесплатно всегда
-- Регистрация по SMS
+- Регистрация: **номер + имя + PIN** (без SMS при регистрации)
 - Карта и лента объявлений
 - До **10 активных объявлений**
 - Профиль и статистика
+
+### Подтверждение номера (один раз навсегда)
+- **Не** при регистрации — только при **первом объявлении** или **первом сообщении в чате**
+- Канал: **SMS Aero Mobile ID** (~3,39–5,79 ₽): push «Подтвердить» или SMS с 4 цифрами
+- После успеха — все функции без повторной проверки
+- Инструкция: `deploy/MOBILE_ID.md`
 
 ### Основатель (первые 1000 пользователей)
 - Значок навсегда, приоритет в ленте, **20 объявлений**
@@ -74,8 +80,8 @@
 |---------|----------|
 | URL | `/admin` (Flutter Web) — запасной путь |
 | **Вход из профиля** | Пункт «Админ-панель» в ЛК — **только** если телефон есть в `admin_users` (проверка на backend: `can_access_admin_panel`) |
-| **После кнопки** | Телефон уже известен → сразу «Получить коды» → SMS + email → кабинет |
-| Вход | **2FA:** SMS на телефон super admin + код на email |
+| **После кнопки** | Телефон уже известен → «Получить коды» → **реальное SMS** + код с почты → кабинет |
+| Вход | **2FA:** **реальное SMS** на телефон super admin + код на email (SMTP ⏳ mock) |
 | Super admin | Полный доступ: жалобы, блоки, статистика, блогеры, выплаты |
 | Moderator (позже) | Только жалобы и блокировки — **без** монетизации и статистики |
 | Жалобы объявлений | С контекстом объявления |
@@ -97,7 +103,7 @@
 | Чат / Push | Firebase | ⏳ |
 | Карты | flutter_map + OpenStreetMap | ✅ бесплатно |
 | Модерация | Yandex Vision + стоп-слова | 🟡 стоп-слова ✅, Vision ⏳ |
-| SMS | SMS.ru / SMS Aero | ⏳ (mock в приложении) |
+| SMS | SMS Aero + Mobile ID | ✅ боевой (`SMS_MOCK=false`); партнёры — обычное SMS |
 | Оплата | Робокасса | 🟡 код ✅; магазин на одобрении ⏸ |
 
 ## 4. Категории
@@ -119,7 +125,7 @@
 | Экран | Статус |
 |-------|--------|
 | Онбординг (3 слайда) + «Я партнёр» | ✅ |
-| Телефон + PIN; регистрация — тестовый SMS; реальный SMS один раз при активности | ✅ |
+| Телефон + PIN; регистрация **без SMS**; подтверждение номера **один раз** при активности (Mobile ID) | ✅ |
 | Создание профиля (имя + код блогера?) | ✅ + API |
 | Регистрация партнёра + заявка на почту | ✅ |
 | Статистика партнёра (2 суммы выплат) | ✅ |
@@ -142,10 +148,23 @@
 - **Рейтинг:** 1–5 после сделки ✅; <4.0 → теневой бан ✅ (backend)
 - **Лимиты:** объявления 10/20 + Супер даритель (+10 за 99₽) ✅; заборы 7→3/мес + пакеты **149→299→499₽** ✅
 - **Клавиатура на Web:** поля ввода не перекрываются (`KeyboardInsetPadding` / `AuthFormScroll`) ✅
-- **Безопасность:** 1 телефон = 1 аккаунт ✅; PIN 4 цифры ✅; предупреждение о номере в чате ✅; блокировка пользователей ✅; админ — отдельный 2FA (SMS + почта) ✅
+- **Безопасность:** 1 телефон = 1 аккаунт ✅; PIN 4 цифры ✅; подтверждение реального номера один раз (Mobile ID) ✅; предупреждение о номере в чате ✅; блокировка пользователей ✅; админ — 2FA (реальное SMS + почта mock) ✅
 - **Геолокация Web:** запрос на HTTPS (darom-app.online) ✅; подсказки и «Повторить» при отказе ✅
 - **Чаты:** в списке только диалоги с ≥1 сообщением (пустые не показываются) ✅
 - **Забронировано:** 24ч, серый статус ✅; push дарителю ⏳
+
+### 7.1 Авторизация (актуальная логика, 21.06.2026)
+
+| Этап | Что происходит | SMS / стоимость |
+|------|----------------|-----------------|
+| **Регистрация** | Номер → имя → PIN (4 цифры) | **Нет** |
+| **Вход** | Номер + PIN | **Нет** |
+| **Первое объявление или 1-е сообщение в чате** | Диалог «Подтвердить номер»; Mobile ID | **~3–6 ₽** (SMS Aero) |
+| **Партнёр** | Код + телефон → Mobile ID → имя → PIN | **~3–6 ₽** (Mobile ID) |
+| **Админ-панель** | SMS + код с почты | **Реальное SMS** + почта mock |
+| **Сброс PIN** | SMS-код | Реальное SMS |
+
+Поля в БД: `phone_verified_at` (аккаунт создан), `real_phone_verified_at` (номер подтверждён навсегда).
 
 ## 8. Уровни дарителей
 
@@ -171,7 +190,7 @@
 
 1. ✅ UI + стиль + навигация
 2. ✅ Backend + PostgreSQL/PostGIS + API
-3. 🟡 SMS API (тест ✅, PIN ✅, боевой SMS.ru ⏳)
+3. ✅ SMS API (SMS Aero + Mobile ID; регистрация без SMS; PIN ✅)
 4. ✅ Карта — flutter_map + OpenStreetMap
 5. 🟡 Чаты ✅; Firebase push ⏳
 6. 🟡 Модерация (стоп-слова ✅) + фото (S3 ✅, Vision ⏳)
@@ -182,13 +201,13 @@
 11. 🟡 **Flutter Web в продакшене** (GitHub Actions ✅, геолокация HTTPS ✅, иконка ✅)
 12. ⏳ Публикация в магазины (Android / iOS)
 
-**Оценка прогресса (21.06.2026):** ядро MVP ~**98%** | полное ТЗ ~**58%**. Подробности: `docs/PROGRESS.md`.
+**Оценка прогресса (21.06.2026):** ядро MVP ~**99%** | полное ТЗ ~**62%**. Подробности: `docs/PROGRESS.md`.
 
 ## 12. Следующие этапы (приоритет)
 
 | Этап | Задачи | Статус |
 |------|--------|--------|
-| **C — Монетизация** | Робокасса ⏸ (одобрение); **SMS.ru** ← сейчас; SMTP админ-кодов | ⏳ **текущий** |
+| **C — Монетизация** | Робокасса ⏸ (одобрение); SMS Aero ✅; Mobile ID ✅; **SMTP** админ-кодов ← сейчас | ⏳ **текущий** |
 | **D — Магазины** | Сборка Android APK / iOS, публикация | ⏳ |
 | **E — Уведомления** | Firebase push (бронь, чаты, сделки) | ⏳ |
 | **F — Модерация** | Yandex Vision для фото | ⏳ |
@@ -204,12 +223,11 @@ lib/
   main.dart
   data/         app_categories.dart, profile_achievements.dart, map_radius_options.dart
   models/       user.dart (+ canAccessAdminPanel), listing.dart, ...
-  services/     api_config, auth_api, admin_api, admin_session_service, partners_api, listings_api, users_api, chats_api, ...
-  screens/      auth_gate, admin_gate, admin_login, admin_dashboard, profile, phone, pin_*, partner_*, ...
-  widgets/      midnight_glow_screen, auth_form_scroll, keyboard_inset_padding, ...
+  services/     api_config, auth_api, admin_api, admin_session_service, partners_api, ...
+  widgets/      real_phone_verify_dialog.dart, midnight_glow_screen, auth_form_scroll, ...
 backend/
-  src/routes/   auth.js, users.js, listings.js, partners.js, admin.js, chats.js, deploy_web.js, ...
-  src/utils/    admin_auth.js (+ checkAdminAccessByPhone), admin_stats.js, block_helpers.js, partner_helpers.js, ...
-  src/services/ email_service.js
+  src/routes/   auth.js (+ active-verify, mobile-id webhook), users.js, admin.js, ...
+  src/utils/    admin_auth.js, real_phone_verify.js, phone_verify_token.js, ...
+  src/services/ sms_service.js, mobile_id_service.js, email_service.js
   db/           migrate_admin.sql, migrate_partners.sql, migrate_pin_auth.sql, ...
 ```

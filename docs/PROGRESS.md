@@ -6,17 +6,17 @@
 
 ---
 
-## Снимок на 21.06.2026
+## Снимок на 21.06.2026 (вечер)
 
 | | |
 |---|---|
-| **Текущий этап** | **C — монетизация**; **сейчас: SMS Aero** (Робокасса ⏸ до одобрения магазина) |
+| **Текущий этап** | **C — монетизация**; SMS Aero ✅; Mobile ID ✅; Робокасса ⏸ до одобрения магазина |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
 | **Backend** | VPS `5.129.243.246`, PM2 `darom-api`, S3 ✅ |
 | **Flutter** | Web в продакшене + разработка ПК `:8080` |
-| **Ядро MVP** | ~**98%** |
-| **Полное ТЗ** | ~**58%** |
+| **Ядро MVP** | ~**99%** |
+| **Полное ТЗ** | ~**62%** |
 | **Пользователь** | новичок, нужны **пошаговые** инструкции |
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
 
@@ -54,6 +54,15 @@
 - GitHub Actions: таймаут загрузки увеличен до 5 мин
 - `git push` → сборка → `/api/deploy-web`
 
+### Авторизация и SMS (21.06.2026, вечер) ✅
+- **Регистрация без SMS:** номер (без маски) → имя → PIN → вход; номер **не проверяется**
+- **Повторный вход:** только номер + PIN (4 цифры)
+- **Подтверждение реального номера — один раз навсегда:** при **первом объявлении** или **первом сообщении в чате**
+- **SMS Aero Mobile ID** (~3,39–5,79 ₽ вместо 46 ₽ на Билайне): push «Подтвердить» или SMS с 4 цифрами (`deploy/MOBILE_ID.md`)
+- **Партнёры:** по-прежнему **реальное SMS** при регистрации
+- **Админ-панель:** **реальное SMS** на +79138931428 при входе; код с почты — пока mock (логи PM2)
+- Инструкции: `deploy/SMS_AERO.md`, `deploy/MOBILE_ID.md`
+
 ---
 
 ## 🎯 Следующие шаги (приоритет)
@@ -61,13 +70,12 @@
 | № | Этап | Задача | Зачем |
 |---|------|--------|-------|
 | **1** | **C — Робокасса** | Реальная оплата (99₽ / 149→299→499₽) | Код ✅; магазин **на одобрении** ⏸ см. `deploy/ROBOKASSA.md` |
-| **2** | **SMS Aero** ← **СЕЙЧАС** | ключ в `.env`, `SMS_MOCK=false` | Реальный SMS при активности + партнёры |
-| **3** | SMTP | Почта для кодов админа | 2FA без просмотра pm2 logs |
-| **4** | Firebase | Push: бронь, чаты, «Отдал» | Уведомления пользователям |
-| **5** | Yandex Vision | Модерация фото | Автопроверка объявлений |
-| **6** | Лента | Приоритет **основателя** в сортировке | Значок есть, приоритет ⏳ |
-| **7** | Админка | Роль **moderator** (без денег) | Отдельные модераторы |
-| **8** | **D — Магазины** | Android APK / iOS | Нативные приложения |
+| **2** | **SMTP** ← **СЕЙЧАС** | Почта для кодов админа (2FA) | Без просмотра pm2 logs |
+| **3** | Firebase | Push: бронь, чаты, «Отдал» | Уведомления пользователям |
+| **4** | Yandex Vision | Модерация фото | Автопроверка объявлений |
+| **5** | Лента | Приоритет **основателя** в сортировке | Значок есть, приоритет ⏳ |
+| **6** | Админка | Роль **moderator** (без денег) | Отдельные модераторы |
+| **7** | **D — Магазины** | Android APK / iOS | Нативные приложения |
 
 ---
 
@@ -82,7 +90,7 @@
 - **Непрочитанные чаты:** бейдж в навигации и в списке чатов (polling)
 - **Категории:** «Для дома» (мебель по комнатам), «Строй материалы», «Прочее»; единый справочник `lib/data/app_categories.dart`
 - **Счётчики объявлений** в подкатегориях (live, polling 2 с)
-- **Вход PIN 4 цифры**; регистрация — **тестовый SMS-код** (крупно на экране); **реальный SMS один раз** при первом объявлении или первом сообщении в чате (`real_phone_verify_dialog.dart`)
+- **Вход PIN 4 цифры**; **регистрация без SMS** (номер → имя → PIN); **подтверждение номера один раз** при первом объявлении или первом сообщении в чате — **Mobile ID** (`real_phone_verify_dialog.dart`)
 - **Клавиатура** не перекрывает поля (`auth_form_scroll.dart`, `KeyboardInsetPadding` — auth, чат, поиск, создание объявления)
 - **Защита номера в чате:** предупреждение при отправке телефона в сообщении
 - **GitHub Actions:** автодеплой Flutter Web на сервер (`deploy-web.yml`)
@@ -96,7 +104,7 @@
 | Функция | Статус |
 |---------|--------|
 | Кнопка «Я партнёр / блогер» (онбординг, экран телефона) | ✅ |
-| Регистрация партнёра: код + телефон + SMS + имя | ✅ |
+| Регистрация партнёра: код + телефон + **Mobile ID** + имя | ✅ ~3–6 ₽ |
 | Коды активации **0001–1000** по очереди (следующий после регистрации предыдущего) | ✅ |
 | Публичный код блогера = его номер (0001, 0002…) для рефералов | ✅ |
 | Обычный пользователь: опциональный «код блогера» при регистрации | ✅ |
@@ -116,7 +124,7 @@
 | **Вход из профиля:** кнопка «Админ-панель» только у admin-телефона | ✅ протестировано |
 | Автоопределение admin по номеру (`can_access_admin_panel` в API профиля) | ✅ |
 | После кнопки — 2FA (SMS + почта), без повторного ввода телефона | ✅ |
-| Вход 2FA: SMS на +79138931428 + код на e.gurchenkov@yandex.ru | ✅ |
+| Вход 2FA: **реальное SMS** на +79138931428 + код на e.gurchenkov@yandex.ru | ✅ SMS; ⏳ почта mock |
 | Роль **super_admin** (полный доступ) | ✅ |
 | Роль **moderator** (только жалобы/блоки — без монетизации) | ⏳ позже |
 | Жалобы на объявления (с контекстом объявления) | ✅ |
@@ -146,14 +154,16 @@
 | Бронь 24ч, «Отдал», «Активировать повторно» | ✅ |
 | Рейтинг 1–5, жалобы (3→скрытие), стоп-слова | ✅ |
 | Уровни дарителя, теневой бан &lt;4.0 | ✅ backend |
-| SMS-код через API (тест: `SMS_MOCK=true`) | ✅ |
+| SMS-код через API | ✅ SMS Aero боевой (`SMS_MOCK=false`) |
+| Mobile ID (подтверждение номера при активности) | ✅ ~3–6 ₽/попытка |
+| Регистрация обычного пользователя | ✅ без SMS, только PIN |
 
 ### Не сделано / нужны ключи
-- SMS.ru боевой (`SMS_MOCK=false` + API-ключ)
 - Firebase push, Yandex Vision
 - **Робокасса** — код ✅; URL в кабинете и `.env` готовы; **магазин на одобрении** ⏸ → тест оплаты после активации
-- SMTP для кодов админа (сейчас mock — код в логах PM2)
+- **SMTP** для кодов админа (сейчас mock — код в логах PM2)
 - Роль модератора (отдельные аккаунты без доступа к деньгам)
+- Приоритет основателя в сортировке ленты
 - Android/iOS
 
 ---
@@ -232,6 +242,9 @@ cat backend/db/migrate_partner_payout_period.sql | docker exec -i darom_db psql 
 cat backend/db/migrate_pin_auth.sql | docker exec -i darom_db psql -U darom -d darom
 cat backend/db/migrate_admin.sql | docker exec -i darom_db psql -U darom -d darom
 cat backend/db/migrate_pickup_tiers.sql | docker exec -i darom_db psql -U darom -d darom
+cat backend/db/migrate_real_phone_verify.sql | docker exec -i darom_db psql -U darom -d darom
+cat backend/db/migrate_mobile_id.sql | docker exec -i darom_db psql -U darom -d darom
+cat backend/db/migrate_partner_mobile_id.sql | docker exec -i darom_db psql -U darom -d darom
 ```
 
 ---
@@ -240,9 +253,19 @@ cat backend/db/migrate_pickup_tiers.sql | docker exec -i darom_db psql -U darom 
 
 | Метод | Путь | Назначение |
 |-------|------|------------|
-| POST | `/api/auth/check-phone` | PIN или SMS |
+| POST | `/api/auth/check-phone` | PIN или регистрация |
 | POST | `/api/auth/set-pin` | Установка PIN |
 | POST | `/api/auth/login-pin` | Вход по PIN |
+| POST | `/api/auth/active-verify/send` | Подтверждение номера (Mobile ID или SMS) |
+| GET | `/api/auth/active-verify/poll` | Статус Mobile ID (push/OTP) |
+| POST | `/api/auth/active-verify/complete` | Завершить после push |
+| POST | `/api/auth/active-verify/confirm` | Код из SMS (Mobile ID или fallback) |
+| POST | `/api/auth/mobile-id/webhook` | Webhook SMS Aero |
+| POST | `/api/auth/partner-verify/send` | Mobile ID для регистрации партнёра |
+| GET | `/api/auth/partner-verify/poll` | Статус Mobile ID (партнёр) |
+| POST | `/api/auth/partner-verify/complete` | Завершить после push (партнёр) |
+| POST | `/api/auth/partner-verify/confirm` | Код из SMS (партнёр) |
+| POST | `/api/auth/send-code` | SMS: сброс PIN |
 | POST | `/api/partners/validate-activation-code` | Проверка кода партнёра |
 | GET | `/api/partners/stats?phone=` | Статистика партнёра |
 | GET | `/api/partners/next-code` | Текущий активный код (0001…) |
@@ -288,9 +311,9 @@ lib/
   models/      user, listing, deal_info, ...
 backend/
   src/routes/  auth.js, users.js, listings.js, partners.js, admin.js, chats.js, deploy_web.js, ...
-  src/utils/   admin_auth.js, admin_stats.js, block_helpers.js, partner_helpers.js, ...
-  src/services/ email_service.js
-  db/          migrate_admin.sql, migrate_partners.sql, migrate_pin_auth.sql, ...
+  src/utils/   admin_auth.js, real_phone_verify.js, phone_verify_token.js, admin_stats.js, ...
+  src/services/ sms_service.js, mobile_id_service.js, email_service.js
+  db/          migrate_admin.sql, migrate_mobile_id.sql, migrate_real_phone_verify.sql, ...
 ```
 
 ---
@@ -298,12 +321,19 @@ backend/
 ## Flow приложения
 
 ```
-Онбординг → [Я партнёр] или Телефон → тестовый SMS + PIN → Имя [код блогера?] → Главная
-Партнёр: код 0001… + телефон → SMS (с подтверждением) → Имя → Главная
-Первое объявление или первое сообщение в чате → диалог: актуальный телефон + реальный SMS → все функции
-Профиль admin-телефона → «Админ-панель» → SMS + код почты → Жалобы / Статистика / Блогеры
-Запасной вход в админку: http://…/admin (тот же 2FA)
-Повторный вход: только PIN (без периодического SMS)
+Онбординг → Телефон → Имя [код блогера?] → PIN → Главная
+  (номер при регистрации НЕ проверяется по SMS)
+
+Партнёр: код 0001… + телефон → Mobile ID (~3–6 ₽) → имя → PIN → Главная
+
+Первое объявление ИЛИ первое сообщение в чате → диалог подтверждения номера
+  → Mobile ID (push или SMS ~3–6 ₽) → real_phone_verified навсегда
+
+Повторный вход: только PIN
+
+Профиль admin-телефона → «Админ-панель» → реальное SMS + код почты (mock) → аналитика
+
+Запасной вход в админку: https://darom-app.online/admin
 ```
 
 ---
@@ -321,7 +351,7 @@ backend/
 | `deployWebRouter is not defined` | Исправлено — `require('./routes/deploy_web')` в index.js |
 | GitHub Actions: timeout deploy | Исправлено — max-time 300 с; Re-run workflow |
 | `No such file or directory` миграция | Команда из `/opt/darom_app`, не из `backend/` |
-| SMS | Тест: код на экране; боевой: SMS Aero (`deploy/SMS_AERO.md`) + `SMS_MOCK=false` |
+| SMS | Боевой: SMS Aero + Mobile ID (`deploy/SMS_AERO.md`, `deploy/MOBILE_ID.md`); `SMS_MOCK=false` на сервере |
 
 ---
 
@@ -341,8 +371,9 @@ backend/
 ## ⏳ Этап C — монетизация (текущий)
 
 1. ⏸ **Робокасса** — код ✅, `deploy/ROBOKASSA.md`; **ждём одобрение магазина** в кабинете
-2. ⏳ **SMS.ru боевой** ← **следующий шаг**
-3. ⏳ SMTP админ-кодов
+2. ✅ **SMS Aero** — боевой SMS + Mobile ID для подтверждения номера
+3. ✅ **Админ SMS** — реальное SMS при входе в аналитику
+4. ⏳ **SMTP** — код с почты для админ-2FA
 
 ## ⏳ Дальше
 
@@ -372,7 +403,11 @@ backend/
 - [x] PIN, чаты, категории, партнёры ✅
 - [x] Админ-панель (2FA, жалобы, блоки, статистика, блогеры) ✅
 - [x] Админ из профиля (кнопка только у admin-телефона) ✅
+- [x] SMS Aero + Mobile ID + регистрация без SMS (21.06 вечер) ✅
+- [x] Админ: реальное SMS при входе ✅
+- [x] Mobile ID для регистрации партнёров ✅
 - [ ] C: Робокасса (код ✅, магазин на одобрении ⏸)
+- [ ] C: SMTP админ-почты
 - [ ] D: Android / iOS
 
 ---
@@ -380,7 +415,7 @@ backend/
 ## Тестовый аккаунт (dev)
 
 - Телефон: `+79138931428`, имя: **Евгений**, статус **основатель** + **super admin**
-- В профиле: пункт **«Админ-панель»** → 2FA → кабинет админа
+- В профиле: пункт **«Админ-панель»** → реальное SMS + код почты (почта пока в pm2 logs) → кабинет админа
 - Для проверки лимитов можно использовать `backend/scripts/seed_listings.js`
 
 ---

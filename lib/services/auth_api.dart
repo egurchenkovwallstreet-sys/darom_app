@@ -193,6 +193,112 @@ class AuthApi {
     );
   }
 
+  Future<PartnerVerifyResult> sendPartnerVerify({
+    required String phone,
+    required String partnerActivationCode,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/partner-verify/send');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': phone,
+            'partner_activation_code': partnerActivationCode,
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Не удалось начать подтверждение');
+    }
+
+    return PartnerVerifyResult(
+      phone: body['phone'] as String,
+      partnerActivationCode: body['partner_activation_code'] as String? ?? partnerActivationCode,
+      sessionToken: body['session_token'] as String,
+      hint: body['hint'] as String?,
+    );
+  }
+
+  Future<ActiveVerifyPollResult> pollPartnerVerifySession({
+    required String phone,
+    required String sessionToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/partner-verify/poll').replace(
+      queryParameters: {
+        'phone': phone,
+        'session_token': sessionToken,
+      },
+    );
+
+    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Не удалось проверить статус');
+    }
+
+    return ActiveVerifyPollResult.fromJson(body);
+  }
+
+  Future<PartnerVerifyCompleteResult> completePartnerVerifySession({
+    required String phone,
+    required String sessionToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/partner-verify/complete');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': phone,
+            'session_token': sessionToken,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Не удалось завершить подтверждение');
+    }
+
+    return PartnerVerifyCompleteResult.fromJson(body);
+  }
+
+  Future<PartnerVerifyCompleteResult> confirmPartnerVerify({
+    required String phone,
+    required String code,
+    required String sessionToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/partner-verify/confirm');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': phone,
+            'code': code,
+            'session_token': sessionToken,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Неверный код');
+    }
+
+    return PartnerVerifyCompleteResult.fromJson(body);
+  }
+
   Future<void> setPin({
     required String phone,
     required String pin,
@@ -391,6 +497,40 @@ class ActiveVerifyResult {
   final String phone;
   final bool phoneChanged;
   final String message;
+}
+
+class PartnerVerifyResult {
+  const PartnerVerifyResult({
+    required this.phone,
+    required this.partnerActivationCode,
+    required this.sessionToken,
+    this.hint,
+  });
+
+  final String phone;
+  final String partnerActivationCode;
+  final String sessionToken;
+  final String? hint;
+}
+
+class PartnerVerifyCompleteResult {
+  const PartnerVerifyCompleteResult({
+    required this.phone,
+    required this.partnerActivationCode,
+    required this.verificationToken,
+  });
+
+  final String phone;
+  final String partnerActivationCode;
+  final String verificationToken;
+
+  factory PartnerVerifyCompleteResult.fromJson(Map<String, dynamic> json) {
+    return PartnerVerifyCompleteResult(
+      phone: json['phone'] as String,
+      partnerActivationCode: json['partner_activation_code'] as String? ?? '',
+      verificationToken: json['verification_token'] as String? ?? '',
+    );
+  }
 }
 
 class PinLoginResult {

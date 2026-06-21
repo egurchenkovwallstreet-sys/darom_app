@@ -14,6 +14,7 @@ const {
 const { hashPin, verifyPin } = require('../utils/pin_hash');
 const { storeVerifyToken, consumeVerifyToken } = require('../utils/phone_verify_token');
 const { checkAdminAccessByPhone } = require('../utils/admin_auth');
+const { validateActivationCode } = require('../utils/partner_helpers');
 const config = require('../config');
 
 const router = express.Router();
@@ -22,7 +23,7 @@ const CODE_TTL_MINUTES = 5;
 const RESEND_COOLDOWN_SEC = 60;
 
 function smsModeForPurpose(purpose) {
-  if (purpose === 'partner' || purpose === 'active_verify') {
+  if (purpose === 'active_verify') {
     return 'real';
   }
   return 'mock';
@@ -182,14 +183,52 @@ async function syncMobileIdSessionStatus(sessionRow) {
   return status;
 }
 
-async function fetchMobileIdSession(sessionToken, accountPhone) {
+async function loadPartnerVerifyContext(phoneRaw, partnerCodeRaw) {
+  const phone = normalizePhone(phoneRaw);
+  const validation = await validateActivationCode(db, partnerCodeRaw);
+  if (!validation.ok) {
+    return { error: { status: 400, message: validation.error } };
+  }
+
+  const existing = await fetchAuthUser(phone);
+  if (existing) {
+    return { error: { status: 400, message: 'Этот номер уже зарегистрирован' } };
+  }
+
+  return { phone, partnerCode: validation.code };
+}
+
+async function finalizePartnerVerify(session) {
+  const validation = await validateActivationCode(db, session.partner_activation_code);
+  if (!validation.ok) {
+    throw new Error(validation.error);
+  }
+
+  const existing = await fetchAuthUser(session.verify_phone);
+  if (existing) {
+    throw new Error('Этот номер уже зарегистрирован');
+  }
+
+  const tokenInfo = await storeVerifyToken(session.verify_phone);
+  return {
+    ok: true,
+    phone: session.verify_phone,
+    partner_activation_code: session.partner_activation_code,
+    verification_token: tokenInfo.token,
+    verification_expires_in: tokenInfo.expires_in,
+    real_phone_verified: true,
+  };
+}
+
+async function fetchMobileIdSession(sessionToken, accountPhone, purpose = 'active_verify') {
   const result = await db.query(
     `
-    SELECT id, aero_id, user_id, account_phone, verify_phone, status, created_at
+    SELECT id, aero_id, user_id, account_phone, verify_phone, status,
+           partner_activation_code, purpose, created_at
     FROM mobile_id_sessions
-    WHERE id = $1 AND account_phone = $2
+    WHERE id = $1 AND account_phone = $2 AND purpose = $3
     `,
-    [sessionToken, accountPhone]
+    [sessionToken, normalizePhone(accountPhone), purpose]
   );
   return result.rows[0] ?? null;
 }
@@ -284,6 +323,9 @@ router.post('/send-code', async (req, res) => {
       if (user) {
         return res.status(400).json({ error: 'Этот номер уже зарегистрирован' });
       }
+      return res.status(400).json({
+        error: 'Для партнёров используйте Mobile ID: POST /api/auth/partner-verify/send',
+      });
     }
 
     return await storeSmsCode(normalizedPhone, res, smsModeForPurpose(purpose));
@@ -449,8 +491,10 @@ router.post('/active-verify/send', async (req, res) => {
       const aeroData = await sendMobileIdAuth(verifyPhone);
       const inserted = await db.query(
         `
-        INSERT INTO mobile_id_sessions (aero_id, user_id, account_phone, verify_phone, status)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO mobile_id_sessions (
+          aero_id, user_id, account_phone, verify_phone, status, purpose
+        )
+        VALUES ($1, $2, $3, $4, $5, 'active_verify')
         RETURNING id
         `,
         [aeroData.id, user.id, accountPhone, verifyPhone, Number(aeroData.status) || 0]
@@ -535,6 +579,152 @@ router.post('/active-verify/complete', async (req, res) => {
     res.json(body);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/auth/partner-verify/send { phone, partner_activation_code }
+router.post('/partner-verify/send', async (req, res) => {
+  const { phone, partner_activation_code: partnerCodeRaw } = req.body;
+
+  if (!phone || !partnerCodeRaw) {
+    return res.status(400).json({ error: 'Нужны phone и partner_activation_code' });
+  }
+
+  try {
+    const ctx = await loadPartnerVerifyContext(phone, partnerCodeRaw);
+    if (ctx.error) {
+      return res.status(ctx.error.status).json({ error: ctx.error.message });
+    }
+
+    if (!canUseMobileId()) {
+      return res.status(503).json({
+        error:
+          'Mobile ID не настроен. Проверьте SMS_AERO_MOBILE_ID_SIGN и SMS_MOCK=false в backend/.env',
+      });
+    }
+
+    const { phone: verifyPhone, partnerCode } = ctx;
+    const aeroData = await sendMobileIdAuth(verifyPhone);
+    const inserted = await db.query(
+      `
+      INSERT INTO mobile_id_sessions (
+        aero_id, user_id, account_phone, verify_phone, status, partner_activation_code, purpose
+      )
+      VALUES ($1, NULL, $2, $2, $3, $4, 'partner')
+      RETURNING id
+      `,
+      [aeroData.id, verifyPhone, Number(aeroData.status) || 0, partnerCode]
+    );
+
+    const status = Number(aeroData.status) || 0;
+    return res.json({
+      ok: true,
+      mode: 'mobile_id',
+      phone: verifyPhone,
+      partner_activation_code: partnerCode,
+      session_token: inserted.rows[0].id,
+      status,
+      status_label: statusLabel(status),
+      mock: false,
+      hint:
+        'На телефон может прийти запрос «Подтвердить» (SIM-PUSH) или SMS с кодом — это нормально.',
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/auth/partner-verify/poll?phone=&session_token=
+router.get('/partner-verify/poll', async (req, res) => {
+  const { phone, session_token: sessionToken } = req.query;
+
+  if (!phone || !sessionToken) {
+    return res.status(400).json({ error: 'Нужны phone и session_token' });
+  }
+
+  try {
+    const normalizedPhone = normalizePhone(String(phone));
+    const session = await fetchMobileIdSession(String(sessionToken), normalizedPhone, 'partner');
+    if (!session) {
+      return res.status(404).json({ error: 'Сессия не найдена' });
+    }
+
+    const status = await syncMobileIdSessionStatus(session);
+    const numericStatus = Number(status);
+
+    res.json({
+      status: numericStatus,
+      status_label: statusLabel(numericStatus),
+      needs_otp: numericStatus === MOBILE_ID_STATUS.NEED_OTP,
+      verified: numericStatus === MOBILE_ID_STATUS.SUCCESS,
+      failed: [MOBILE_ID_STATUS.FAILED, MOBILE_ID_STATUS.ERROR].includes(numericStatus),
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/auth/partner-verify/complete { phone, session_token }
+router.post('/partner-verify/complete', async (req, res) => {
+  const { phone, session_token: sessionToken } = req.body;
+
+  if (!phone || !sessionToken) {
+    return res.status(400).json({ error: 'Нужны phone и session_token' });
+  }
+
+  try {
+    const normalizedPhone = normalizePhone(phone);
+    const session = await fetchMobileIdSession(String(sessionToken), normalizedPhone, 'partner');
+    if (!session) {
+      return res.status(404).json({ error: 'Сессия не найдена' });
+    }
+
+    const status = await syncMobileIdSessionStatus(session);
+    if (Number(status) !== MOBILE_ID_STATUS.SUCCESS) {
+      return res.status(400).json({ error: 'Подтверждение ещё не завершено на телефоне' });
+    }
+
+    const body = await finalizePartnerVerify(session);
+    res.json(body);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/auth/partner-verify/confirm { phone, code, session_token }
+router.post('/partner-verify/confirm', async (req, res) => {
+  const { phone, code, session_token: sessionToken } = req.body;
+
+  if (!phone || !sessionToken) {
+    return res.status(400).json({ error: 'Нужны phone и session_token' });
+  }
+
+  try {
+    const normalizedPhone = normalizePhone(phone);
+    const session = await fetchMobileIdSession(String(sessionToken), normalizedPhone, 'partner');
+    if (!session) {
+      return res.status(404).json({ error: 'Сессия не найдена' });
+    }
+
+    const trimmedCode = String(code ?? '').trim();
+    if (!/^\d{4,8}$/.test(trimmedCode)) {
+      return res.status(400).json({ error: 'Введите код из SMS' });
+    }
+
+    await verifyMobileIdOtp({ aeroId: session.aero_id, code: trimmedCode });
+    const status = await syncMobileIdSessionStatus(session);
+    if (Number(status) !== MOBILE_ID_STATUS.SUCCESS) {
+      return res.status(400).json({ error: 'Код не принят. Попробуйте ещё раз' });
+    }
+
+    const body = await finalizePartnerVerify(session);
+    res.json(body);
+  } catch (error) {
+    const message = error.message || 'Ошибка подтверждения';
+    if (message.includes('invalid otp')) {
+      return res.status(400).json({ error: 'Неверный код из SMS' });
+    }
+    res.status(500).json({ error: message });
   }
 });
 
