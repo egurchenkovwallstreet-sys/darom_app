@@ -57,7 +57,9 @@
 
 | Правило | Описание |
 |---------|----------|
-| URL | `/admin` (Flutter Web) |
+| URL | `/admin` (Flutter Web) — запасной путь |
+| **Вход из профиля** | Пункт «Админ-панель» в ЛК — **только** если телефон есть в `admin_users` (проверка на backend: `can_access_admin_panel`) |
+| **После кнопки** | Телефон уже известен → сразу «Получить коды» → SMS + email → кабинет |
 | Вход | **2FA:** SMS на телефон super admin + код на email |
 | Super admin | Полный доступ: жалобы, блоки, статистика, блогеры, выплаты |
 | Moderator (позже) | Только жалобы и блокировки — **без** монетизации и статистики |
@@ -67,7 +69,7 @@
 | Статистика | Пользователи, активные объявления, оплаты — периоды: день/неделя/месяц/всего |
 | Блогеры | Следующий код (копировать), по каждому: телефон, рефералы, суммы, кнопка «Оплатить» |
 | SMTP кодов | ⏳ mock (код в логах backend); боевой SMTP позже |
-| Статус | ✅ backend + Flutter UI |
+| Статус | ✅ backend + Flutter UI + вход из профиля |
 
 ## 3. Технологический стек
 
@@ -111,11 +113,11 @@
 | Лента объявлений | ✅ API |
 | Карточка объявления | ✅ + бронь, жалоба, рейтинг |
 | Создание объявления | ✅ + API, стоп-слова, лимиты |
-| Профиль | ✅ + основатель, партнёр, заборы |
+| Профиль | ✅ + основатель, партнёр, заборы, **админ-панель** (только admin-телефон) |
 | Мои объявления | ✅ |
 | Бронирование 24 ч | ✅ |
 | Чаты + непрочитанные + жалоба на чат | ✅; push ⏳ |
-| Админ-панель (2FA, жалобы, блоки, stats, блогеры) | ✅ |
+| Админ-панель (2FA, жалобы, блоки, stats, блогеры) | ✅ + вход из профиля |
 | Оплата (Робокасса) | 🟡 диалоги ✅, реальная оплата ⏳ |
 
 ## 7. Системные правила
@@ -124,7 +126,7 @@
 - **Рейтинг:** 1–5 после сделки ✅; <4.0 → теневой бан ✅ (backend)
 - **Лимиты:** объявления 10/20 + Супер даритель (+10 за 99₽, безлимитные повторные пакеты) ✅; заборы 7/мес + пакет ✅ (тестовая «оплата»)
 - **Клавиатура на Web:** поля ввода не перекрываются (`KeyboardInsetPadding` / `AuthFormScroll`) ✅
-- **Безопасность:** 1 телефон = 1 аккаунт ✅; PIN 4 цифры ✅; предупреждение о номере в чате ✅; блокировка пользователей ✅
+- **Безопасность:** 1 телефон = 1 аккаунт ✅; PIN 4 цифры ✅; предупреждение о номере в чате ✅; блокировка пользователей ✅; админ — отдельный 2FA (SMS + почта) ✅
 - **Забронировано:** 24ч, серый статус ✅; push дарителю ⏳
 
 ## 8. Уровни дарителей
@@ -141,11 +143,11 @@
 6. 🟡 Модерация (стоп-слова ✅) + фото (S3 ✅, Vision ⏳)
 7. 🟡 Лимиты и диалоги ✅; Робокасса ⏳
 8. 🟡 **Партнёры / блогеры** ✅
-9. ✅ **Админ-панель** (2FA, жалобы, блоки, stats, блогеры)
+9. ✅ **Админ-панель** (2FA, жалобы, блоки, stats, блогеры, **вход из профиля**)
 10. ⏳ Домен + HTTPS
 11. ⏳ Публикация в магазины
 
-**Оценка прогресса (16.06.2026):** ядро MVP ~**96%** | полное ТЗ ~**54%**. Подробности: `docs/PROGRESS.md`.
+**Оценка прогресса (16.06.2026):** ядро MVP ~**97%** | полное ТЗ ~**55%**. Подробности: `docs/PROGRESS.md`.
 
 ## 10. Структура кода (актуальная)
 
@@ -153,14 +155,13 @@
 lib/
   main.dart
   data/         app_categories.dart
-  models/       user.dart, listing.dart, ...
-  services/     api_config, auth_api, partners_api, listings_api, users_api, chats_api, ...
-  screens/      auth_gate, admin_gate, admin_login, admin_dashboard, phone, pin_*, partner_*, profile, ...
-  services/     api_config, auth_api, admin_api, partners_api, listings_api, users_api, chats_api, ...
+  models/       user.dart (+ canAccessAdminPanel), listing.dart, ...
+  services/     api_config, auth_api, admin_api, admin_session_service, partners_api, listings_api, users_api, chats_api, ...
+  screens/      auth_gate, admin_gate, admin_login, admin_dashboard, profile, phone, pin_*, partner_*, ...
   widgets/      midnight_glow_screen, auth_form_scroll, keyboard_inset_padding, ...
 backend/
   src/routes/   auth.js, users.js, listings.js, partners.js, admin.js, chats.js, deploy_web.js, ...
-  src/utils/    admin_auth.js, admin_stats.js, block_helpers.js, partner_helpers.js, ...
+  src/utils/    admin_auth.js (+ checkAdminAccessByPhone), admin_stats.js, block_helpers.js, partner_helpers.js, ...
   src/services/ email_service.js
   db/           migrate_admin.sql, migrate_partners.sql, migrate_pin_auth.sql, ...
 ```

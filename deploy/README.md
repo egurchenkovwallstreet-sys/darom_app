@@ -175,7 +175,13 @@ cd /opt/darom_app && git pull && cd backend && npm install && pm2 restart darom-
 
 ---
 
-## Дальше (этап B+)
+## Этап B+ — домен + HTTPS
 
-- Домен + HTTPS (Let's Encrypt)
-- Nginx proxy `/api` → `:3000` (один адрес без порта в API)
+**Подробная инструкция:** [`deploy/DOMAIN_HTTPS.md`](DOMAIN_HTTPS.md)
+
+Кратко: DNS → A-запись на `5.129.243.246` → nginx (`nginx-darom-https.conf`) → certbot → `git push`.
+
+| После B+ | URL |
+|-----------|-----|
+| Сайт | https://darom-app.online/ |
+| API | https://darom-app.online/api/health |

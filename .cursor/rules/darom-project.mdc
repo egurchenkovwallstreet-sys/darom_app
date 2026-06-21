@@ -11,13 +11,14 @@ alwaysApply: true
 
 ## Текущий статус
 - **Этап A ✅** — backend на Timeweb `5.129.243.246`, PM2, S3, миграции, всё протестировано
-- **Этап B ← СЕЙЧАС** — Flutter Web на сервере (`deploy/README.md`)
+- **Этап B ✅** — Flutter Web на сервере (`deploy/README.md`)
+- **Этап B+ ← СЕЙЧАС** — домен **darom-app.online** + HTTPS (`deploy/DOMAIN_HTTPS.md`)
 - Прогресс: ядро MVP ~**93%**, полное ТЗ ~**50%** — см. `docs/PROGRESS.md`
 - **Новый чат:** `docs/NEW_CHAT.md`
 
 ## Запуск
 
-**Продакшен:** API http://5.129.243.246:3000 (PM2 на сервере). Сайт (этап B): http://5.129.243.246/
+**Продакшен:** Сайт https://darom-app.online/ | API https://darom-app.online/api/ (PM2 на сервере). Запасной IP: http://5.129.243.246/
 
 **Разработка UI на ПК** (Docker/backend на ПК не нужны):
 ```powershell
