@@ -1,5 +1,4 @@
 const express = require('express');
-const crypto = require('crypto');
 const db = require('../db/pool');
 const { normalizePhone } = require('../utils/phone');
 const { generateCode, sendSmsCode } = require('../services/sms_service');
@@ -13,6 +12,7 @@ const {
   statusLabel,
 } = require('../services/mobile_id_service');
 const { hashPin, verifyPin } = require('../utils/pin_hash');
+const { storeVerifyToken, consumeVerifyToken } = require('../utils/phone_verify_token');
 const { checkAdminAccessByPhone } = require('../utils/admin_auth');
 const config = require('../config');
 
@@ -20,7 +20,6 @@ const router = express.Router();
 
 const CODE_TTL_MINUTES = 5;
 const RESEND_COOLDOWN_SEC = 60;
-const VERIFY_TOKEN_TTL_MINUTES = 15;
 
 function smsModeForPurpose(purpose) {
   if (purpose === 'partner' || purpose === 'active_verify') {
@@ -47,45 +46,6 @@ function isBlockedUser(user) {
   if (user.is_blocked_permanent) return true;
   if (user.blocked_until && new Date(user.blocked_until) > new Date()) return true;
   return false;
-}
-
-async function storeVerifyToken(normalizedPhone) {
-  const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + VERIFY_TOKEN_TTL_MINUTES * 60 * 1000);
-
-  await db.query(
-    `
-    INSERT INTO phone_verify_tokens (phone, token, expires_at)
-    VALUES ($1, $2, $3)
-    ON CONFLICT (phone) DO UPDATE SET
-      token = EXCLUDED.token,
-      expires_at = EXCLUDED.expires_at,
-      created_at = NOW()
-    `,
-    [normalizedPhone, token, expiresAt]
-  );
-
-  return { token, expires_in: VERIFY_TOKEN_TTL_MINUTES * 60 };
-}
-
-async function consumeVerifyToken(normalizedPhone, token) {
-  const result = await db.query(
-    'SELECT token, expires_at FROM phone_verify_tokens WHERE phone = $1',
-    [normalizedPhone]
-  );
-  const row = result.rows[0];
-
-  if (!row || row.token !== token) {
-    return false;
-  }
-
-  if (new Date(row.expires_at) < new Date()) {
-    await db.query('DELETE FROM phone_verify_tokens WHERE phone = $1', [normalizedPhone]);
-    return false;
-  }
-
-  await db.query('DELETE FROM phone_verify_tokens WHERE phone = $1', [normalizedPhone]);
-  return true;
 }
 
 async function storeSmsCode(normalizedPhone, res, smsMode) {
@@ -251,8 +211,8 @@ router.post('/check-phone', async (req, res) => {
         phone: normalizedPhone,
         registered: false,
         has_pin: false,
-        needs_sms: true,
-        auth_method: 'sms_register',
+        needs_sms: false,
+        auth_method: 'register',
       });
     }
 
@@ -267,8 +227,8 @@ router.post('/check-phone', async (req, res) => {
         phone: normalizedPhone,
         registered: true,
         has_pin: false,
-        needs_sms: true,
-        auth_method: 'sms_register',
+        needs_sms: false,
+        auth_method: 'register',
         user_name: user.name,
       });
     }
@@ -446,8 +406,8 @@ router.post('/login-pin', async (req, res) => {
 
     if (!user.pin_hash) {
       return res.status(400).json({
-        error: 'Пароль не задан. Подтвердите номер по SMS',
-        auth_method: 'sms_register',
+        error: 'Пароль не задан. Завершите регистрацию с экрана ввода номера',
+        auth_method: 'register',
       });
     }
 

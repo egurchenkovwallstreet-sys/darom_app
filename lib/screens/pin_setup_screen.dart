@@ -108,7 +108,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
   Widget build(BuildContext context) {
     final subtitle = widget.userName != null
         ? '${widget.userName}, введите 4 цифры для входа в приложение'
-        : '4 цифры — для входа без SMS';
+        : '4 цифры — для входа в приложение';
 
     return MidnightGlowScreen(
       child: AuthFormScroll(

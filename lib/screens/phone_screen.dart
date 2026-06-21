@@ -7,8 +7,8 @@ import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import 'pin_login_screen.dart';
 import 'partner_register_screen.dart';
+import 'profile_setup_screen.dart';
 import 'public_offer_screen.dart';
-import 'sms_screen.dart';
 
 class PhoneScreen extends StatefulWidget {
   const PhoneScreen({super.key});
@@ -74,18 +74,12 @@ class _PhoneScreenState extends State<PhoneScreen> {
         return;
       }
 
-      final purpose = 'register';
-      final result = await _authApi.sendCode(phone: check.phone, purpose: purpose);
-
-      if (!mounted) return;
-
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SmsScreen(
-            phoneNumber: result.phone,
-            debugCode: result.debugCode,
-            purpose: SmsPurpose.register,
+          builder: (context) => ProfileSetupScreen(
+            phoneNumber: check.phone,
+            initialUserName: check.userName,
           ),
         ),
       );
@@ -108,10 +102,10 @@ class _PhoneScreenState extends State<PhoneScreen> {
       child: AuthFormScroll(
         title: 'Введите номер телефона',
         subtitle:
-            'Новым — тестовый код при регистрации.\n'
-            'Повторный вход — пароль из 4 цифр.\n'
-            'Реальный SMS — один раз, когда решите отдать вещь или написать в чат.',
-        compactSubtitle: 'Проверьте номер перед продолжением',
+            'Новым — имя и пароль из 4 цифр.\n'
+            'Повторный вход — только пароль.\n'
+            'Подтверждение номера — один раз, когда отдадите вещь или напишете в чат.',
+        compactSubtitle: 'Введите номер и нажмите «Продолжить»',
         focusNode: _phoneFocus,
         formKey: _formKey,
         leading: Container(
@@ -173,7 +167,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
               fontWeight: FontWeight.bold,
             ),
             decoration: InputDecoration(
-              hintText: '+7 (___) ___-__-__',
+              hintText: 'Номер телефона',
               hintStyle: TextStyle(
                 color: const Color(0xFFFFFFFF).withOpacity(0.4),
                 fontSize: 18,

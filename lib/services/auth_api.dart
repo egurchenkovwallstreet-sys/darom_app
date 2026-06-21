@@ -276,7 +276,7 @@ class CheckPhoneResult {
       registered: json['registered'] as bool? ?? false,
       hasPin: json['has_pin'] as bool? ?? false,
       needsSms: json['needs_sms'] as bool? ?? true,
-      authMethod: json['auth_method'] as String? ?? 'sms_register',
+      authMethod: json['auth_method'] as String? ?? 'register',
       userName: json['user_name'] as String?,
       realPhoneVerified: json['real_phone_verified'] as bool? ?? false,
     );

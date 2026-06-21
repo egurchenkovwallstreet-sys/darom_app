@@ -13,7 +13,7 @@ class UsersApi {
 
   final http.Client _client;
 
-  Future<User> register({
+  Future<RegisterResult> register({
     required String phone,
     required String name,
     String? partnerActivationCode,
@@ -46,7 +46,10 @@ class UsersApi {
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
-    return User.fromJson(data['user'] as Map<String, dynamic>);
+    return RegisterResult(
+      user: User.fromJson(data['user'] as Map<String, dynamic>),
+      verificationToken: data['verification_token'] as String?,
+    );
   }
 
   Future<User> fetchProfile({required String phone}) async {
@@ -146,6 +149,16 @@ class UsersApi {
   }
 
   void dispose() => _client.close();
+}
+
+class RegisterResult {
+  const RegisterResult({
+    required this.user,
+    this.verificationToken,
+  });
+
+  final User user;
+  final String? verificationToken;
 }
 
 class UsersApiException implements Exception {

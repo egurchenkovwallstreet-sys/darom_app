@@ -26,6 +26,7 @@ const {
   normalizePartnerCode,
 } = require('../utils/partner_helpers');
 const { checkAdminAccessByPhone } = require('../utils/admin_auth');
+const { storeVerifyToken } = require('../utils/phone_verify_token');
 
 const router = express.Router();
 
@@ -204,7 +205,18 @@ router.post('/', async (req, res) => {
     }
 
     const user = await fetchUserByPhone(normalizedPhone);
-    res.status(201).json({ user: await formatUserWithStats(db, user, { includePhone: true }) });
+    const payload = {
+      user: await formatUserWithStats(db, user, { includePhone: true }),
+    };
+
+    const pinRow = await db.query('SELECT pin_hash FROM users WHERE id = $1', [user.id]);
+    if (!pinRow.rows[0]?.pin_hash) {
+      const tokenInfo = await storeVerifyToken(normalizedPhone);
+      payload.verification_token = tokenInfo.token;
+      payload.verification_expires_in = tokenInfo.expires_in;
+    }
+
+    res.status(201).json(payload);
   } catch (error) {
     try {
       await db.query('ROLLBACK');

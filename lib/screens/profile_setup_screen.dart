@@ -10,14 +10,16 @@ import 'pin_setup_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   final String phoneNumber;
-  final String verificationToken;
+  final String? verificationToken;
   final String? partnerActivationCode;
+  final String? initialUserName;
 
   const ProfileSetupScreen({
     super.key,
     required this.phoneNumber,
-    required this.verificationToken,
+    this.verificationToken,
     this.partnerActivationCode,
+    this.initialUserName,
   });
 
   @override
@@ -32,6 +34,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   bool _isSaving = false;
   bool _showReferralField = false;
   final TextEditingController _referralController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialUserName?.trim();
+    if (initial != null && initial.isNotEmpty) {
+      _nameController.text = initial;
+    }
+  }
 
   @override
   void dispose() {
@@ -59,7 +70,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     setState(() => _isSaving = true);
 
     try {
-      await _usersApi.register(
+      final result = await _usersApi.register(
         phone: widget.phoneNumber,
         name: name,
         partnerActivationCode: widget.partnerActivationCode,
@@ -68,6 +79,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             : null,
       );
 
+      final pinToken = widget.verificationToken ?? result.verificationToken;
+      if (pinToken == null || pinToken.isEmpty) {
+        throw UsersApiException('Не удалось продолжить регистрацию. Попробуйте снова.');
+      }
+
       if (!mounted) return;
 
       Navigator.pushReplacement(
@@ -75,7 +91,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         MaterialPageRoute(
           builder: (context) => PinSetupScreen(
             phoneNumber: widget.phoneNumber,
-            verificationToken: widget.verificationToken,
+            verificationToken: pinToken,
             userName: name,
           ),
         ),
