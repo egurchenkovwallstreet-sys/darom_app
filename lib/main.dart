@@ -5,6 +5,7 @@ import 'package:darom_app/screens/auth_gate.dart';
 import 'package:darom_app/services/planet_assets.dart';
 import 'package:darom_app/services/session_service.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/screens/public_offer_screen.dart';
 import 'package:darom_app/widgets/payment_flow.dart';
 
 Future<void> main() async {
@@ -35,6 +36,9 @@ class DaromApp extends StatelessWidget {
           success: false,
           invId: uri.queryParameters['inv_id'],
         );
+      }
+      if (path.startsWith('/offer')) {
+        return const PublicOfferScreen();
       }
     }
     return const AuthGate();

@@ -5,7 +5,7 @@ import '../screens/auth_gate.dart';
 import '../services/payments_api.dart';
 import 'primary_action_button.dart';
 
-Future<bool?> startDaromPayment(
+Future<bool> startDaromPayment(
   BuildContext context, {
   required String phoneNumber,
   required String productType,
