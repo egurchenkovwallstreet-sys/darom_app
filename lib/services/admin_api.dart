@@ -184,20 +184,26 @@ class AdminStartLoginResult {
   const AdminStartLoginResult({
     required this.phone,
     required this.emailHint,
+    this.smsMock = false,
     this.smsDebugCode,
+    this.emailMock = true,
     this.emailDebugCode,
   });
 
   final String phone;
   final String emailHint;
+  final bool smsMock;
   final String? smsDebugCode;
+  final bool emailMock;
   final String? emailDebugCode;
 
   factory AdminStartLoginResult.fromJson(Map<String, dynamic> json) {
     return AdminStartLoginResult(
       phone: json['phone'] as String? ?? '',
       emailHint: json['email_hint'] as String? ?? '',
+      smsMock: json['sms_mock'] as bool? ?? false,
       smsDebugCode: json['sms_debug_code'] as String?,
+      emailMock: json['email_mock'] as bool? ?? true,
       emailDebugCode: json['email_debug_code'] as String?,
     );
   }

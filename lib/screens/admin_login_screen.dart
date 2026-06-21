@@ -74,14 +74,26 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       });
 
       final hints = <String>[];
-      if (result.smsDebugCode != null) hints.add('SMS: ${result.smsDebugCode}');
-      if (result.emailDebugCode != null) hints.add('Почта: ${result.emailDebugCode}');
+      if (result.smsMock && result.smsDebugCode != null) {
+        hints.add('SMS: ${result.smsDebugCode}');
+      }
+      if (result.emailMock && result.emailDebugCode != null) {
+        hints.add('Почта: ${result.emailDebugCode}');
+      }
       if (hints.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Тест: ${hints.join(' | ')}'),
             backgroundColor: AppColors.cyan,
             duration: const Duration(seconds: 12),
+          ),
+        );
+      } else if (!result.smsMock) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Код из SMS отправлен на ваш номер'),
+            backgroundColor: AppColors.cyan,
+            duration: Duration(seconds: 5),
           ),
         );
       }
@@ -123,10 +135,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       child: AuthFormScroll(
         title: 'Админ-панель',
         subtitle: _codesSent
-            ? 'Коды отправлены на телефон и ${_emailHint ?? 'почту'}'
+            ? 'Введите код из SMS (4 цифры) и код с ${_emailHint ?? 'почты'}'
             : _fromProfile
-                ? 'Подтвердите доступ: SMS + код с почты'
-                : 'Двухфакторный вход: SMS + код с почты',
+                ? 'Подтвердите доступ: SMS на телефон + код с почты'
+                : 'Двухфакторный вход: SMS на телефон + код с почты',
         leading: widget.showBackButton
             ? Align(
                 alignment: Alignment.centerLeft,
@@ -160,10 +172,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 controller: _smsController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                maxLength: 6,
+                maxLength: 4,
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  labelText: 'Код из SMS',
+                  labelText: 'Код из SMS (4 цифры)',
                   counterText: '',
                   labelStyle: TextStyle(color: AppColors.cyan),
                   enabledBorder: OutlineInputBorder(

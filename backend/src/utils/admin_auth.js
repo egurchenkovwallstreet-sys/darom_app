@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const db = require('../db/pool');
 const { normalizePhone } = require('./phone');
-const { generateCode, sendSmsCode } = require('../services/sms_service');
+const { generateCode, sendSmsCode, canSendRealSms } = require('../services/sms_service');
 const { generateEmailCode, sendAdminEmailCode } = require('../services/email_service');
 const config = require('../config');
 
@@ -40,6 +40,14 @@ async function startAdminLogin(db, phoneRaw) {
     return { ok: false, error: 'Нет доступа к админ-панели' };
   }
 
+  if (!canSendRealSms()) {
+    return {
+      ok: false,
+      error:
+        'Реальный SMS не настроен. Укажите SMS_AERO_EMAIL, SMS_AERO_API_KEY и SMS_MOCK=false в backend/.env',
+    };
+  }
+
   const smsCode = generateCode();
   const emailCode = generateEmailCode();
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_MIN * 60 * 1000);
@@ -52,7 +60,7 @@ async function startAdminLogin(db, phoneRaw) {
     [admin.id, smsCode, emailCode, expiresAt]
   );
 
-  const smsResult = await sendSmsCode(phone, smsCode, { mode: 'mock' });
+  const smsResult = await sendSmsCode(phone, smsCode, { mode: 'real' });
   const emailResult = await sendAdminEmailCode({ to: admin.email, code: emailCode });
 
   return {
@@ -61,9 +69,9 @@ async function startAdminLogin(db, phoneRaw) {
     email_hint: admin.email.replace(/(.{2}).+(@.+)/, '$1***$2'),
     challenge_expires_in: CHALLENGE_TTL_MIN * 60,
     sms_mock: smsResult.mock ?? false,
-    sms_debug_code: smsResult.debugCode ?? null,
+    sms_debug_code: smsResult.mock ? smsResult.debugCode ?? null : null,
     email_mock: emailResult.mock ?? true,
-    email_debug_code: emailResult.debugCode ?? null,
+    email_debug_code: emailResult.mock ? emailResult.debugCode ?? null : null,
   };
 }
 

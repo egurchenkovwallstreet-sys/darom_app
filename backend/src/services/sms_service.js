@@ -32,8 +32,8 @@ function canSendRealSms() {
 
 /**
  * mode:
- * - mock — всегда тест (регистрация, админка)
- * - real — боевое SMS через SMS Aero или SMS.ru
+ * - mock — тест (регистрация)
+ * - real — боевое SMS через SMS Aero или SMS.ru (админка, партнёры, active_verify)
  * - default — как SMS_MOCK в .env
  */
 async function sendSmsCode(phone, code, options = {}) {
