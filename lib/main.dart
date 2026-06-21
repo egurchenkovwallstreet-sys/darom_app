@@ -5,6 +5,7 @@ import 'package:darom_app/screens/auth_gate.dart';
 import 'package:darom_app/services/planet_assets.dart';
 import 'package:darom_app/services/session_service.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/widgets/payment_flow.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,9 +19,22 @@ class DaromApp extends StatelessWidget {
 
   Widget _homeWidget() {
     if (kIsWeb) {
-      final path = Uri.base.path;
+      final uri = Uri.base;
+      final path = uri.path;
       if (path.startsWith('/admin')) {
         return const AdminGate();
+      }
+      if (path.startsWith('/payment/success')) {
+        return PaymentResultScreen(
+          success: true,
+          invId: uri.queryParameters['inv_id'],
+        );
+      }
+      if (path.startsWith('/payment/fail')) {
+        return PaymentResultScreen(
+          success: false,
+          invId: uri.queryParameters['inv_id'],
+        );
       }
     }
     return const AuthGate();

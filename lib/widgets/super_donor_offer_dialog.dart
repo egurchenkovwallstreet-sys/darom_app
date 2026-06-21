@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/listing_limit_info.dart';
 import '../services/users_api.dart';
+import 'payment_flow.dart';
 import 'primary_action_button.dart';
 
 Future<bool?> showSuperDonorOfferDialog(
@@ -118,25 +119,19 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
   Future<void> _activate() async {
     setState(() => _isActivating = true);
     try {
-      await widget.usersApi.activateSuperDonor(phone: widget.phoneNumber);
-      if (!mounted) return;
-      Navigator.pop(context, true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
+      final activated = await startDaromPayment(
+        context,
+        phoneNumber: widget.phoneNumber,
+        productType: 'super_donor',
+        successSnackPrefix:
             '«${widget.upsell.title}» активирован! ${widget.upsell.description}',
-          ),
-          backgroundColor: const Color(0xFF00BFFF),
-        ),
       );
-    } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$error'),
-          backgroundColor: const Color(0xFFFF5722),
-        ),
-      );
+      if (activated) {
+        Navigator.pop(context, true);
+      } else {
+        Navigator.pop(context, false);
+      }
     } finally {
       if (mounted) setState(() => _isActivating = false);
     }
@@ -238,7 +233,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Оплата через Робокассу — позже. Сейчас тестовая активация.',
+              'Оплата через Робокассу (карта, СБП).',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
@@ -247,7 +242,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
             ),
             const SizedBox(height: 20),
             PrimaryActionButton(
-              label: 'Подключить ${upsell.priceRub}₽',
+              label: 'Оплатить ${upsell.priceRub}₽',
               height: 50,
               fontSize: 16,
               borderRadius: 25,

@@ -38,6 +38,15 @@ const config = {
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
   },
+  robokassa: {
+    merchantLogin: process.env.ROBOKASSA_MERCHANT_LOGIN || '',
+    password1: process.env.ROBOKASSA_PASSWORD1 || '',
+    password2: process.env.ROBOKASSA_PASSWORD2 || '',
+    testPassword1: process.env.ROBOKASSA_TEST_PASSWORD1 || '',
+    testPassword2: process.env.ROBOKASSA_TEST_PASSWORD2 || '',
+    testMode: process.env.ROBOKASSA_TEST_MODE === 'true',
+  },
+  paymentMock: process.env.PAYMENT_MOCK !== 'false',
 };
 
 if (!config.databaseUrl) {

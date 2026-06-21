@@ -232,8 +232,12 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/users/super-donor — заглушка оплаты до Робокассы (+10 объявлений за покупку)
+// POST /api/users/super-donor — только при PAYMENT_MOCK=true (иначе /api/payments/create)
 router.post('/super-donor', async (req, res) => {
+  if (!config.paymentMock) {
+    return res.status(400).json({ error: 'Оплата через POST /api/payments/create' });
+  }
+
   const { phone } = req.body;
 
   if (!phone) {
@@ -272,8 +276,12 @@ router.post('/super-donor', async (req, res) => {
   }
 });
 
-// POST /api/users/pickup-pack — платный пакет заборов (149 → 299 → 499), заглушка до Робокассы
+// POST /api/users/pickup-pack — только при PAYMENT_MOCK=true (иначе /api/payments/create)
 router.post('/pickup-pack', async (req, res) => {
+  if (!config.paymentMock) {
+    return res.status(400).json({ error: 'Оплата через POST /api/payments/create' });
+  }
+
   const { phone } = req.body;
 
   if (!phone) {

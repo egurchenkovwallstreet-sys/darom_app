@@ -14,6 +14,7 @@ const chatsRouter = require('./routes/chats');
 const partnersRouter = require('./routes/partners');
 const adminRouter = require('./routes/admin');
 const deployWebRouter = require('./routes/deploy_web');
+const paymentsRouter = require('./routes/payments');
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use('/api/favorites', favoritesRouter);
 app.use('/api/chats', chatsRouter);
 app.use('/api/partners', partnersRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/payments', paymentsRouter);
 app.use('/api/deploy-web', deployWebRouter);
 
 const server = app.listen(config.port, () => {

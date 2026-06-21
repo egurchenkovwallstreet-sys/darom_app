@@ -60,7 +60,7 @@
 
 | № | Этап | Задача | Зачем |
 |---|------|--------|-------|
-| **1** | **C — Робокасса** | Реальная оплата 99₽ (Супер даритель, пакет заборов) | Монетизация вместо тест-активации |
+| **1** | **C — Робокасса** | Реальная оплата (99₽ / 149→299→499₽) | Код ✅, ключи в `.env` ⏳ |
 | **2** | SMS.ru | `SMS_MOCK=false` + API-ключ | Боевые SMS-коды и PIN |
 | **3** | SMTP | Почта для кодов админа | 2FA без просмотра pm2 logs |
 | **4** | Firebase | Push: бронь, чаты, «Отдал» | Уведомления пользователям |
@@ -151,7 +151,7 @@
 ### Не сделано / нужны ключи
 - SMS.ru боевой (`SMS_MOCK=false` + API-ключ)
 - Firebase push, Yandex Vision
-- **Робокасса** (реальная оплата вместо тест-активации)
+- **Робокасса** — код ✅ (`/api/payments/create`, Result URL); ключи в `.env` ⏳
 - SMTP для кодов админа (сейчас mock — код в логах PM2)
 - Роль модератора (отдельные аккаунты без доступа к деньгам)
 - Android/iOS
@@ -261,8 +261,9 @@ cat backend/db/migrate_pickup_tiers.sql | docker exec -i darom_db psql -U darom 
 | GET | `/api/listings/subcategory-counts` | Счётчики в подкатегориях |
 | GET | `/api/chats/unread-summary` | Непрочитанные чаты |
 | POST/GET | `/api/users` | Регистрация / профиль (`can_access_admin_panel` для admin-телефона) |
-| POST | `/api/users/super-donor` | Тест: Супер даритель |
-| POST | `/api/users/pickup-pack` | Тест: пакет заборов |
+| POST | `/api/payments/create` | Создать оплату (Робокасса или mock) |
+| GET | `/api/payments/status?inv_id=` | Статус заказа |
+| POST | `/api/payments/robokassa/result` | Callback Робокассы |
 | POST | `/api/listings/:id/photos` | Загрузить фото (multipart) |
 | GET/POST | `/api/listings` | Лента / создать |
 | GET | `/api/listings/nearby` | Объявления на карте (lat, lng, radius_km) |
@@ -339,7 +340,7 @@ backend/
 
 ## ⏳ Этап C — монетизация (текущий)
 
-1. ⏳ **Робокасса** — реальная оплата
+1. ⏳ **Робокасса** — код ✅, инструкция `deploy/ROBOKASSA.md`, ключи на сервере ⏳
 2. ⏳ SMS.ru боевой
 3. ⏳ SMTP админ-кодов
 

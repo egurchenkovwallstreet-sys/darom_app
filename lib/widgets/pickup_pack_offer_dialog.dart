@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/pickup_limit_info.dart';
 import '../services/users_api.dart';
+import 'payment_flow.dart';
 import 'primary_action_button.dart';
 
 Future<bool?> showPickupPackOfferDialog(
@@ -62,20 +63,19 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
   Future<void> _activate() async {
     setState(() => _isActivating = true);
     try {
-      await widget.usersApi.activatePickupPack(phone: widget.phoneNumber);
-      if (!mounted) return;
-      Navigator.pop(context, true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('«${widget.upsell.title}»: +${widget.upsell.extraPickups} заборов'),
-          backgroundColor: const Color(0xFF00BFFF),
-        ),
+      final activated = await startDaromPayment(
+        context,
+        phoneNumber: widget.phoneNumber,
+        productType: 'pickup_pack',
+        successSnackPrefix:
+            '«${widget.upsell.title}»: +${widget.upsell.extraPickups} заборов',
       );
-    } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error'), backgroundColor: const Color(0xFFFF5722)),
-      );
+      if (activated) {
+        Navigator.pop(context, true);
+      } else {
+        Navigator.pop(context, false);
+      }
     } finally {
       if (mounted) setState(() => _isActivating = false);
     }
@@ -129,7 +129,7 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Оплата через Робокассу — позже. Сейчас тестовая активация.',
+              'Оплата через Робокассу (карта, СБП).',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.5)),
             ),

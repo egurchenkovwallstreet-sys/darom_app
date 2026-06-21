@@ -23,6 +23,7 @@ MIGRATIONS=(
   migrate_partner_payout_period.sql
   migrate_admin.sql
   migrate_pickup_tiers.sql
+  migrate_payments.sql
 )
 
 for file in "${MIGRATIONS[@]}"; do
