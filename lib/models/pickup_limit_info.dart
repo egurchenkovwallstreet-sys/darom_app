@@ -10,20 +10,26 @@ class PickupPackUpsell {
   final int priceRub;
   final int extraPickups;
   final String description;
+  final int tier;
+  final int tiersTotal;
 
   const PickupPackUpsell({
     required this.title,
     required this.priceRub,
     required this.extraPickups,
     required this.description,
+    this.tier = 1,
+    this.tiersTotal = 3,
   });
 
   factory PickupPackUpsell.fromJson(Map<String, dynamic> json) {
     return PickupPackUpsell(
       title: json['title'] as String? ?? 'Пакет заборов',
-      priceRub: _jsonInt(json['price_rub'], 99),
+      priceRub: _jsonInt(json['price_rub'], 149),
       extraPickups: _jsonInt(json['extra_pickups'], 10),
       description: json['description'] as String? ?? '',
+      tier: _jsonInt(json['tier'], 1),
+      tiersTotal: _jsonInt(json['tiers_total'], 3),
     );
   }
 }
@@ -34,6 +40,7 @@ class PickupLimitInfo {
   final int usedThisMonth;
   final int freeRemaining;
   final int pickupCredits;
+  final bool blocked;
   final PickupPackUpsell? upsell;
 
   const PickupLimitInfo({
@@ -42,6 +49,7 @@ class PickupLimitInfo {
     required this.usedThisMonth,
     required this.freeRemaining,
     required this.pickupCredits,
+    this.blocked = false,
     this.upsell,
   });
 
@@ -54,6 +62,7 @@ class PickupLimitInfo {
       usedThisMonth: _jsonInt(json['used_this_month'], 0),
       freeRemaining: _jsonInt(json['free_remaining'], 0),
       pickupCredits: _jsonInt(json['pickup_credits'], 0),
+      blocked: json['blocked'] as bool? ?? false,
       upsell: upsellJson != null ? PickupPackUpsell.fromJson(upsellJson) : null,
     );
   }

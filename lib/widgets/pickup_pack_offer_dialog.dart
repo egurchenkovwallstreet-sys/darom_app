@@ -114,7 +114,7 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
             ),
             const SizedBox(height: 8),
             Text(
-              '${upsell.priceRub}₽ → +${upsell.extraPickups} заборов',
+              '${upsell.priceRub}₽ → +${upsell.extraPickups} заборов (пакет ${upsell.tier}/${upsell.tiersTotal})',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

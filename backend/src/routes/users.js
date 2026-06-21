@@ -16,7 +16,8 @@ const {
 const {
   getPickupStatus,
   PICKUP_PACK_SIZE,
-  PICKUP_PACK_PRICE,
+  getNextPickupPackPrice,
+  MAX_PICKUP_PAID_TIERS,
 } = require('../utils/pickup_limits');
 const {
   validateActivationCode,
@@ -78,6 +79,8 @@ async function formatUserWithStats(db, row, { includePhone = false } = {}) {
     pickups_used_this_month: pickup.used_this_month,
     pickups_free_remaining: pickup.free_remaining,
     pickup_credits: pickup.pickup_credits,
+    pickup_paid_tiers_bought: pickup.pickup_paid_tiers_bought,
+    platform_full_launch: pickup.platform_full_launch,
     avatar_url: normalizeAvatarUrl(row.avatar_url) || null,
     is_partner: row.is_partner ?? false,
     partner_public_code: row.partner_public_code ?? null,
@@ -269,7 +272,7 @@ router.post('/super-donor', async (req, res) => {
   }
 });
 
-// POST /api/users/pickup-pack — +10 заборов (заглушка до Робокассы)
+// POST /api/users/pickup-pack — платный пакет заборов (149 → 299 → 499), заглушка до Робокассы
 router.post('/pickup-pack', async (req, res) => {
   const { phone } = req.body;
 
@@ -285,17 +288,44 @@ router.post('/pickup-pack', async (req, res) => {
       return res.status(404).json({ error: 'Пользователь не найден' });
     }
 
+    const status = await getPickupStatus(db, user.id);
+
+    if (status.blocked) {
+      return res.status(400).json({
+        error: 'Лимит заборов на этот месяц исчерпан. Дождитесь нового месяца.',
+      });
+    }
+
+    if (status.pickup_paid_tiers_bought >= MAX_PICKUP_PAID_TIERS) {
+      return res.status(400).json({ error: 'Все платные пакеты в этом месяце уже куплены' });
+    }
+
+    if (status.free_remaining > 0 || status.pickup_credits > 0) {
+      return res.status(400).json({ error: 'Сначала используйте текущие бесплатные заборы и купленный пакет' });
+    }
+
+    const price = getNextPickupPackPrice(status.pickup_paid_tiers_bought);
+    if (price == null) {
+      return res.status(400).json({ error: 'Нет доступного пакета заборов' });
+    }
+
     await db.query(
-      'UPDATE users SET pickup_credits = pickup_credits + $2 WHERE phone = $1',
+      `
+      UPDATE users
+      SET
+        pickup_credits = pickup_credits + $2,
+        pickup_paid_tiers_bought = pickup_paid_tiers_bought + 1
+      WHERE phone = $1
+      `,
       [normalizedPhone, PICKUP_PACK_SIZE],
     );
 
-    await recordPartnerPayment(db, user.id, 'pickup_pack', PICKUP_PACK_PRICE);
+    await recordPartnerPayment(db, user.id, 'pickup_pack', price);
 
     const updated = await fetchUserByPhone(normalizedPhone);
     res.json({
       user: await formatUserWithStats(db, updated, { includePhone: true }),
-      message: `Пакет +${PICKUP_PACK_SIZE} заборов за ${PICKUP_PACK_PRICE}₽ (тестовый режим, без оплаты)`,
+      message: `Пакет +${PICKUP_PACK_SIZE} заборов за ${price}₽ (тестовый режим, без оплаты)`,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
