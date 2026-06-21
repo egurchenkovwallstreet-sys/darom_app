@@ -200,20 +200,42 @@ class _HomeScreenState extends State<HomeScreen> {
   double get _currentRadiusKm => _radiusKmValues[_radiusIndex];
 
   Future<void> _initLocationAndListings() async {
-    final position = await _locationService.getCurrentPosition();
+    await _applyLocation(await _locationService.locate());
+  }
+
+  Future<void> _retryLocation() async {
+    setState(() {
+      _loadingLocation = true;
+      _locationHint = null;
+    });
+    await _applyLocation(await _locationService.locate());
+  }
+
+  Future<void> _applyLocation(GeoLocationResult result) async {
     if (!mounted) return;
 
     setState(() {
-      _position = position ?? GeoPosition.moscow;
-      _locationHint = position == null
-          ? (_locationService.needsHttpsForGeo
-              ? 'С телефона геолокация по Wi‑Fi недоступна — показан центр Москвы'
-              : 'Геолокация недоступна — показан центр Москвы')
-          : null;
+      _position = result.positionOrMoscow;
+      _locationHint = _locationHintFor(result.status);
       _loadingLocation = false;
     });
 
     await _loadNearbyListings();
+  }
+
+  String? _locationHintFor(GeoLocationStatus status) {
+    switch (status) {
+      case GeoLocationStatus.ok:
+        return null;
+      case GeoLocationStatus.denied:
+        return 'Разрешите доступ к геолокации в браузере — пока показан центр Москвы';
+      case GeoLocationStatus.notSecure:
+        return 'Геолокация работает только по HTTPS — показан центр Москвы';
+      case GeoLocationStatus.timeout:
+        return 'Не удалось определить местоположение — показан центр Москвы';
+      case GeoLocationStatus.unavailable:
+        return 'Геолокация недоступна — показан центр Москвы';
+    }
   }
 
   Future<void> _loadNearbyListings({bool silent = false}) async {
@@ -756,12 +778,29 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (_locationHint != null)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                              child: Text(
-                                _locationHint!,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFFFFFFFF).withOpacity(0.6),
-                                ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _locationHint!,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFFFFFFFF).withOpacity(0.6),
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: _loadingLocation ? null : _retryLocation,
+                                    child: const Text(
+                                      'Повторить',
+                                      style: TextStyle(
+                                        color: Color(0xFF00BFFF),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           if (_listingsError != null)
