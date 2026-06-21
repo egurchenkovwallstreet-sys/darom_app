@@ -8,6 +8,10 @@ String resolvePhotoUrl(String? url) {
     return '${ApiConfig.baseUrl}/api/photos/listings/${match.group(1)}';
   }
 
+  if (url.startsWith('http://localhost') || url.startsWith('http://127.0.0.1')) {
+    return '';
+  }
+
   return url;
 }
 

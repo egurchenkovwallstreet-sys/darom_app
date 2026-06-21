@@ -22,7 +22,11 @@ function normalizeAvatarUrl(url) {
 
 function normalizePhotoUrl(url) {
   if (!url) return url;
-  if (url.includes('/api/photos/listings/')) return url;
+
+  const apiMatch = String(url).match(/\/api\/photos\/listings\/([^/?#]+)$/i);
+  if (apiMatch) {
+    return buildPhotoUrl(apiMatch[1]);
+  }
 
   const listingsMatch = String(url).match(/\/listings\/([^/?#]+)$/i);
   if (listingsMatch) {

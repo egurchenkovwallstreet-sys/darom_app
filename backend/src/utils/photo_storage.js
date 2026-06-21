@@ -112,4 +112,36 @@ async function saveAvatar(buffer, mimeType, userId) {
   return buildAvatarUrl(fileName);
 }
 
-module.exports = { ensureUploadDir, savePhoto, saveAvatar, getS3PublicUrl };
+async function readFromS3(key) {
+  assertS3Configured();
+  const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+
+  const client = new S3Client({
+    region: config.s3.region,
+    endpoint: config.s3.endpoint,
+    credentials: {
+      accessKeyId: config.s3.accessKey,
+      secretAccessKey: config.s3.secretKey,
+    },
+    forcePathStyle: true,
+  });
+
+  const result = await client.send(
+    new GetObjectCommand({
+      Bucket: config.s3.bucket,
+      Key: key,
+    })
+  );
+
+  const chunks = [];
+  for await (const chunk of result.Body) {
+    chunks.push(chunk);
+  }
+
+  return {
+    buffer: Buffer.concat(chunks),
+    contentType: result.ContentType || 'image/jpeg',
+  };
+}
+
+module.exports = { ensureUploadDir, savePhoto, saveAvatar, getS3PublicUrl, readFromS3 };
