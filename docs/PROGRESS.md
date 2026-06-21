@@ -10,7 +10,7 @@
 
 | | |
 |---|---|
-| **Текущий этап** | **C — монетизация**; **сейчас: SMS.ru** (Робокасса ⏸ до одобрения магазина) |
+| **Текущий этап** | **C — монетизация**; **сейчас: SMS Aero** (Робокасса ⏸ до одобрения магазина) |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
 | **Backend** | VPS `5.129.243.246`, PM2 `darom-api`, S3 ✅ |
@@ -61,7 +61,7 @@
 | № | Этап | Задача | Зачем |
 |---|------|--------|-------|
 | **1** | **C — Робокасса** | Реальная оплата (99₽ / 149→299→499₽) | Код ✅; магазин **на одобрении** ⏸ см. `deploy/ROBOKASSA.md` |
-| **2** | **SMS.ru** ← **СЕЙЧАС** | `SMS_MOCK=false` + API-ключ | Реальный SMS при активности (объявление/чат) + партнёры |
+| **2** | **SMS Aero** ← **СЕЙЧАС** | ключ в `.env`, `SMS_MOCK=false` | Реальный SMS при активности + партнёры |
 | **3** | SMTP | Почта для кодов админа | 2FA без просмотра pm2 logs |
 | **4** | Firebase | Push: бронь, чаты, «Отдал» | Уведомления пользователям |
 | **5** | Yandex Vision | Модерация фото | Автопроверка объявлений |
@@ -321,7 +321,7 @@ backend/
 | `deployWebRouter is not defined` | Исправлено — `require('./routes/deploy_web')` в index.js |
 | GitHub Actions: timeout deploy | Исправлено — max-time 300 с; Re-run workflow |
 | `No such file or directory` миграция | Команда из `/opt/darom_app`, не из `backend/` |
-| SMS | Тест: синяя полоска с кодом; боевой: `SMS_RU_API_ID` + `SMS_MOCK=false` |
+| SMS | Тест: код на экране; боевой: SMS Aero (`deploy/SMS_AERO.md`) + `SMS_MOCK=false` |
 
 ---
 

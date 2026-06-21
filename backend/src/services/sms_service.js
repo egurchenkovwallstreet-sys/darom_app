@@ -9,10 +9,31 @@ function generateCode() {
   return String(Math.floor(1000 + Math.random() * 9000));
 }
 
+function isSmsAeroConfigured() {
+  return Boolean(config.smsAeroEmail && config.smsAeroApiKey);
+}
+
+function isSmsRuConfigured() {
+  return Boolean(config.smsRuApiId);
+}
+
+function resolveProvider() {
+  const preferred = String(config.smsProvider || 'smsaero').toLowerCase();
+  if (preferred === 'smsru' && isSmsRuConfigured()) return 'smsru';
+  if (preferred === 'smsaero' && isSmsAeroConfigured()) return 'smsaero';
+  if (isSmsAeroConfigured()) return 'smsaero';
+  if (isSmsRuConfigured()) return 'smsru';
+  return null;
+}
+
+function canSendRealSms() {
+  return Boolean(resolveProvider()) && !config.smsMock;
+}
+
 /**
  * mode:
- * - mock — всегда тест (регистрация)
- * - real — боевое SMS, если есть API-ключ; иначе тест
+ * - mock — всегда тест (регистрация, админка)
+ * - real — боевое SMS через SMS Aero или SMS.ru
  * - default — как SMS_MOCK в .env
  */
 async function sendSmsCode(phone, code, options = {}) {
@@ -23,16 +44,50 @@ async function sendSmsCode(phone, code, options = {}) {
   const useMock =
     mode === 'mock' ||
     (mode === 'default' && config.smsMock) ||
-    (mode === 'real' && (!config.smsRuApiId || config.smsMock));
+    (mode === 'real' && !canSendRealSms());
 
   if (useMock) {
-    console.log(`[SMS mock${mode === 'real' ? ' (real requested, no API)' : ''}] ${to} → код ${code}`);
+    console.log(`[SMS mock${mode === 'real' ? ' (real requested, no provider)' : ''}] ${to} → код ${code}`);
     return { mock: true, debugCode: code };
   }
 
-  const apiId = config.smsRuApiId;
+  const provider = resolveProvider();
+  if (provider === 'smsaero') {
+    await sendViaSmsAero(to, message);
+    return { mock: false, provider: 'smsaero' };
+  }
+
+  await sendViaSmsRu(to, message);
+  return { mock: false, provider: 'smsru' };
+}
+
+async function sendViaSmsAero(to, message) {
+  const auth = Buffer.from(`${config.smsAeroEmail}:${config.smsAeroApiKey}`).toString('base64');
+  const url = new URL('https://gate.smsaero.ru/v2/sms/send');
+  url.searchParams.set('number', to);
+  url.searchParams.set('text', message);
+  url.searchParams.set('sign', config.smsAeroSign);
+
+  const response = await fetch(url.toString(), {
+    headers: { Authorization: `Basic ${auth}` },
+  });
+
+  let data;
+  try {
+    data = await response.json();
+  } catch (_) {
+    throw new Error('SMS Aero: некорректный ответ сервера');
+  }
+
+  if (!response.ok || !data.success) {
+    const detail = data?.message || data?.data?.message || JSON.stringify(data);
+    throw new Error(`SMS Aero: ${detail || 'не отправил сообщение'}`);
+  }
+}
+
+async function sendViaSmsRu(to, message) {
   const url = new URL('https://sms.ru/sms/send');
-  url.searchParams.set('api_id', apiId);
+  url.searchParams.set('api_id', config.smsRuApiId);
   url.searchParams.set('to', to);
   url.searchParams.set('msg', message);
   url.searchParams.set('json', '1');
@@ -48,8 +103,12 @@ async function sendSmsCode(phone, code, options = {}) {
   if (smsStatus && smsStatus.status !== 'OK') {
     throw new Error(smsStatus.status_text || 'Ошибка доставки SMS');
   }
-
-  return { mock: false };
 }
 
-module.exports = { generateCode, sendSmsCode, digitsForSms };
+module.exports = {
+  generateCode,
+  sendSmsCode,
+  digitsForSms,
+  canSendRealSms,
+  resolveProvider,
+};

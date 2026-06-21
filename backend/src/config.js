@@ -7,7 +7,11 @@ const publicBaseUrl = process.env.PUBLIC_BASE_URL || `http://localhost:${port}`;
 const config = {
   port,
   databaseUrl: process.env.DATABASE_URL,
+  smsProvider: (process.env.SMS_PROVIDER || 'smsaero').toLowerCase(),
   smsRuApiId: process.env.SMS_RU_API_ID || '',
+  smsAeroEmail: process.env.SMS_AERO_EMAIL || '',
+  smsAeroApiKey: process.env.SMS_AERO_API_KEY || '',
+  smsAeroSign: process.env.SMS_AERO_SIGN || 'SMS Aero',
   smsMock: process.env.SMS_MOCK !== 'false',
   publicBaseUrl,
   photoStorage:

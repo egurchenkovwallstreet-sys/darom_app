@@ -52,7 +52,7 @@ async function startAdminLogin(db, phoneRaw) {
     [admin.id, smsCode, emailCode, expiresAt]
   );
 
-  const smsResult = await sendSmsCode(phone, smsCode);
+  const smsResult = await sendSmsCode(phone, smsCode, { mode: 'mock' });
   const emailResult = await sendAdminEmailCode({ to: admin.email, code: emailCode });
 
   return {
