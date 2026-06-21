@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -11,7 +9,9 @@ import '../services/listings_api.dart';
 import '../services/location_service.dart';
 import '../services/refresh_intervals.dart';
 import '../data/app_categories.dart';
+import '../data/map_radius_options.dart';
 import '../services/users_api.dart';
+import '../utils/map_marker_spread.dart';
 import '../widgets/avatar_image.dart';
 import '../widgets/listing_tile_card.dart';
 import '../widgets/midnight_glow_screen.dart';
@@ -77,9 +77,9 @@ class _HomeScreenState extends State<HomeScreen> {
     borderSide: BorderSide(color: Color(0xFF00BFFF), width: 1.5),
   );
 
-  static const List<double> _radiusKmValues = [1, 2, 5, 10, 50];
-  final List<String> _radiusLabels = ['1 км', '2 км', '5 км', '10 км', 'Весь город'];
-  static const List<String> _radiusButtonLabels = ['1', '2', '5', '10', 'Город'];
+  static const List<double> _radiusKmValues = MapRadiusOptions.kmValues;
+  final List<String> _radiusLabels = MapRadiusOptions.labels;
+  static const List<String> _radiusButtonLabels = MapRadiusOptions.buttonLabels;
   final List<String> _categories = AppCategories.categoryNames;
   final List<IconData> _categoryIcons = AppCategories.all.map((c) => c.icon).toList();
 
@@ -294,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
         )
         .toList();
 
-    return _spreadOverlappingMarkers(raw);
+    return spreadOverlappingMapMarkers(raw);
   }
 
   Listing? get _selectedListing {
@@ -327,59 +327,23 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openFullMap() {
     if (_loadingLocation) return;
 
-    Navigator.push(
+    Navigator.push<int>(
       context,
       MaterialPageRoute(
         builder: (context) => NearbyMapScreen(
           position: _position,
-          radiusKm: _currentRadiusKm,
-          zoom: _currentRadiusKm <= 2 ? 14 : 12,
-          markers: _mapMarkers,
-          listings: _nearbyListings,
+          initialRadiusIndex: _radiusIndex,
           isApproximateLocation: _locationHint != null,
           phoneNumber: widget.phoneNumber,
           userId: widget.userId,
           favoriteIds: _favoriteIds,
         ),
       ),
-    );
-  }
-
-  List<MapMarker> _spreadOverlappingMarkers(List<MapMarker> markers) {
-    final groups = <String, List<MapMarker>>{};
-
-    for (final marker in markers) {
-      final key =
-          '${marker.lat.toStringAsFixed(4)}:${marker.lng.toStringAsFixed(4)}';
-      groups.putIfAbsent(key, () => []).add(marker);
-    }
-
-    final spread = <MapMarker>[];
-
-    for (final group in groups.values) {
-      if (group.length == 1) {
-        spread.add(group.first);
-        continue;
-      }
-
-      const baseRadius = 0.00012;
-      final radius = baseRadius * math.sqrt(group.length);
-      for (var i = 0; i < group.length; i++) {
-        final angle = (2 * math.pi * i) / group.length;
-        final item = group[i];
-        spread.add(
-          MapMarker(
-            id: item.id,
-            lat: item.lat + radius * math.sin(angle),
-            lng: item.lng + radius * math.cos(angle),
-            title: item.title,
-            isReserved: item.isReserved,
-          ),
-        );
-      }
-    }
-
-    return spread;
+    ).then((radiusIndex) {
+      if (!mounted || radiusIndex == null || radiusIndex == _radiusIndex) return;
+      setState(() => _radiusIndex = radiusIndex);
+      _loadNearbyListings();
+    });
   }
 
   @override
