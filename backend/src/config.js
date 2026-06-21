@@ -73,4 +73,14 @@ if (config.photoStorage === 's3') {
   }
 }
 
+if (config.smsMock) {
+  console.log('SMS: тестовый режим (SMS_MOCK=true или не задано SMS_MOCK=false)');
+} else if (config.smsAeroEmail && config.smsAeroApiKey) {
+  console.log(`✓ SMS Aero: боевой режим, ${config.smsAeroEmail}, sign="${config.smsAeroSign}"`);
+} else if (config.smsRuApiId) {
+  console.log('✓ SMS.ru: боевой режим');
+} else {
+  console.warn('⚠ SMS: SMS_MOCK=false, но SMS_AERO_EMAIL / SMS_AERO_API_KEY пустые — коды будут тестовыми');
+}
+
 module.exports = config;
