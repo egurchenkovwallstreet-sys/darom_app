@@ -47,7 +47,14 @@ async function sendSmsCode(phone, code, options = {}) {
     (mode === 'real' && !canSendRealSms());
 
   if (useMock) {
-    console.log(`[SMS mock${mode === 'real' ? ' (real requested, no provider)' : ''}] ${to} → код ${code}`);
+    let reason = '';
+    if (mode === 'real') {
+      reason = config.smsMock
+        ? 'SMS_MOCK=true'
+        : 'нет SMS_AERO_EMAIL/SMS_AERO_API_KEY в backend/.env';
+    }
+    const suffix = reason ? ` (${reason})` : '';
+    console.log(`[SMS mock${suffix}] ${to} → код ${code}`);
     return { mock: true, debugCode: code };
   }
 
