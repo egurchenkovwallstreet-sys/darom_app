@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_api.dart';
 import '../services/session_service.dart';
 import '../services/users_api.dart';
+import 'keyboard_inset_padding.dart';
 import 'pin_code_fields.dart';
 import 'primary_action_button.dart';
 
@@ -45,6 +46,9 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
   final _codeControllers = PinCodeFields.createControllers();
   final FocusNode _phoneFocus = FocusNode();
   final FocusNode _codeFocus = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _phoneFieldKey = GlobalKey();
+  final GlobalKey _codeFieldKey = GlobalKey();
 
   bool _codeSent = false;
   bool _loading = false;
@@ -56,17 +60,46 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
   void initState() {
     super.initState();
     _phoneController.text = widget.phoneNumber;
+    _phoneFocus.addListener(_onPhoneFocus);
+    _codeFocus.addListener(_onCodeFocus);
   }
 
   @override
   void dispose() {
+    _phoneFocus.removeListener(_onPhoneFocus);
+    _codeFocus.removeListener(_onCodeFocus);
     _phoneController.dispose();
     _phoneFocus.dispose();
     _codeFocus.dispose();
+    _scrollController.dispose();
     for (final c in _codeControllers) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  void _onPhoneFocus() {
+    if (_phoneFocus.hasFocus) _scrollToKey(_phoneFieldKey);
+  }
+
+  void _onCodeFocus() {
+    if (_codeFocus.hasFocus) _scrollToKey(_codeFieldKey);
+  }
+
+  void _scrollToKey(GlobalKey key) {
+    for (final delay in [100, 300, 500]) {
+      Future<void>.delayed(Duration(milliseconds: delay), () {
+        if (!mounted) return;
+        final target = key.currentContext;
+        if (target == null) return;
+        Scrollable.ensureVisible(
+          target,
+          alignment: 0.2,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+        );
+      });
+    }
   }
 
   Future<void> _sendCode() async {
@@ -98,6 +131,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
       });
 
       _codeFocus.requestFocus();
+      _scrollToKey(_codeFieldKey);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -152,141 +186,176 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.92;
+
+    return Dialog(
       backgroundColor: const Color(0xFF001F3F),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: Color(0xFF00BFFF), width: 2),
       ),
-      title: Text(
-        _success ? 'Готово!' : 'Подтверждение номера',
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_success) ...[
-              const Icon(Icons.check_circle, color: Color(0xFF00BFFF), size: 56),
-              const SizedBox(height: 12),
-              const Text(
-                'Теперь вам доступны все функции приложения!',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontSize: 16, height: 1.4),
-              ),
-            ] else ...[
-              const Text(
-                'Чтобы размещать объявления и писать в чате, один раз подтвердите '
-                'актуальный номер телефона. Он не показывается другим пользователям — '
-                'это нужно для безопасности активных участников.',
-                style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.45),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _phoneController,
-                focusNode: _phoneFocus,
-                enabled: !_codeSent && !_loading,
-                keyboardType: TextInputType.phone,
-                style: const TextStyle(color: Colors.white, fontSize: 18),
-                decoration: InputDecoration(
-                  labelText: 'Номер телефона',
-                  labelStyle: const TextStyle(color: Color(0xFF80DEEA)),
-                  filled: true,
-                  fillColor: const Color(0xFF00152A),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF00BFFF)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.5)),
+      child: KeyboardInsetPadding(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  _success ? 'Готово!' : 'Подтверждение номера',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
                   ),
                 ),
-              ),
-              if (_debugCode != null) ...[
-                const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF004466),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                const SizedBox(height: 16),
+                if (_success) ...[
+                  const Icon(Icons.check_circle, color: Color(0xFF00BFFF), size: 56),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Теперь вам доступны все функции приложения!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontSize: 16, height: 1.4),
                   ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Тестовый код (пока SMS не подключены)',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _debugCode!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 8,
+                ] else ...[
+                  const Text(
+                    'Чтобы размещать объявления и писать в чате, один раз подтвердите '
+                    'актуальный номер телефона. Он не показывается другим пользователям — '
+                    'это нужно для безопасности активных участников.',
+                    style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.45),
+                  ),
+                  const SizedBox(height: 16),
+                  KeyedSubtree(
+                    key: _phoneFieldKey,
+                    child: TextField(
+                      controller: _phoneController,
+                      focusNode: _phoneFocus,
+                      enabled: !_codeSent && !_loading,
+                      keyboardType: TextInputType.phone,
+                      textInputAction:
+                          _codeSent ? TextInputAction.next : TextInputAction.done,
+                      onSubmitted: (_) {
+                        if (!_codeSent) _sendCode();
+                      },
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                      decoration: InputDecoration(
+                        labelText: 'Номер телефона',
+                        labelStyle: const TextStyle(color: Color(0xFF80DEEA)),
+                        filled: true,
+                        fillColor: const Color(0xFF00152A),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF00BFFF)),
                         ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide:
+                              BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.5)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_debugCode != null) ...[
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF004466),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'Тестовый код (пока SMS не подключены)',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _debugCode!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 8,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  if (_codeSent) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Код из SMS (4 цифры)',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    KeyedSubtree(
+                      key: _codeFieldKey,
+                      child: PinCodeFields(
+                        controllers: _codeControllers,
+                        firstFocusNode: _codeFocus,
+                        onCompleted: _confirmCode,
+                      ),
+                    ),
+                  ],
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Color(0xFFFF5722), fontSize: 13),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: _loading ? null : () => Navigator.pop(context),
+                        child: const Text(
+                          'Отмена',
+                          style: TextStyle(color: Color(0xFF80DEEA)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: !_codeSent
+                            ? PrimaryActionButton(
+                                label: 'Отправить SMS',
+                                loading: _loading,
+                                height: 44,
+                                fontSize: 15,
+                                borderRadius: 22,
+                                onPressed: _sendCode,
+                              )
+                            : PrimaryActionButton(
+                                label: 'Подтвердить',
+                                loading: _loading,
+                                height: 44,
+                                fontSize: 15,
+                                borderRadius: 22,
+                                onPressed: _confirmCode,
+                              ),
                       ),
                     ],
                   ),
-                ),
+                ],
               ],
-              if (_codeSent) ...[
-                const SizedBox(height: 16),
-                const Text(
-                  'Код из SMS (4 цифры)',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                PinCodeFields(
-                  controllers: _codeControllers,
-                  firstFocusNode: _codeFocus,
-                  onCompleted: _confirmCode,
-                ),
-              ],
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _error!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFFFF5722), fontSize: 13),
-                ),
-              ],
-            ],
-          ],
+            ),
+          ),
         ),
       ),
-      actions: _success
-          ? []
-          : [
-              TextButton(
-                onPressed: _loading ? null : () => Navigator.pop(context),
-                child: const Text('Отмена', style: TextStyle(color: Color(0xFF80DEEA))),
-              ),
-              if (!_codeSent)
-                PrimaryActionButton(
-                  label: 'Отправить SMS',
-                  loading: _loading,
-                  height: 44,
-                  fontSize: 15,
-                  borderRadius: 22,
-                  onPressed: _sendCode,
-                )
-              else
-                PrimaryActionButton(
-                  label: 'Подтвердить',
-                  loading: _loading,
-                  height: 44,
-                  fontSize: 15,
-                  borderRadius: 22,
-                  onPressed: _confirmCode,
-                ),
-            ],
     );
   }
 }
