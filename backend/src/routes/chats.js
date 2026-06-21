@@ -187,7 +187,10 @@ router.get('/', async (req, res) => {
         ORDER BY created_at DESC
         LIMIT 1
       ) lm ON TRUE
-      WHERE c.donor_id = $1 OR c.recipient_id = $1
+      WHERE (c.donor_id = $1 OR c.recipient_id = $1)
+        AND EXISTS (
+          SELECT 1 FROM chat_messages cm2 WHERE cm2.conversation_id = c.id
+        )
       ORDER BY COALESCE(lm.created_at, c.updated_at) DESC
       `,
       [user.id]

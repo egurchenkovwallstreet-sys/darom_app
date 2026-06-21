@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
+import '../data/profile_achievements.dart';
 import '../models/user.dart';
 import '../services/session_service.dart';
 import '../services/users_api.dart';
@@ -135,12 +136,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  final List<Map<String, dynamic>> _achievements = [
-    {'icon': Icons.card_giftcard, 'title': 'Первый дар', 'color': Color(0xFF00BFFF)},
-    {'icon': Icons.volunteer_activism, 'title': 'Благотворитель', 'color': Color(0xFF008C8C)},
-    {'icon': Icons.local_shipping, 'title': '10 сделок', 'color': Color(0xFFFFC107)},
-    {'icon': Icons.emoji_events, 'title': 'Топ даритель', 'color': Color(0xFFFF5722)},
-  ];
+  Widget _buildAchievementTile(ProfileAchievement achievement, User user) {
+    final unlocked = achievement.isUnlocked(user);
+    final color = unlocked ? achievement.color : const Color(0xFF607D8B);
+    final width = unlocked ? 80.0 : 56.0;
+    final iconSize = unlocked ? 30.0 : 18.0;
+    final fontSize = unlocked ? 10.0 : 8.0;
+
+    return Container(
+      width: width,
+      margin: const EdgeInsets.only(right: 10),
+      decoration: BoxDecoration(
+        color: unlocked
+            ? color.withOpacity(0.2)
+            : const Color(0xFF607D8B).withOpacity(0.12),
+        borderRadius: BorderRadius.circular(unlocked ? 12 : 10),
+        border: Border.all(
+          color: unlocked ? color : const Color(0xFF607D8B).withOpacity(0.35),
+          width: unlocked ? 2 : 1,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            achievement.icon,
+            size: iconSize,
+            color: unlocked ? color : const Color(0xFF90A4AE),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            achievement.title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: unlocked ? FontWeight.bold : FontWeight.w500,
+              color: unlocked ? color : const Color(0xFF90A4AE),
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -505,7 +544,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '${_achievements.length}/20',
+                                  '${ProfileAchievements.unlockedCount(user)}/${ProfileAchievements.all.length}',
                                   style: TextStyle(
                                     color: Color(0xFF00BFFF),
                                     fontWeight: FontWeight.bold,
@@ -526,41 +565,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               padding: EdgeInsets.all(15),
-                              itemCount: _achievements.length,
+                              itemCount: ProfileAchievements.all.length,
                               itemBuilder: (context, index) {
-                                return Container(
-                                  width: 80,
-                                  margin: EdgeInsets.only(right: 10),
-                                  decoration: BoxDecoration(
-                                    color: _achievements[index]['color'].withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: _achievements[index]['color'],
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        _achievements[index]['icon'],
-                                        size: 30,
-                                        color: _achievements[index]['color'],
-                                      ),
-                                      SizedBox(height: 5),
-                                      Text(
-                                        _achievements[index]['title'],
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: _achievements[index]['color'],
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
+                                return _buildAchievementTile(
+                                  ProfileAchievements.all[index],
+                                  user,
                                 );
                               },
                             ),
