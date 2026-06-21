@@ -187,8 +187,8 @@ router.post('/', async (req, res) => {
           phone, name, is_founder, phone_verified_at, referred_by_partner_id, referred_at
         )
         VALUES (
-          $1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), $3,
-          CASE WHEN $3 IS NOT NULL THEN NOW() ELSE NULL END
+          $1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), $3::uuid,
+          CASE WHEN $3::uuid IS NOT NULL THEN NOW() ELSE NULL END
         )
         ON CONFLICT (phone) DO UPDATE SET
           name = EXCLUDED.name,
