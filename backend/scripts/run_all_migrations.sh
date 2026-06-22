@@ -24,6 +24,11 @@ MIGRATIONS=(
   migrate_admin.sql
   migrate_pickup_tiers.sql
   migrate_payments.sql
+  migrate_real_phone_verify.sql
+  migrate_mobile_id.sql
+  migrate_partner_mobile_id.sql
+  migrate_admin_mobile_id.sql
+  migrate_fix_photo_urls.sql
 )
 
 for file in "${MIGRATIONS[@]}"; do

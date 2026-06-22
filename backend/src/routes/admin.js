@@ -2,6 +2,9 @@ const express = require('express');
 const db = require('../db/pool');
 const {
   startAdminLogin,
+  pollAdminMobileId,
+  completeAdminMobileIdPhone,
+  confirmAdminMobileIdOtp,
   verifyAdminLogin,
   getAdminSession,
   requireAdminRole,
@@ -56,15 +59,83 @@ router.post('/auth/start', async (req, res) => {
   }
 });
 
-// POST /api/admin/auth/verify { phone, sms_code, email_code }
-router.post('/auth/verify', async (req, res) => {
-  const { phone, sms_code: smsCode, email_code: emailCode } = req.body ?? {};
-  if (!phone || !smsCode || !emailCode) {
-    return res.status(400).json({ error: 'Нужны phone, sms_code и email_code' });
+// GET /api/admin/auth/mobile-id/poll?phone=&session_token=
+router.get('/auth/mobile-id/poll', async (req, res) => {
+  const { phone, session_token: sessionToken } = req.query;
+  if (!phone || !sessionToken) {
+    return res.status(400).json({ error: 'Нужны phone и session_token' });
   }
 
   try {
-    const result = await verifyAdminLogin(db, { phone, smsCode, emailCode });
+    const result = await pollAdminMobileId(db, String(phone), String(sessionToken));
+    if (!result.ok) {
+      return res.status(400).json({ error: result.error });
+    }
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/admin/auth/mobile-id/complete { phone, session_token }
+router.post('/auth/mobile-id/complete', async (req, res) => {
+  const { phone, session_token: sessionToken } = req.body ?? {};
+  if (!phone || !sessionToken) {
+    return res.status(400).json({ error: 'Нужны phone и session_token' });
+  }
+
+  try {
+    const result = await completeAdminMobileIdPhone(db, phone, sessionToken);
+    if (!result.ok) {
+      return res.status(400).json({ error: result.error });
+    }
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/admin/auth/mobile-id/confirm { phone, session_token, code }
+router.post('/auth/mobile-id/confirm', async (req, res) => {
+  const { phone, session_token: sessionToken, code } = req.body ?? {};
+  if (!phone || !sessionToken || !code) {
+    return res.status(400).json({ error: 'Нужны phone, session_token и code' });
+  }
+
+  try {
+    const result = await confirmAdminMobileIdOtp(db, phone, sessionToken, code);
+    if (!result.ok) {
+      return res.status(400).json({ error: result.error });
+    }
+    res.json(result);
+  } catch (error) {
+    const message = error.message || 'Ошибка подтверждения';
+    if (message.toLowerCase().includes('otp')) {
+      return res.status(400).json({ error: 'Неверный код из SMS' });
+    }
+    res.status(500).json({ error: message });
+  }
+});
+
+// POST /api/admin/auth/verify { phone, email_code, sms_code? | session_token? }
+router.post('/auth/verify', async (req, res) => {
+  const {
+    phone,
+    sms_code: smsCode,
+    email_code: emailCode,
+    session_token: sessionToken,
+  } = req.body ?? {};
+  if (!phone || !emailCode) {
+    return res.status(400).json({ error: 'Нужны phone и email_code' });
+  }
+
+  try {
+    const result = await verifyAdminLogin(db, {
+      phone,
+      smsCode,
+      emailCode,
+      sessionToken,
+    });
     if (!result.ok) {
       return res.status(400).json({ error: result.error });
     }

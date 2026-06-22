@@ -27,22 +27,87 @@ class AdminApi {
     return AdminStartLoginResult.fromJson(body);
   }
 
-  Future<AdminVerifyResult> verifyLogin({
+  Future<AdminMobileIdPollResult> pollMobileId({
     required String phone,
-    required String smsCode,
-    required String emailCode,
+    required String sessionToken,
   }) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/auth/verify');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/auth/mobile-id/poll').replace(
+      queryParameters: {'phone': phone, 'session_token': sessionToken},
+    );
+    final response = await _client
+        .get(uri, headers: _headers(null))
+        .timeout(const Duration(seconds: 15));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw AdminApiException(body['error'] as String? ?? 'Ошибка опроса Mobile ID');
+    }
+    return AdminMobileIdPollResult.fromJson(body);
+  }
+
+  Future<void> completeMobileIdPhone({
+    required String phone,
+    required String sessionToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/auth/mobile-id/complete');
+    final response = await _client
+        .post(
+          uri,
+          headers: _headers(null),
+          body: jsonEncode({'phone': phone, 'session_token': sessionToken}),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw AdminApiException(body['error'] as String? ?? 'Телефон не подтверждён');
+    }
+  }
+
+  Future<void> confirmMobileIdOtp({
+    required String phone,
+    required String sessionToken,
+    required String code,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/auth/mobile-id/confirm');
     final response = await _client
         .post(
           uri,
           headers: _headers(null),
           body: jsonEncode({
             'phone': phone,
-            'sms_code': smsCode,
-            'email_code': emailCode,
+            'session_token': sessionToken,
+            'code': code,
           }),
         )
+        .timeout(const Duration(seconds: 15));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw AdminApiException(body['error'] as String? ?? 'Неверный код из SMS');
+    }
+  }
+
+  Future<AdminVerifyResult> verifyLogin({
+    required String phone,
+    required String emailCode,
+    String? smsCode,
+    String? sessionToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/auth/verify');
+    final payload = <String, dynamic>{
+      'phone': phone,
+      'email_code': emailCode,
+    };
+    if (smsCode != null && smsCode.isNotEmpty) {
+      payload['sms_code'] = smsCode;
+    }
+    if (sessionToken != null && sessionToken.isNotEmpty) {
+      payload['session_token'] = sessionToken;
+    }
+
+    final response = await _client
+        .post(uri, headers: _headers(null), body: jsonEncode(payload))
         .timeout(const Duration(seconds: 20));
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -184,6 +249,9 @@ class AdminStartLoginResult {
   const AdminStartLoginResult({
     required this.phone,
     required this.emailHint,
+    this.mode = 'sms',
+    this.sessionToken,
+    this.hint,
     this.smsMock = false,
     this.smsDebugCode,
     this.emailMock = true,
@@ -192,19 +260,47 @@ class AdminStartLoginResult {
 
   final String phone;
   final String emailHint;
+  final String mode;
+  final String? sessionToken;
+  final String? hint;
   final bool smsMock;
   final String? smsDebugCode;
   final bool emailMock;
   final String? emailDebugCode;
 
+  bool get isMobileId => mode == 'mobile_id';
+
   factory AdminStartLoginResult.fromJson(Map<String, dynamic> json) {
     return AdminStartLoginResult(
       phone: json['phone'] as String? ?? '',
       emailHint: json['email_hint'] as String? ?? '',
+      mode: json['mode'] as String? ?? 'sms',
+      sessionToken: json['session_token'] as String?,
+      hint: json['hint'] as String?,
       smsMock: json['sms_mock'] as bool? ?? false,
       smsDebugCode: json['sms_debug_code'] as String?,
       emailMock: json['email_mock'] as bool? ?? true,
       emailDebugCode: json['email_debug_code'] as String?,
+    );
+  }
+}
+
+class AdminMobileIdPollResult {
+  const AdminMobileIdPollResult({
+    required this.needsOtp,
+    required this.verified,
+    required this.failed,
+  });
+
+  final bool needsOtp;
+  final bool verified;
+  final bool failed;
+
+  factory AdminMobileIdPollResult.fromJson(Map<String, dynamic> json) {
+    return AdminMobileIdPollResult(
+      needsOtp: json['needs_otp'] as bool? ?? false,
+      verified: json['verified'] as bool? ?? false,
+      failed: json['failed'] as bool? ?? false,
     );
   }
 }
