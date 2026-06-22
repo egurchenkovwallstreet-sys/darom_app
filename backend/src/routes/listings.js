@@ -13,6 +13,7 @@ const { normalizePhone } = require('../utils/phone');
 const { getListingLimit, buildListingLimitResponse } = require('../utils/limits');
 const { validateListingText } = require('../utils/stop_words');
 const { updateDonorLevel } = require('../utils/donor_level');
+const { notifyListingReserved, notifyDealGiven } = require('../services/push_service');
 const {
   getPickupStatus,
   buildPickupLimitResponse,
@@ -501,6 +502,12 @@ router.post('/:id/reserve', async (req, res) => {
     );
 
     const updated = await fetchListingById(db, id);
+    await notifyListingReserved(db, {
+      donorUserId: listing.owner_id,
+      listingTitle: listing.title,
+      recipientName: user.name,
+      listingId: id,
+    });
     res.json({ item: mapListingRow(updated) });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -580,6 +587,14 @@ router.post('/:id/give', async (req, res) => {
     }
 
     const updated = await fetchListingById(db, id);
+    if (recipientId) {
+      await notifyDealGiven(db, {
+        recipientUserId: recipientId,
+        listingTitle: listing.title,
+        listingId: id,
+        dealId,
+      });
+    }
     res.json({
       item: mapListingRow(updated),
       deal: recipientId

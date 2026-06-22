@@ -8,6 +8,7 @@ import 'favorites_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
 import '../services/chats_api.dart';
+import '../services/push_service.dart';
 import '../services/refresh_intervals.dart';
 import '../widgets/midnight_glow_screen.dart';
 
@@ -43,6 +44,7 @@ class _MainShellState extends State<MainShell> {
     _currentIndex = widget.initialIndex;
     _refreshUnreadCount();
     _unreadPollTimer = Timer.periodic(RefreshIntervals.chats, (_) => _refreshUnreadCount());
+    PushService.instance.registerForUser(phone: widget.phoneNumber);
   }
 
   @override

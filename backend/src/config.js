@@ -39,6 +39,16 @@ const config = {
   adminEmail: process.env.ADMIN_EMAIL || 'e.gurchenkov@yandex.ru',
   adminEmailMock: process.env.ADMIN_EMAIL_MOCK !== 'false',
   adminEmailSmsFallback: process.env.ADMIN_EMAIL_SMS_FALLBACK !== 'false',
+  pushMock: process.env.PUSH_MOCK !== 'false',
+  firebase: {
+    projectId: process.env.FIREBASE_PROJECT_ID || '',
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
+    privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+    webApiKey: process.env.FIREBASE_WEB_API_KEY || '',
+    webAppId: process.env.FIREBASE_WEB_APP_ID || '',
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '',
+    webVapidKey: process.env.FIREBASE_WEB_VAPID_KEY || '',
+  },
   smtp: {
     host: process.env.SMTP_HOST || '',
     port: Number(process.env.SMTP_PORT || 465),
@@ -102,6 +112,14 @@ if (config.adminEmailMock) {
   console.log(`✓ Admin email SMTP: ${config.smtp.host}:${config.smtp.port} → ${config.adminEmail}`);
 } else {
   console.warn('⚠ Admin email: ADMIN_EMAIL_MOCK=false, но SMTP не заполнен — вход в админку может не работать');
+}
+
+if (config.pushMock) {
+  console.log('Push: тестовый режим (PUSH_MOCK=true или не задан FIREBASE_PROJECT_ID)');
+} else if (config.firebase.projectId && config.firebase.clientEmail && config.firebase.privateKey) {
+  console.log(`✓ Firebase push: project ${config.firebase.projectId}`);
+} else {
+  console.warn('⚠ Push: PUSH_MOCK=false, но Firebase ключи пустые — уведомления не уйдут');
 }
 
 module.exports = config;

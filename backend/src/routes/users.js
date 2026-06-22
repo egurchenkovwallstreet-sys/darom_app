@@ -27,6 +27,7 @@ const {
 } = require('../utils/partner_helpers');
 const { checkAdminAccessByPhone } = require('../utils/admin_auth');
 const { storeVerifyToken } = require('../utils/phone_verify_token');
+const { upsertPushToken } = require('../services/push_service');
 
 const router = express.Router();
 
@@ -397,6 +398,28 @@ router.post('/avatar', upload.single('avatar'), async (req, res) => {
       user: await formatUserWithStats(db, updated, { includePhone: true }),
       message: 'Аватар обновлён',
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/users/push-token { phone, token, platform? }
+router.post('/push-token', async (req, res) => {
+  const { phone, token, platform } = req.body;
+
+  if (!phone || !token) {
+    return res.status(400).json({ error: 'Нужны phone и token' });
+  }
+
+  try {
+    const normalizedPhone = normalizePhone(phone);
+    const user = await fetchUserByPhone(normalizedPhone);
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const saved = await upsertPushToken(db, user.id, token, platform || 'web');
+    res.json({ ok: true, token_id: saved?.id ?? null });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

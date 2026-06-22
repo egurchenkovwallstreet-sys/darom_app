@@ -15,6 +15,7 @@ const partnersRouter = require('./routes/partners');
 const adminRouter = require('./routes/admin');
 const deployWebRouter = require('./routes/deploy_web');
 const paymentsRouter = require('./routes/payments');
+const configRouter = require('./routes/config');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.get('/', (_req, res) => {
 });
 
 app.use('/api/health', healthRouter);
+app.use('/api/config', configRouter);
 app.use('/api/photos', photosRouter);
 app.use('/api/listings', listingsRouter);
 app.use('/api/users', usersRouter);

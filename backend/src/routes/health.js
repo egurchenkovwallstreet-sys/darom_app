@@ -14,6 +14,11 @@ router.get('/', async (_req, res) => {
     const smtpConfigured = Boolean(
       config.smtp.host && config.smtp.user && config.smtp.pass
     );
+    const pushConfigured = Boolean(
+      config.firebase.projectId &&
+        config.firebase.clientEmail &&
+        config.firebase.privateKey
+    );
 
     res.json({
       ok: true,
@@ -27,6 +32,11 @@ router.get('/', async (_req, res) => {
         mock: config.adminEmailMock,
         smtpConfigured,
         ready: config.adminEmailMock || smtpConfigured,
+      },
+      push: {
+        mock: config.pushMock,
+        configured: pushConfigured,
+        ready: config.pushMock || pushConfigured,
       },
       db: {
         connected: true,

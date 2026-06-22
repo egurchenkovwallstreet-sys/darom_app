@@ -148,6 +148,30 @@ class UsersApi {
     return MediaType('image', 'jpeg');
   }
 
+  Future<void> registerPushToken({
+    required String phone,
+    required String token,
+    required String platform,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/users/push-token');
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': phone,
+            'token': token,
+            'platform': platform,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      throw UsersApiException(body['error'] as String? ?? 'Не удалось сохранить push-токен');
+    }
+  }
+
   void dispose() => _client.close();
 }
 

@@ -15,6 +15,10 @@ const {
   buildRealPhoneRequiredResponse,
   countUserChatMessages,
 } = require('../utils/real_phone_verify');
+const {
+  notifyListingReserved,
+  notifyChatMessage,
+} = require('../services/push_service');
 
 const router = express.Router();
 
@@ -395,6 +399,16 @@ router.post('/:id/messages', async (req, res) => {
 
     const phoneSharingWarning = containsPhoneNumber(validation.text);
 
+    const recipientUserId =
+      conversation.donor_id === user.id ? conversation.recipient_id : conversation.donor_id;
+    await notifyChatMessage(db, {
+      recipientUserId,
+      senderName: user.name,
+      listingTitle: conversation.listing_title,
+      conversationId: id,
+      preview: validation.text,
+    });
+
     res.status(201).json({
       message: inserted.rows[0],
       phone_sharing_warning: phoneSharingWarning,
@@ -455,6 +469,13 @@ router.post('/:id/reserve', async (req, res) => {
 
     const updatedListing = await fetchListingById(db, conversation.listing_id);
     const updatedConversation = await getConversationForUser(id, user.id);
+
+    await notifyListingReserved(db, {
+      donorUserId: listing.owner_id ?? conversation.donor_id,
+      listingTitle: listing.title,
+      recipientName: user.name,
+      listingId: conversation.listing_id,
+    });
 
     res.json({
       item: mapListingRow(updatedListing),

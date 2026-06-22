@@ -55,8 +55,8 @@ API:      https://darom-app.online/api/health  (ok:true, s3Ready:true)
 
 1. Робокасса ⏸ — код готов, магазин на одобрении (deploy/ROBOKASSA.md)
 2. SMTP ✅ — код готов; на сервере: пароль приложения Yandex в .env (deploy/SMTP.md)
-3. Firebase push ← СЕЙЧАС — бронь, чаты, «Отдал»
-4. Yandex Vision — модерация фото
+3. Firebase push ✅ — код + deploy/FIREBASE.md; настроить Firebase + .env
+4. Yandex Vision ← СЕЙЧАС — модерация фото
 5. Приоритет основателя в сортировке ленты
 6. Роль moderator в админке (без доступа к деньгам)
 7. Android / iOS (этап D)
