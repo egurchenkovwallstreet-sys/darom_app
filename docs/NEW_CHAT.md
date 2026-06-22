@@ -5,7 +5,7 @@
 ---
 
 ```
-@docs/TZ_DAROM.md @docs/PROGRESS.md @deploy/README.md @deploy/MOBILE_ID.md @deploy/SMTP.md
+@docs/TZ_DAROM.md @docs/PROGRESS.md @deploy/README.md @deploy/MOBILE_ID.md @deploy/SMTP.md @deploy/FIREBASE.md
 
 Проект «Даром» — бесплатная передача вещей (Flutter Web + Node.js + PostgreSQL + PostGIS).
 
@@ -17,12 +17,12 @@
 ═══════════════════════════════════════
 
 Сайт:     https://darom-app.online/
-API:      https://darom-app.online/api/health  (ok:true, s3Ready:true)
+API:      https://darom-app.online/api/health  (ok:true, s3Ready:true, push.ready:true)
 Запасной: http://5.129.243.246/
 Репо:     github.com/egurchenkovwallstreet-sys/darom_app
 Путь ПК:  C:\Users\User\Desktop\darom_app
 Сервер:   Timeweb VPS 5.129.243.246, /opt/darom_app, PM2 darom-api, Docker darom_db (порт 5433)
-Этап:     C — монетизация (ядро MVP ~99%, полное ТЗ ~65%)
+Этап:     C — монетизация (ядро MVP ~99%, полное ТЗ ~68%)
 
 ═══════════════════════════════════════
 ЧТО УЖЕ СДЕЛАНО
@@ -45,7 +45,8 @@ API:      https://darom-app.online/api/health  (ok:true, s3Ready:true)
 - Быстрая анимация ленты объявлений
 
 Админ-панель (/admin или Профиль → Админ-панель):
-- 2FA: Mobile ID (~3–6 ₽) + код с почты (SMTP ✅ deploy/SMTP.md)
+- 2FA: Mobile ID (~3–6 ₽) + код на почту ✅ (e.gurchenkov@yandex.ru)
+- Push Firebase ✅ (бронь, чат, «Отдал») — darom-6509d
 - Жалобы, блоки, статистика, блогеры, выплаты партнёрам
 - Admin-телефон: +79138931428 (Евгений, super_admin, основатель)
 
@@ -53,9 +54,9 @@ API:      https://darom-app.online/api/health  (ok:true, s3Ready:true)
 СЛЕДУЮЩИЕ ШАГИ (по приоритету)
 ═══════════════════════════════════════
 
-1. Робокасса ⏸ — код готов, магазин на одобрении (deploy/ROBOKASSA.md)
-2. SMTP ✅ — код готов; на сервере: пароль приложения Yandex в .env (deploy/SMTP.md)
-3. Firebase push ✅ — код + deploy/FIREBASE.md; настроить Firebase + .env
+1. Робокасса ⏸ — ждём одобрение магазина (deploy/ROBOKASSA.md)
+2. SMTP админ-почты ✅ — код на почту при входе
+3. Firebase push ✅ — протестировано
 4. Yandex Vision ← СЕЙЧАС — модерация фото
 5. Приоритет основателя в сортировке ленты
 6. Роль moderator в админке (без доступа к деньгам)
