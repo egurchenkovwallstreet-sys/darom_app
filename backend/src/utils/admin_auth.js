@@ -114,6 +114,54 @@ async function createAdminSession(db, admin) {
   };
 }
 
+async function resolveAdminEmailDelivery(admin, phone, emailCode, emailResult) {
+  if (!emailResult.error) {
+    return {
+      ok: true,
+      email_mock: emailResult.mock ?? false,
+      email_debug_code: emailResult.mock ? emailResult.debugCode ?? null : null,
+      email_hint: admin.email.replace(/(.{2}).+(@.+)/, '$1***$2'),
+      email_channel: emailResult.mock ? 'mock' : 'smtp',
+      email_delivery_hint: null,
+    };
+  }
+
+  if (
+    emailResult.connectionBlocked &&
+    config.adminEmailSmsFallback &&
+    canSendRealSms()
+  ) {
+    try {
+      const smsResult = await sendSmsCode(phone, emailCode, {
+        mode: 'real',
+        message: `Даром админ: код с почты ${emailCode}. Действует 10 мин.`,
+      });
+      console.warn('[ADMIN EMAIL] SMTP недоступен — код с почты отправлен SMS на admin-телефон');
+      return {
+        ok: true,
+        email_mock: smsResult.mock ?? false,
+        email_debug_code: smsResult.mock ? emailCode : null,
+        email_hint: 'SMS на ваш admin-номер',
+        email_channel: 'sms_fallback',
+        email_delivery_hint:
+          'Почта с сервера недоступна (Timeweb блокирует SMTP). Второй код (6 цифр) отправлен SMS.',
+      };
+    } catch (smsErr) {
+      return {
+        ok: false,
+        error: smsErr.message || 'Не удалось отправить код ни на почту, ни SMS',
+      };
+    }
+  }
+
+  return {
+    ok: false,
+    error:
+      emailResult.error ||
+      'Не удалось отправить код на почту. Проверьте SMTP в backend/.env (см. deploy/SMTP.md)',
+  };
+}
+
 async function startAdminLogin(db, phoneRaw) {
   const phone = normalizePhone(phoneRaw);
   const admin = await ensureSuperAdmin(db);
@@ -140,12 +188,9 @@ async function startAdminLogin(db, phoneRaw) {
       };
     }
 
-    if (emailResult.error) {
-      return {
-        ok: false,
-        error:
-          'Не удалось отправить код на почту. Проверьте SMTP в backend/.env (см. deploy/SMTP.md)',
-      };
+    const emailDelivery = await resolveAdminEmailDelivery(admin, phone, emailCode, emailResult);
+    if (!emailDelivery.ok) {
+      return { ok: false, error: emailDelivery.error };
     }
 
     const sessionInsert = await db.query(
@@ -170,6 +215,9 @@ async function startAdminLogin(db, phoneRaw) {
     );
 
     const status = Number(aeroData.status) || 0;
+    const mobileHint =
+      'На телефон может прийти запрос «Подтвердить» (SIM-PUSH) или SMS с кодом — это нормально.';
+    const hintParts = [emailDelivery.email_delivery_hint, mobileHint].filter(Boolean);
     return {
       ok: true,
       mode: 'mobile_id',
@@ -177,12 +225,12 @@ async function startAdminLogin(db, phoneRaw) {
       session_token: sessionInsert.rows[0].id,
       status,
       status_label: statusLabel(status),
-      email_hint: admin.email.replace(/(.{2}).+(@.+)/, '$1***$2'),
+      email_hint: emailDelivery.email_hint,
       challenge_expires_in: CHALLENGE_TTL_MIN * 60,
-      email_mock: emailResult.mock ?? true,
-      email_debug_code: emailResult.mock ? emailResult.debugCode ?? null : null,
-      hint:
-        'На телефон может прийти запрос «Подтвердить» (SIM-PUSH) или SMS с кодом — это нормально.',
+      email_mock: emailDelivery.email_mock,
+      email_debug_code: emailDelivery.email_debug_code,
+      email_channel: emailDelivery.email_channel,
+      hint: hintParts.join(' '),
     };
   }
 
@@ -206,12 +254,9 @@ async function startAdminLogin(db, phoneRaw) {
     return { ok: false, error: err.message || 'Не удалось отправить SMS' };
   }
 
-  if (emailResult.error) {
-    return {
-      ok: false,
-      error:
-        'Не удалось отправить код на почту. Проверьте SMTP в backend/.env (см. deploy/SMTP.md)',
-    };
+  const emailDelivery = await resolveAdminEmailDelivery(admin, phone, emailCode, emailResult);
+  if (!emailDelivery.ok) {
+    return { ok: false, error: emailDelivery.error };
   }
 
   await db.query(
@@ -226,12 +271,14 @@ async function startAdminLogin(db, phoneRaw) {
     ok: true,
     mode: 'sms',
     phone,
-    email_hint: admin.email.replace(/(.{2}).+(@.+)/, '$1***$2'),
+    email_hint: emailDelivery.email_hint,
     challenge_expires_in: CHALLENGE_TTL_MIN * 60,
     sms_mock: smsResult.mock ?? false,
     sms_debug_code: smsResult.mock ? smsResult.debugCode ?? null : null,
-    email_mock: emailResult.mock ?? true,
-    email_debug_code: emailResult.mock ? emailResult.debugCode ?? null : null,
+    email_mock: emailDelivery.email_mock,
+    email_debug_code: emailDelivery.email_debug_code,
+    email_channel: emailDelivery.email_channel,
+    hint: emailDelivery.email_delivery_hint,
   };
 }
 

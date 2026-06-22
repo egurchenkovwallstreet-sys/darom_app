@@ -256,6 +256,8 @@ class AdminStartLoginResult {
     this.smsDebugCode,
     this.emailMock = true,
     this.emailDebugCode,
+    this.emailChannel,
+    this.emailDeliveryHint,
   });
 
   final String phone;
@@ -267,8 +269,11 @@ class AdminStartLoginResult {
   final String? smsDebugCode;
   final bool emailMock;
   final String? emailDebugCode;
+  final String? emailChannel;
+  final String? emailDeliveryHint;
 
   bool get isMobileId => mode == 'mobile_id';
+  bool get isEmailSmsFallback => emailChannel == 'sms_fallback';
 
   factory AdminStartLoginResult.fromJson(Map<String, dynamic> json) {
     return AdminStartLoginResult(
@@ -281,6 +286,8 @@ class AdminStartLoginResult {
       smsDebugCode: json['sms_debug_code'] as String?,
       emailMock: json['email_mock'] as bool? ?? true,
       emailDebugCode: json['email_debug_code'] as String?,
+      emailChannel: json['email_channel'] as String?,
+      emailDeliveryHint: json['email_delivery_hint'] as String?,
     );
   }
 }

@@ -39,7 +39,7 @@ function canSendRealSms() {
 async function sendSmsCode(phone, code, options = {}) {
   const mode = options.mode || 'default';
   const to = digitsForSms(phone);
-  const message = `Даром: код входа ${code}. Никому не сообщайте.`;
+  const message = options.message || `Даром: код входа ${code}. Никому не сообщайте.`;
 
   const useMock =
     mode === 'mock' ||

@@ -115,7 +115,8 @@ async function sendAdminEmailCode({ to, code }) {
     return {
       mock: false,
       error:
-        'Connection timeout: сервер не может подключиться к SMTP. На Timeweb смените SMTP_PORT=587 и SMTP_SECURE=false (см. deploy/SMTP.md)',
+        'Connection timeout: сервер не может подключиться к SMTP (порты 465/587 заблокированы хостингом)',
+      connectionBlocked: true,
     };
   }
 

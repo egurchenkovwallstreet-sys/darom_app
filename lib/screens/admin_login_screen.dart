@@ -97,6 +97,19 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             : null;
       });
 
+      if (result.isEmailSmsFallback) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result.emailDeliveryHint ??
+                  'Код с почты отправлен SMS на ваш admin-номер (SMTP заблокирован).',
+            ),
+            backgroundColor: AppColors.cyan,
+            duration: const Duration(seconds: 10),
+          ),
+        );
+      }
+
       final hints = <String>[];
       if (result.smsMock && result.smsDebugCode != null) {
         hints.add('SMS: ${result.smsDebugCode}');

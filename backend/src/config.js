@@ -38,6 +38,7 @@ const config = {
   adminPhone: process.env.ADMIN_PHONE || '79138931428',
   adminEmail: process.env.ADMIN_EMAIL || 'e.gurchenkov@yandex.ru',
   adminEmailMock: process.env.ADMIN_EMAIL_MOCK !== 'false',
+  adminEmailSmsFallback: process.env.ADMIN_EMAIL_SMS_FALLBACK !== 'false',
   smtp: {
     host: process.env.SMTP_HOST || '',
     port: Number(process.env.SMTP_PORT || 465),
