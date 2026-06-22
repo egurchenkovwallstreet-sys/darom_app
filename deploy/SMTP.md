@@ -42,8 +42,8 @@ ADMIN_EMAIL=e.gurchenkov@yandex.ru
 ADMIN_PHONE=79138931428
 ADMIN_EMAIL_MOCK=false
 SMTP_HOST=smtp.yandex.ru
-SMTP_PORT=465
-SMTP_SECURE=true
+SMTP_PORT=587
+SMTP_SECURE=false
 SMTP_USER=e.gurchenkov@yandex.ru
 SMTP_PASS=ваш_пароль_приложения_16_символов
 SMTP_FROM=Даром <e.gurchenkov@yandex.ru>
@@ -115,6 +115,46 @@ https://darom-app.online/api/health
 | Ошибка «Invalid login» в логах | Создайте **новый пароль приложения** Yandex, обновите `SMTP_PASS` |
 | Письмо в «Спам» | Отметьте «Не спам», добавьте отправителя в контакты |
 | Ошибка на экране «Не удалось отправить код на почту» | `pm2 logs darom-api --lines 50` — там текст ошибки SMTP |
+| **`Connection timeout` в pm2 logs** | Timeweb часто **блокирует порт 465**. Смените в `.env`: `SMTP_PORT=587`, `SMTP_SECURE=false`, перезапустите PM2. Код сам попробует оба порта. |
+| После смены на 587 всё равно timeout | В VNC проверьте: `timeout 5 bash -c 'echo >/dev/tcp/smtp.yandex.ru/587' && echo OK || echo BLOCKED` — если **BLOCKED**, напишите в поддержку Timeweb: «разблокируйте исходящие SMTP порты 587 и 465 для VPS» |
+
+---
+
+## 4b. Connection timeout (Timeweb)
+
+Если в `pm2 logs` видите:
+
+```text
+[ADMIN EMAIL] send failed: Connection timeout
+```
+
+**Шаг 1 — сменить порт в `.env` на сервере:**
+
+```bash
+nano /opt/darom_app/backend/.env
+```
+
+Измените строки:
+
+```env
+SMTP_PORT=587
+SMTP_SECURE=false
+```
+
+Сохраните (`Ctrl+O`, Enter, `Ctrl+X`) и перезапустите:
+
+```bash
+cd /opt/darom_app && git pull && cd backend && npm install && pm2 restart darom-api --update-env
+```
+
+**Шаг 2 — проверить, открыт ли порт с сервера:**
+
+```bash
+timeout 5 bash -c 'echo >/dev/tcp/smtp.yandex.ru/587' && echo "Порт 587 OK" || echo "Порт 587 ЗАБЛОКИРОВАН"
+```
+
+- **Порт 587 OK** — снова нажмите «Получить коды» в админке.
+- **ЗАБЛОКИРОВАН** — в панели Timeweb → **Поддержка** → тикет: «Нужны исходящие соединения на smtp.yandex.ru порты 587 и 465 для отправки служебных писем».
 
 ---
 
@@ -134,7 +174,8 @@ ADMIN_EMAIL_MOCK=true
 
 | Сервис | SMTP_HOST | Порт | Примечание |
 |--------|-----------|------|------------|
-| Yandex | smtp.yandex.ru | 465 | Пароль приложения |
+| Yandex (Timeweb VPS) | smtp.yandex.ru | **587** | `SMTP_SECURE=false`, пароль приложения; 465 часто блокируют |
+| Yandex | smtp.yandex.ru | 465 | `SMTP_SECURE=true`, пароль приложения |
 | Mail.ru | smtp.mail.ru | 465 | Пароль для внешнего приложения |
 | Gmail | smtp.gmail.com | 587 | `SMTP_SECURE=false`, App Password |
 
