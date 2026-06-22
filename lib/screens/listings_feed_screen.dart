@@ -428,8 +428,8 @@ class _ListingCardState extends State<_ListingCard> {
         ),
       ),
     )
-        .animate(delay: Duration(milliseconds: 100 * widget.index))
-        .fadeIn(duration: 600.ms)
-        .slideX(begin: 0.1, end: 0);
+        .animate(delay: Duration(milliseconds: (20 * widget.index).clamp(0, 80)))
+        .fadeIn(duration: 220.ms, curve: Curves.easeOut)
+        .slideX(begin: 0.04, end: 0, duration: 220.ms, curve: Curves.easeOut);
   }
 }
