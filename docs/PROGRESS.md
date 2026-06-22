@@ -6,19 +6,20 @@
 
 ---
 
-## Снимок на 21.06.2026 (вечер)
+## Снимок на 22.06.2026
 
 | | |
 |---|---|
-| **Текущий этап** | **C — монетизация**; SMS Aero ✅; Mobile ID ✅; Робокасса ⏸ до одобрения магазина |
+| **Текущий этап** | **C — монетизация**; SMS Aero ✅; Mobile ID ✅ (активность + партнёры + **админ**); Робокасса ⏸ |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
 | **Backend** | VPS `5.129.243.246`, PM2 `darom-api`, S3 ✅ |
-| **Flutter** | Web в продакшене + разработка ПК `:8080` |
+| **Flutter** | Web в продакшене (`git push` → GitHub Actions) + ПК `:8080` |
 | **Ядро MVP** | ~**99%** |
-| **Полное ТЗ** | ~**62%** |
+| **Полное ТЗ** | ~**65%** |
 | **Пользователь** | новичок, нужны **пошаговые** инструкции |
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
+| **GitHub** | `egurchenkovwallstreet-sys/darom_app` — после изменений **сразу push** |
 
 **Health:** https://darom-app.online/api/health — `ok:true`, `s3Ready:true`.
 
@@ -26,7 +27,7 @@
 
 ---
 
-## 📋 Резюме проделанной работы (16–21.06.2026)
+## 📋 Резюме проделанной работы (16–22.06.2026)
 
 ### Этап B+ — домен и HTTPS ✅
 - Домен **darom-app.online** (Reg.ru), DNS → Timeweb VPS
@@ -59,9 +60,16 @@
 - **Повторный вход:** только номер + PIN (4 цифры)
 - **Подтверждение реального номера — один раз навсегда:** при **первом объявлении** или **первом сообщении в чате**
 - **SMS Aero Mobile ID** (~3,39–5,79 ₽ вместо 46 ₽ на Билайне): push «Подтвердить» или SMS с 4 цифрами (`deploy/MOBILE_ID.md`)
-- **Партнёры:** по-прежнему **реальное SMS** при регистрации
-- **Админ-панель:** **реальное SMS** на +79138931428 при входе; код с почты — пока mock (логи PM2)
+- **Партнёры:** **Mobile ID** при регистрации (~3–6 ₽), не дорогое SMS
+- **Админ-панель:** **Mobile ID** (~3–6 ₽) + код с почты (SMTP ⏳ mock); запасной режим — SMS
 - Инструкции: `deploy/SMS_AERO.md`, `deploy/MOBILE_ID.md`
+
+### Фото, nginx, UX, оферта (21–22.06.2026) ✅
+- **Фото объявлений:** исправлены URL (`localhost` → `darom-app.online`), чтение из S3 через API (`photos.js`), миграция `migrate_fix_photo_urls.sql`
+- **Nginx:** `location ^~ /api/` — JPG/PNG фото не отдают 404 (regex статики больше не перехватывает `/api/photos/`)
+- **Лента:** ускорена анимация появления карточек при скролле (`listings_feed_screen.dart`)
+- **Публичная оферта:** тарифы (бесплатно, 99₽, 149/299/499₽) и условия пользования (`lib/data/public_offer.dart`, экран `/offer`)
+- **Админ Mobile ID:** `migrate_admin_mobile_id.sql`, API `/api/admin/auth/mobile-id/*`, экран `admin_login_screen.dart`
 
 ---
 
@@ -93,7 +101,9 @@
 - **Вход PIN 4 цифры**; **регистрация без SMS** (номер → имя → PIN); **подтверждение номера один раз** при первом объявлении или первом сообщении в чате — **Mobile ID** (`real_phone_verify_dialog.dart`)
 - **Клавиатура** не перекрывает поля (`auth_form_scroll.dart`, `KeyboardInsetPadding` — auth, чат, поиск, создание объявления)
 - **Защита номера в чате:** предупреждение при отправке телефона в сообщении
-- **GitHub Actions:** автодеплой Flutter Web на сервер (`deploy-web.yml`)
+- **GitHub Actions:** автодеплой Flutter Web на сервер (`deploy-web.yml`); после правок — **сразу `git push`**
+- **Фото объявлений:** S3 + API `/api/photos/listings/`; nginx `^~ /api/` обязателен на сервере
+- **Публичная оферта:** `lib/data/public_offer.dart` — тарифы и правила сервиса
 - **Геолокация HTTPS:** `location_service_web.dart` — запрос на darom-app.online
 - **Полноэкранная карта:** радиус на `NearbyMapScreen` (`map_radius_options.dart`)
 - **Иконка PWA/Android:** `assets/icon/app_icon.png`, `flutter_launcher_icons`
@@ -123,8 +133,8 @@
 | URL `/admin` (Flutter Web) | ✅ |
 | **Вход из профиля:** кнопка «Админ-панель» только у admin-телефона | ✅ протестировано |
 | Автоопределение admin по номеру (`can_access_admin_panel` в API профиля) | ✅ |
-| После кнопки — 2FA (SMS + почта), без повторного ввода телефона | ✅ |
-| Вход 2FA: **реальное SMS** на +79138931428 + код на e.gurchenkov@yandex.ru | ✅ SMS; ⏳ почта mock |
+| После кнопки — 2FA (Mobile ID + почта), без повторного ввода телефона | ✅ |
+| Вход 2FA: **Mobile ID** (~3–6 ₽) + код на e.gurchenkov@yandex.ru | ✅ Mobile ID; ⏳ почта mock |
 | Роль **super_admin** (полный доступ) | ✅ |
 | Роль **moderator** (только жалобы/блоки — без монетизации) | ⏳ позже |
 | Жалобы на объявления (с контекстом объявления) | ✅ |
@@ -228,9 +238,33 @@ Get-Content backend\db\migrate_avatar.sql | docker exec -i darom_db psql -U daro
 ```
 
 **На сервере Timeweb (консоль VNC), из `/opt/darom_app`:**
+
 ```bash
 bash backend/scripts/run_all_migrations.sh
 ```
+
+**Mobile ID — строго по порядку** (если запускаете вручную):
+
+```bash
+cd /opt/darom_app
+# 1) поле real_phone_verified_at (если ещё не было)
+cat backend/db/migrate_real_phone_verify.sql | docker exec -i darom_db psql -U darom -d darom
+# 2) создаёт таблицу mobile_id_sessions — ОБЯЗАТЕЛЬНО первой для Mobile ID
+cat backend/db/migrate_mobile_id.sql | docker exec -i darom_db psql -U darom -d darom
+# 3) доработка для партнёров — только после шага 2
+cat backend/db/migrate_partner_mobile_id.sql | docker exec -i darom_db psql -U darom -d darom
+cat backend/db/migrate_admin_mobile_id.sql | docker exec -i darom_db psql -U darom -d darom
+cat backend/db/migrate_fix_photo_urls.sql | docker exec -i darom_db psql -U darom -d darom
+pm2 restart darom-api --update-env
+```
+
+**Nginx (фото JPG/PNG) — один раз на сервере:**
+```bash
+sed -i 's/location \/api\/ {/location ^~ \/api\/ {/' /etc/nginx/sites-available/darom
+nginx -t && systemctl reload nginx
+```
+
+Если видите `ERROR: relation "mobile_id_sessions" does not exist` — сначала выполните **шаг 2**, потом снова **шаг 3**.
 
 **Новые миграции партнёров (по отдельности):**
 ```bash
@@ -269,8 +303,11 @@ cat backend/db/migrate_partner_mobile_id.sql | docker exec -i darom_db psql -U d
 | POST | `/api/partners/validate-activation-code` | Проверка кода партнёра |
 | GET | `/api/partners/stats?phone=` | Статистика партнёра |
 | GET | `/api/partners/next-code` | Текущий активный код (0001…) |
-| POST | `/api/admin/auth/start` | Начать вход в админку (SMS + email) |
-| POST | `/api/admin/auth/verify` | Подтвердить коды, получить token |
+| POST | `/api/admin/auth/start` | Начать вход (Mobile ID + email-код) |
+| GET | `/api/admin/auth/mobile-id/poll` | Статус Mobile ID (админ) |
+| POST | `/api/admin/auth/mobile-id/complete` | Телефон подтверждён (push) |
+| POST | `/api/admin/auth/mobile-id/confirm` | Код OTP (Mobile ID, админ) |
+| POST | `/api/admin/auth/verify` | Код с почты + session_token → token |
 | GET | `/api/admin/reports/listings` | Жалобы на объявления |
 | GET | `/api/admin/reports/chats` | Жалобы на чаты (с перепиской) |
 | POST | `/api/admin/block/user` | Блок пользователя |
@@ -288,6 +325,7 @@ cat backend/db/migrate_partner_mobile_id.sql | docker exec -i darom_db psql -U d
 | GET | `/api/payments/status?inv_id=` | Статус заказа |
 | POST | `/api/payments/robokassa/result` | Callback Робокассы |
 | POST | `/api/listings/:id/photos` | Загрузить фото (multipart) |
+| GET | `/api/photos/listings/:fileName` | Отдать фото (S3 через API) |
 | GET/POST | `/api/listings` | Лента / создать |
 | GET | `/api/listings/nearby` | Объявления на карте (lat, lng, radius_km) |
 | GET | `/api/listings/mine` | Мои объявления |
@@ -308,6 +346,7 @@ lib/
   screens/     auth_gate, admin_gate, admin_login, admin_dashboard, phone, pin_*, partner_*, profile, ...
   services/    auth_api, admin_api, partners_api, listings_api, users_api, chats_api, ...
   widgets/     midnight_glow_screen, auth_form_scroll, keyboard_inset_padding, ...
+  data/        app_categories.dart, public_offer.dart, profile_achievements.dart, ...
   models/      user, listing, deal_info, ...
 backend/
   src/routes/  auth.js, users.js, listings.js, partners.js, admin.js, chats.js, deploy_web.js, ...
@@ -331,7 +370,7 @@ backend/
 
 Повторный вход: только PIN
 
-Профиль admin-телефона → «Админ-панель» → реальное SMS + код почты (mock) → аналитика
+Профиль admin-телефона → «Админ-панель» → Mobile ID (~3–6 ₽) + код почты (mock) → аналитика
 
 Запасной вход в админку: https://darom-app.online/admin
 ```
@@ -351,7 +390,10 @@ backend/
 | `deployWebRouter is not defined` | Исправлено — `require('./routes/deploy_web')` в index.js |
 | GitHub Actions: timeout deploy | Исправлено — max-time 300 с; Re-run workflow |
 | `No such file or directory` миграция | Команда из `/opt/darom_app`, не из `backend/` |
-| SMS | Боевой: SMS Aero + Mobile ID (`deploy/SMS_AERO.md`, `deploy/MOBILE_ID.md`); `SMS_MOCK=false` на сервере |
+| `relation "mobile_id_sessions" does not exist` | Сначала `migrate_mobile_id.sql`, потом `migrate_partner_mobile_id.sql` (см. раздел «Миграции БД») |
+| Фото не показываются (JPG) | Nginx: `location ^~ /api/` + миграция `migrate_fix_photo_urls.sql` |
+| GitHub Actions: красный крестик | Открыть лог; часто ошибка Flutter-сборки; Re-run после fix |
+| SMS | Боевой: SMS Aero + Mobile ID; `SMS_MOCK=false`, `SMS_AUTH_MODE=mobile_id` на сервере |
 
 ---
 
@@ -371,8 +413,8 @@ backend/
 ## ⏳ Этап C — монетизация (текущий)
 
 1. ⏸ **Робокасса** — код ✅, `deploy/ROBOKASSA.md`; **ждём одобрение магазина** в кабинете
-2. ✅ **SMS Aero** — боевой SMS + Mobile ID для подтверждения номера
-3. ✅ **Админ SMS** — реальное SMS при входе в аналитику
+2. ✅ **SMS Aero** — боевой SMS + Mobile ID (активность + партнёры)
+3. ✅ **Mobile ID** — активность + партнёры + **админ** (~3–6 ₽)
 4. ⏳ **SMTP** — код с почты для админ-2FA
 
 ## ⏳ Дальше
@@ -406,6 +448,8 @@ backend/
 - [x] SMS Aero + Mobile ID + регистрация без SMS (21.06 вечер) ✅
 - [x] Админ: реальное SMS при входе ✅
 - [x] Mobile ID для регистрации партнёров ✅
+- [x] Фото объявлений + nginx + оферта + UX лента (22.06) ✅
+- [x] Админ: Mobile ID при входе ✅
 - [ ] C: Робокасса (код ✅, магазин на одобрении ⏸)
 - [ ] C: SMTP админ-почты
 - [ ] D: Android / iOS
@@ -415,7 +459,7 @@ backend/
 ## Тестовый аккаунт (dev)
 
 - Телефон: `+79138931428`, имя: **Евгений**, статус **основатель** + **super admin**
-- В профиле: пункт **«Админ-панель»** → реальное SMS + код почты (почта пока в pm2 logs) → кабинет админа
+- В профиле: пункт **«Админ-панель»** → Mobile ID + код почты (почта пока в pm2 logs) → кабинет админа
 - Для проверки лимитов можно использовать `backend/scripts/seed_listings.js`
 
 ---
