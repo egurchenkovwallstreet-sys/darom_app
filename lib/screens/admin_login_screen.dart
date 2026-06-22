@@ -340,7 +340,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               if (_mobileIdMode && _needsOtp && !_phoneVerified) ...[
                 PinCodeFields(
                   controllers: _mobileIdCodeControllers,
-                  focusNode: _mobileIdCodeFocus,
+                  firstFocusNode: _mobileIdCodeFocus,
                 ),
                 const SizedBox(height: 12),
               ],
