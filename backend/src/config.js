@@ -41,8 +41,14 @@ const config = {
   smtp: {
     host: process.env.SMTP_HOST || '',
     port: Number(process.env.SMTP_PORT || 465),
+    secure: process.env.SMTP_SECURE !== 'false',
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
+    from:
+      process.env.SMTP_FROM ||
+      process.env.SMTP_USER ||
+      process.env.ADMIN_EMAIL ||
+      'noreply@darom-app.online',
   },
   robokassa: {
     merchantLogin: process.env.ROBOKASSA_MERCHANT_LOGIN || '',
@@ -87,6 +93,14 @@ if (config.smsMock) {
   console.log('✓ SMS.ru: боевой режим');
 } else {
   console.warn('⚠ SMS: SMS_MOCK=false, но SMS_AERO_EMAIL / SMS_AERO_API_KEY пустые — коды будут тестовыми');
+}
+
+if (config.adminEmailMock) {
+  console.log('Admin email: тестовый режим (ADMIN_EMAIL_MOCK=true или не задан SMTP_HOST)');
+} else if (config.smtp.host && config.smtp.user && config.smtp.pass) {
+  console.log(`✓ Admin email SMTP: ${config.smtp.host}:${config.smtp.port} → ${config.adminEmail}`);
+} else {
+  console.warn('⚠ Admin email: ADMIN_EMAIL_MOCK=false, но SMTP не заполнен — вход в админку может не работать');
 }
 
 module.exports = config;

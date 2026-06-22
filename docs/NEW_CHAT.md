@@ -5,7 +5,7 @@
 ---
 
 ```
-@docs/TZ_DAROM.md @docs/PROGRESS.md @deploy/README.md @deploy/MOBILE_ID.md
+@docs/TZ_DAROM.md @docs/PROGRESS.md @deploy/README.md @deploy/MOBILE_ID.md @deploy/SMTP.md
 
 Проект «Даром» — бесплатная передача вещей (Flutter Web + Node.js + PostgreSQL + PostGIS).
 
@@ -45,7 +45,7 @@ API:      https://darom-app.online/api/health  (ok:true, s3Ready:true)
 - Быстрая анимация ленты объявлений
 
 Админ-панель (/admin или Профиль → Админ-панель):
-- 2FA: Mobile ID (~3–6 ₽) + код с почты (SMTP пока mock → pm2 logs)
+- 2FA: Mobile ID (~3–6 ₽) + код с почты (SMTP ✅ deploy/SMTP.md)
 - Жалобы, блоки, статистика, блогеры, выплаты партнёрам
 - Admin-телефон: +79138931428 (Евгений, super_admin, основатель)
 
@@ -54,8 +54,8 @@ API:      https://darom-app.online/api/health  (ok:true, s3Ready:true)
 ═══════════════════════════════════════
 
 1. Робокасса ⏸ — код готов, магазин на одобрении (deploy/ROBOKASSA.md)
-2. SMTP ← СЕЙЧАС — код админа на e.gurchenkov@yandex.ru (не pm2 logs)
-3. Firebase push — бронь, чаты, «Отдал»
+2. SMTP ✅ — код готов; на сервере: пароль приложения Yandex в .env (deploy/SMTP.md)
+3. Firebase push ← СЕЙЧАС — бронь, чаты, «Отдал»
 4. Yandex Vision — модерация фото
 5. Приоритет основателя в сортировке ленты
 6. Роль moderator в админке (без доступа к деньгам)

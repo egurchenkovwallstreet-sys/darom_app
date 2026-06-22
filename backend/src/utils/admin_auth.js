@@ -126,6 +126,13 @@ async function startAdminLogin(db, phoneRaw) {
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_MIN * 60 * 1000);
   const emailResult = await sendAdminEmailCode({ to: admin.email, code: emailCode });
 
+  if (emailResult.error) {
+    return {
+      ok: false,
+      error: 'Не удалось отправить код на почту. Проверьте SMTP в backend/.env (см. deploy/SMTP.md)',
+    };
+  }
+
   if (canUseMobileId()) {
     const aeroData = await sendMobileIdAuth(phone);
     const sessionInsert = await db.query(

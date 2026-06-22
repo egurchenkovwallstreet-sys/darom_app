@@ -11,6 +11,10 @@ router.get('/', async (_req, res) => {
       config.photoStorage === 's3' &&
       Boolean(config.s3.bucket && config.s3.accessKey && config.s3.secretKey);
 
+    const smtpConfigured = Boolean(
+      config.smtp.host && config.smtp.user && config.smtp.pass
+    );
+
     res.json({
       ok: true,
       service: 'darom-api',
@@ -18,6 +22,11 @@ router.get('/', async (_req, res) => {
         mode: config.photoStorage,
         s3Ready,
         bucket: config.s3.bucket || null,
+      },
+      adminEmail: {
+        mock: config.adminEmailMock,
+        smtpConfigured,
+        ready: config.adminEmailMock || smtpConfigured,
       },
       db: {
         connected: true,

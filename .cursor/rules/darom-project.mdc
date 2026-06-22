@@ -13,7 +13,7 @@ alwaysApply: true
 - **Этап A ✅** — backend на Timeweb `5.129.243.246`, PM2, S3, миграции, всё протестировано
 - **Этап B ✅** — Flutter Web на сервере (`deploy/README.md`)
 - **Этап B+ ✅** — домен **darom-app.online** + HTTPS (`deploy/DOMAIN_HTTPS.md`)
-- **Этап C ← СЕЙЧАС** — монетизация: Робокасса ⏸, SMS Aero ✅, Mobile ID ✅, SMTP ⏳
+- **Этап C ← СЕЙЧАС** — монетизация: Робокасса ⏸, SMS Aero ✅, Mobile ID ✅, SMTP ✅ (настройка на сервере)
 - Прогресс: ядро MVP ~**99%**, полное ТЗ ~**65%** — см. `docs/PROGRESS.md`
 - **Новый чат:** `docs/NEW_CHAT.md`
 
