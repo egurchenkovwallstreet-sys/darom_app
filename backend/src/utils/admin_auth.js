@@ -124,17 +124,30 @@ async function startAdminLogin(db, phoneRaw) {
 
   const emailCode = generateEmailCode();
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_MIN * 60 * 1000);
-  const emailResult = await sendAdminEmailCode({ to: admin.email, code: emailCode });
-
-  if (emailResult.error) {
-    return {
-      ok: false,
-      error: 'Не удалось отправить код на почту. Проверьте SMTP в backend/.env (см. deploy/SMTP.md)',
-    };
-  }
 
   if (canUseMobileId()) {
-    const aeroData = await sendMobileIdAuth(phone);
+    let emailResult;
+    let aeroData;
+    try {
+      [emailResult, aeroData] = await Promise.all([
+        sendAdminEmailCode({ to: admin.email, code: emailCode }),
+        sendMobileIdAuth(phone),
+      ]);
+    } catch (err) {
+      return {
+        ok: false,
+        error: err.message || 'Не удалось отправить Mobile ID. Попробуйте ещё раз.',
+      };
+    }
+
+    if (emailResult.error) {
+      return {
+        ok: false,
+        error:
+          'Не удалось отправить код на почту. Проверьте SMTP в backend/.env (см. deploy/SMTP.md)',
+      };
+    }
+
     const sessionInsert = await db.query(
       `
       INSERT INTO mobile_id_sessions (
@@ -182,6 +195,25 @@ async function startAdminLogin(db, phoneRaw) {
   }
 
   const smsCode = generateCode();
+  let emailResult;
+  let smsResult;
+  try {
+    [emailResult, smsResult] = await Promise.all([
+      sendAdminEmailCode({ to: admin.email, code: emailCode }),
+      sendSmsCode(phone, smsCode, { mode: 'real' }),
+    ]);
+  } catch (err) {
+    return { ok: false, error: err.message || 'Не удалось отправить SMS' };
+  }
+
+  if (emailResult.error) {
+    return {
+      ok: false,
+      error:
+        'Не удалось отправить код на почту. Проверьте SMTP в backend/.env (см. deploy/SMTP.md)',
+    };
+  }
+
   await db.query(
     `
     INSERT INTO admin_login_challenges (admin_id, sms_code, email_code, expires_at, phone_verified)
@@ -189,8 +221,6 @@ async function startAdminLogin(db, phoneRaw) {
     `,
     [admin.id, smsCode, emailCode, expiresAt]
   );
-
-  const smsResult = await sendSmsCode(phone, smsCode, { mode: 'real' });
 
   return {
     ok: true,

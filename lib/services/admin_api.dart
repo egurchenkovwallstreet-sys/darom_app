@@ -18,7 +18,7 @@ class AdminApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/auth/start');
     final response = await _client
         .post(uri, headers: _headers(null), body: jsonEncode({'phone': phone}))
-        .timeout(const Duration(seconds: 20));
+        .timeout(const Duration(seconds: 45));
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
     if (response.statusCode != 200) {
@@ -108,7 +108,7 @@ class AdminApi {
 
     final response = await _client
         .post(uri, headers: _headers(null), body: jsonEncode(payload))
-        .timeout(const Duration(seconds: 20));
+        .timeout(const Duration(seconds: 45));
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
     if (response.statusCode != 200) {

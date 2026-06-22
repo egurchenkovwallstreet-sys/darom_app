@@ -128,8 +128,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _loading = false);
+      final message = error is TimeoutException
+          ? 'Сервер долго отвечает (почта + Mobile ID). Подождите минуту и нажмите «Получить коды» ещё раз — письмо могло уже уйти.'
+          : '$error';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error'), backgroundColor: AppColors.red),
+        SnackBar(content: Text(message), backgroundColor: AppColors.red),
       );
     }
   }
