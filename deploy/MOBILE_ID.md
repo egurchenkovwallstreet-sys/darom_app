@@ -23,13 +23,33 @@
 
 ## 2. Сервер (VNC)
 
-**Миграции** (один раз):
+**Миграции Mobile ID** (один раз, **строго по порядку**):
 
 ```bash
 cd /opt/darom_app
+```
+
+**Шаг 1** — поле в таблице пользователей (если ещё не делали):
+
+```bash
+cat backend/db/migrate_real_phone_verify.sql | docker exec -i darom_db psql -U darom -d darom
+```
+
+**Шаг 2** — **создаёт** таблицу `mobile_id_sessions` (обязательно перед партнёрами):
+
+```bash
 cat backend/db/migrate_mobile_id.sql | docker exec -i darom_db psql -U darom -d darom
+```
+
+**Успех:** `CREATE TABLE`, `CREATE INDEX`, **без** красного `ERROR`.
+
+**Шаг 3** — партнёры (только после шага 2):
+
+```bash
 cat backend/db/migrate_partner_mobile_id.sql | docker exec -i darom_db psql -U darom -d darom
 ```
+
+Если ошибка `relation "mobile_id_sessions" does not exist` — вы пропустили **шаг 2**. Выполните его и повторите **шаг 3**.
 
 **Файл `.env`:**
 
@@ -97,3 +117,12 @@ SMS Aero шлёт статусы на:
 `https://darom-app.online/api/auth/mobile-id/webhook`
 
 Должен быть доступен по HTTPS (у вас уже есть). Ответ сервера — **HTTP 200**.
+
+---
+
+## 6. Частые ошибки миграции
+
+| Ошибка | Что делать |
+|--------|------------|
+| `relation "mobile_id_sessions" does not exist` | Сначала `migrate_mobile_id.sql`, потом `migrate_partner_mobile_id.sql` |
+| Mobile ID не работает на сайте | `git pull`, миграции, `pm2 restart darom-api --update-env`, проверить `.env` |

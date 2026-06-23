@@ -1,4 +1,5 @@
 -- Mobile ID для регистрации партнёров (user_id может быть NULL до создания аккаунта)
+-- ВАЖНО: сначала выполните migrate_mobile_id.sql (создаёт таблицу mobile_id_sessions)!
 -- cat backend/db/migrate_partner_mobile_id.sql | docker exec -i darom_db psql -U darom -d darom
 
 ALTER TABLE mobile_id_sessions

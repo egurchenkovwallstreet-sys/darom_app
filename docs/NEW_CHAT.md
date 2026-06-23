@@ -39,11 +39,10 @@ API:      https://darom-app.online/api/health
 Репо:     github.com/egurchenkovwallstreet-sys/darom_app
 Путь ПК:  C:\Users\User\Desktop\darom_app
 Сервер:   Timeweb VPS 5.129.243.246, /opt/darom_app, PM2 darom-api, Docker darom_db (порт 5433)
-Этап:     C — монетизация; F — модерация (код ✅, Vision на сервере ⏳)
-Прогресс: ядро MVP ~99% | полное ТЗ ~72%
+Этап:     C — монетизация; F — модерация ✅ (Vision на сервере)
+Прогресс: ядро MVP ~99% | полное ТЗ ~73%
 
-Health сейчас: ok:true, s3Ready:true, push.ready:true, adminEmail.ready:true, vision.mock:true
-(vision.mock:true = Yandex Vision ещё не включён на сервере — это нормально, следующий шаг)
+Health сейчас: ok:true, s3Ready:true, push.ready:true, adminEmail.ready:true, vision.mock:false, vision.ready:true
 
 ═══════════════════════════════════════
 ЧТО УЖЕ СДЕЛАНО (кратко)
@@ -66,8 +65,7 @@ Health сейчас: ok:true, s3Ready:true, push.ready:true, adminEmail.ready:tr
 Модерация (23.06.2026):
 - Стоп-слова: коммерция, цены, ссылки, мессенджеры, Avito/Ozon (stop_words.js)
 - Запрещённые товары в тексте: лекарства, алкоголь, табак, оружие, наркотики и др. (prohibited_goods.js)
-- Yandex Vision в коде: moderation + OCR на фото (vision_service.js, photo_moderation.js)
-- На сервере Vision НЕ включён — PHOTO_MOCK_MODERATION=true (следующий шаг: deploy/VISION.md)
+- Yandex Vision ✅: moderation + OCR на фото (сервер 23.06.2026, deploy/VISION.md)
 - 3 жалобы → скрытие объявления; теневой бан при рейтинге <4.0
 - Правила модерации отправлены в поддержку Робокассы + в оферте п. 10.8
 
@@ -81,18 +79,13 @@ Health сейчас: ok:true, s3Ready:true, push.ready:true, adminEmail.ready:tr
 СЛЕДУЮЩИЕ ШАГИ (строго по порядку)
 ═══════════════════════════════════════
 
-1. Yandex Vision на сервере ← СЕЙЧАС
-   - Yandex Cloud: сервисный аккаунт, роль ai.vision.user, Api-Key
-   - backend/.env: PHOTO_MOCK_MODERATION=false, YC_VISION_API_KEY=..., YC_FOLDER_ID=...
-   - git pull, npm install (sharp), pm2 restart darom-api
-   - Проверка: /api/health → vision.mock:false, vision.ready:true
-   - Инструкция: deploy/VISION.md
-
-2. Робокасса ⏸
+1. Робокасса ⏸ ← СЕЙЧАС
    - Код ✅; магазин на одобрении в кабинете
    - Правила модерации уже отправлены в поддержку
    - После одобления: PAYMENT_MOCK=false, тест оплаты 99₽
    - deploy/ROBOKASSA.md
+
+2. Yandex Vision ✅ (23.06.2026, deploy/VISION.md)
 
 3. Приоритет основателя в сортировке ленты (значок уже есть)
 
@@ -155,16 +148,16 @@ FIREBASE_* (настроено)
 ADMIN_EMAIL_MOCK=false, SMTP_* (настроено)
 DEPLOY_SECRET, WEB_ROOT=/var/www/darom
 PAYMENT_MOCK=true  (до одобления Робокассы)
-PHOTO_MOCK_MODERATION=true  ← поменять на false после настройки Vision
-YC_VISION_API_KEY=  ← следующий шаг
-YC_FOLDER_ID=
+PHOTO_MOCK_MODERATION=false  ✅
+YC_VISION_API_KEY=  (настроено на сервере)
+YC_FOLDER_ID=b1gnk6agd6fsq1lo2dbj
 
 ═══════════════════════════════════════
 ЗАДАЧА В ЭТОМ ЧАТЕ
 ═══════════════════════════════════════
 
 Продолжаем по порядку из «Следующие шаги».
-Начни с: [УКАЖИ — например: «Настроить Yandex Vision на сервере по deploy/VISION.md»]
+Начни с: [УКАЖИ — например: «Дождаться одобрения Робокассы» или «Приоритет основателя в ленте»]
 
 После каждого этапа обновляй docs/PROGRESS.md и docs/TZ_DAROM.md, затем commit + push.
 ```
@@ -179,7 +172,7 @@ YC_FOLDER_ID=
 | **Тестовый аккаунт** | +79138931428, Евгений, основатель + super admin |
 | **Админка** | Профиль → Админ-панель → Mobile ID + код на почту |
 | **Оферта** | `/offer` — раздел **10.8** правила модерации |
-| **Vision** | Код ✅; сервер ⏳ → `deploy/VISION.md` |
+| **Vision** | ✅ код + сервер (`vision.mock:false`) |
 | **Робокасса** | Ждём одобрение; правила модерации отправлены |
 | **GitHub Actions** | Красный крестик → открыть лог → Re-run workflow |
 

@@ -17,11 +17,18 @@ alwaysApply: true
 
 ## Миграции БД (когда добавили новые поля)
 
-Команда в PowerShell из папки проекта:
+**На сервере (VNC)** — Mobile ID **строго по порядку** (см. `deploy/MOBILE_ID.md`):
+1. `migrate_real_phone_verify.sql`
+2. `migrate_mobile_id.sql` — создаёт таблицу
+3. `migrate_partner_mobile_id.sql` — только после шага 2
+
+Если ошибка `mobile_id_sessions does not exist` — пропущен шаг 2.
+
+**На ПК** (PowerShell), пример:
 ```powershell
 Get-Content backend\db\migrate_super_donor.sql | docker exec -i darom_db psql -U darom -d darom
 ```
-После миграции — перезапустить backend (Ctrl+C → `npm run dev`).
+После миграции на сервере: `pm2 restart darom-api --update-env`
 
 ## Лимит объявлений (ТЗ)
 
