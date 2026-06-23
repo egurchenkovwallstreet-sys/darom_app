@@ -1,121 +1,172 @@
 # Промпт для нового чата Cursor — «Даром»
 
-Скопируйте блок ниже в **новый чат** (первое сообщение).
+Скопируйте **весь блок** ниже в **новый чат** (первое сообщение).
 
 ---
 
 ```
-@docs/TZ_DAROM.md @docs/PROGRESS.md @deploy/README.md @deploy/MOBILE_ID.md @deploy/SMTP.md @deploy/FIREBASE.md
+@docs/TZ_DAROM.md @docs/PROGRESS.md @deploy/README.md @deploy/VISION.md @deploy/ROBOKASSA.md @deploy/MOBILE_ID.md @deploy/SMTP.md @deploy/FIREBASE.md @.cursor/rules/beginner-instructions.mdc @.cursor/rules/darom-project.mdc
 
 Проект «Даром» — бесплатная передача вещей (Flutter Web + Node.js + PostgreSQL + PostGIS).
 
-Я НЕ программист — нужны пошаговые инструкции: что открыть, куда нажать, что должно получиться.
-Терминалы называй «Терминал 1» и «Терминал 2». После изменений в коде — сразу commit + push на GitHub.
+═══════════════════════════════════════
+КТО Я И КАК СО МНОЙ РАБОТАТЬ
+═══════════════════════════════════════
+
+Я НЕ программист. Нужны максимально понятные пошаговые инструкции:
+• что открыть (браузер, VNC, терминал);
+• куда нажать;
+• какую команду скопировать целиком;
+• что должно появиться на экране = успех;
+• что делать, если ошибка.
+
+Терминалы ВСЕГДА называй «Терминал 1» и «Терминал 2».
+Не используй жаргон без пояснения (backend = сервер на компьютере, миграция = обновление базы данных).
+
+После ЛЮБЫХ изменений в коде — ОБЯЗАТЕЛЬНО:
+1) git add нужные файлы
+2) git commit с понятным сообщением
+3) git push на GitHub
+Без push сайт на сервере не обновится через GitHub Actions.
 
 ═══════════════════════════════════════
-СНИМОК НА 22.06.2026
+СНИМОК НА 23.06.2026
 ═══════════════════════════════════════
 
 Сайт:     https://darom-app.online/
-API:      https://darom-app.online/api/health  (ok:true, s3Ready:true, push.ready:true)
+API:      https://darom-app.online/api/health
 Запасной: http://5.129.243.246/
 Репо:     github.com/egurchenkovwallstreet-sys/darom_app
 Путь ПК:  C:\Users\User\Desktop\darom_app
 Сервер:   Timeweb VPS 5.129.243.246, /opt/darom_app, PM2 darom-api, Docker darom_db (порт 5433)
-Этап:     C — монетизация (ядро MVP ~99%, полное ТЗ ~68%)
+Этап:     C — монетизация; F — модерация (код ✅, Vision на сервере ⏳)
+Прогресс: ядро MVP ~99% | полное ТЗ ~72%
+
+Health сейчас: ok:true, s3Ready:true, push.ready:true, adminEmail.ready:true, vision.mock:true
+(vision.mock:true = Yandex Vision ещё не включён на сервере — это нормально, следующий шаг)
 
 ═══════════════════════════════════════
-ЧТО УЖЕ СДЕЛАНО
+ЧТО УЖЕ СДЕЛАНО (кратко)
 ═══════════════════════════════════════
 
 Инфраструктура:
-- Flutter Web на сервере (GitHub Actions → /api/deploy-web)
-- HTTPS darom-app.online, nginx прокси /api/
-- Backend PM2, PostgreSQL+PostGIS, фото Yandex S3
+- Flutter Web на сервере (/var/www/darom), GitHub Actions → POST /api/deploy-web
+- HTTPS darom-app.online, nginx прокси /api/ (location ^~ /api/ — обязательно для фото JPG)
+- Backend PM2, PostgreSQL+PostGIS, фото Yandex S3 (бакет darom-photos)
 
 Приложение:
 - Midnight Glow UI, онбординг, карта OSM, лента, чаты, избранное, профиль
-- PIN-авторизация; регистрация БЕЗ SMS (номер → имя → PIN)
+- PIN: регистрация БЕЗ SMS (номер → имя → PIN); вход только PIN
 - Mobile ID (~3–6 ₽) один раз: первое объявление ИЛИ первое сообщение в чате
-- Партнёры: коды 0001–1000, Mobile ID при регистрации, 30% с оплат реферала 365 дней
+- Партнёры: коды 0001–1000, 30% с оплат реферала 365 дней
 - Лимиты: 10 объявлений (20 у основателя), Супер даритель 99₽/+10/30д
 - Заборы: 7/мес (3/мес при ≥20k объявлений) → 149→299→499₽ за +10
-- Фото объявлений через S3 + API; nginx location ^~ /api/ (иначе JPG = 404)
-- Публичная оферта с тарифами (lib/data/public_offer.dart, /offer)
-- Быстрая анимация ленты объявлений
+- Публичная оферта: раздел 10.8 — правила модерации и запрещённые категории
 
-Админ-панель (/admin или Профиль → Админ-панель):
-- 2FA: Mobile ID (~3–6 ₽) + код на почту ✅ (e.gurchenkov@yandex.ru)
+Модерация (23.06.2026):
+- Стоп-слова: коммерция, цены, ссылки, мессенджеры, Avito/Ozon (stop_words.js)
+- Запрещённые товары в тексте: лекарства, алкоголь, табак, оружие, наркотики и др. (prohibited_goods.js)
+- Yandex Vision в коде: moderation + OCR на фото (vision_service.js, photo_moderation.js)
+- На сервере Vision НЕ включён — PHOTO_MOCK_MODERATION=true (следующий шаг: deploy/VISION.md)
+- 3 жалобы → скрытие объявления; теневой бан при рейтинге <4.0
+- Правила модерации отправлены в поддержку Робокассы + в оферте п. 10.8
+
+Админ-панель (Профиль → Админ-панель или /admin):
+- 2FA: Mobile ID + код на e.gurchenkov@yandex.ru ✅
 - Push Firebase ✅ (бронь, чат, «Отдал») — darom-6509d
-- Жалобы, блоки, статистика, блогеры, выплаты партнёрам
+- Жалобы, блоки, статистика, блогеры, выплаты
 - Admin-телефон: +79138931428 (Евгений, super_admin, основатель)
 
 ═══════════════════════════════════════
-СЛЕДУЮЩИЕ ШАГИ (по приоритету)
+СЛЕДУЮЩИЕ ШАГИ (строго по порядку)
 ═══════════════════════════════════════
 
-1. Робокасса ⏸ — ждём одобрение магазина (deploy/ROBOKASSA.md)
-2. SMTP админ-почты ✅ — код на почту при входе
-3. Firebase push ✅ — протестировано
-4. Yandex Vision ← СЕЙЧАС — модерация фото
-5. Приоритет основателя в сортировке ленты
-6. Роль moderator в админке (без доступа к деньгам)
-7. Android / iOS (этап D)
+1. Yandex Vision на сервере ← СЕЙЧАС
+   - Yandex Cloud: сервисный аккаунт, роль ai.vision.user, Api-Key
+   - backend/.env: PHOTO_MOCK_MODERATION=false, YC_VISION_API_KEY=..., YC_FOLDER_ID=...
+   - git pull, npm install (sharp), pm2 restart darom-api
+   - Проверка: /api/health → vision.mock:false, vision.ready:true
+   - Инструкция: deploy/VISION.md
+
+2. Робокасса ⏸
+   - Код ✅; магазин на одобрении в кабинете
+   - Правила модерации уже отправлены в поддержку
+   - После одобления: PAYMENT_MOCK=false, тест оплаты 99₽
+   - deploy/ROBOKASSA.md
+
+3. Приоритет основателя в сортировке ленты (значок уже есть)
+
+4. Роль moderator в админке (без доступа к деньгам и статистике)
+
+5. Android / iOS — этап D
 
 ═══════════════════════════════════════
-ЗАПУСК И ДЕПЛОЙ
+ЗАПУСК И ДЕПЛОЙ (шпаргалка)
 ═══════════════════════════════════════
 
-ПК (UI, без Docker):
+Терминал 2 — ПК (разработка UI, API идёт на Timeweb):
   cd C:\Users\User\Desktop\darom_app
   flutter run -d chrome --web-port=8080
-  (порт 8080 обязателен — иначе вход не сохраняется)
+  ⚠️ Порт 8080 ОБЯЗАТЕЛЕН — иначе вход не сохраняется!
 
-Деплой сайта: git push → GitHub Actions → зелёная галочка → Ctrl+F5 на сайте
+Деплой САЙТА (оферта, UI) после git push:
+  GitHub → Actions → Deploy Flutter Web → Run workflow (или push в main)
+  Ждать зелёную галочку 5–10 мин → Ctrl+F5 на https://darom-app.online/
 
-Деплой backend (VNC на сервере):
+Деплой BACKEND (сервер, VNC) — Терминал 1:
+  docker start darom_db
   cd /opt/darom_app && git pull
-  cat backend/db/migrate_*.sql | docker exec -i darom_db psql -U darom -d darom  (если новые)
+  cat backend/db/ИМЯ_МИГРАЦИИ.sql | docker exec -i darom_db psql -U darom -d darom
   cd backend && npm install && pm2 restart darom-api --update-env
+  pm2 logs darom-api --lines 20
 
-Nginx (фото JPG/PNG — если ещё не делали):
+Nginx (фото — если JPG не открываются):
   sed -i 's/location \/api\/ {/location ^~ \/api\/ {/' /etc/nginx/sites-available/darom
   nginx -t && systemctl reload nginx
 
-Миграции Mobile ID (строго по порядку):
+Mobile ID миграции (строго по порядку, из /opt/darom_app):
   1. migrate_real_phone_verify.sql
   2. migrate_mobile_id.sql
   3. migrate_partner_mobile_id.sql
   4. migrate_admin_mobile_id.sql
-  5. migrate_fix_photo_urls.sql
 
 ═══════════════════════════════════════
 КЛЮЧЕВЫЕ БИЗНЕС-ПРАВИЛА
 ═══════════════════════════════════════
 
+- «Даром» = только БЕСПЛАТНАЯ передача вещей; продажа запрещена
 - Основатель (первые 1000): 20 объявлений, значок; монетизация как у всех
 - Супер даритель: 99₽ → +10 объявлений на 30 дней, можно покупать снова
 - «Активировать повторно» — лимит заборов НЕ тратится
-- Сделка только после «Отдал»; счётчики отдано/забрано не обнуляются
-- 3 жалобы → скрытие объявления
+- Сделка только после «Отдал»; счётчики не обнуляются
+- 3 жалобы от разных пользователей → объявление скрыто
+- Запрещены: лекарства, алкоголь, табак, оружие, наркотики, пиротехника и др. (оферта 10.8)
 
 ═══════════════════════════════════════
-.env НА СЕРВЕРЕ (важное)
+.env НА СЕРВЕРЕ (/opt/darom_app/backend/.env)
 ═══════════════════════════════════════
 
 PUBLIC_BASE_URL=https://darom-app.online
 SMS_MOCK=false
 SMS_AUTH_MODE=mobile_id
 SMS_AERO_EMAIL, SMS_AERO_API_KEY, SMS_AERO_MOBILE_ID_SIGN
+PUSH_MOCK=false
+FIREBASE_* (настроено)
+ADMIN_EMAIL_MOCK=false, SMTP_* (настроено)
 DEPLOY_SECRET, WEB_ROOT=/var/www/darom
-PAYMENT_MOCK=true (до одобления Робокассы)
+PAYMENT_MOCK=true  (до одобления Робокассы)
+PHOTO_MOCK_MODERATION=true  ← поменять на false после настройки Vision
+YC_VISION_API_KEY=  ← следующий шаг
+YC_FOLDER_ID=
 
 ═══════════════════════════════════════
-ЗАДАЧА
+ЗАДАЧА В ЭТОМ ЧАТЕ
 ═══════════════════════════════════════
 
 Продолжаем по порядку из «Следующие шаги».
-Начни с: [УКАЖИ — например: SMTP для кодов админа]
+Начни с: [УКАЖИ — например: «Настроить Yandex Vision на сервере по deploy/VISION.md»]
+
+После каждого этапа обновляй docs/PROGRESS.md и docs/TZ_DAROM.md, затем commit + push.
 ```
 
 ---
@@ -124,8 +175,23 @@ PAYMENT_MOCK=true (до одобления Робокассы)
 
 | | |
 |---|---|
-| **Последние коммиты** | Mobile ID админ, оферта, фото+nginx, анимация ленты |
+| **Последние коммиты** | `f1178e9` оферта 10.8; `5ca805c` Vision код; `0e14dbc` запрещённые товары |
 | **Тестовый аккаунт** | +79138931428, Евгений, основатель + super admin |
-| **Админка** | Профиль → Админ-панель → Mobile ID + код почты (mock) |
-| **Оферта** | Регистрация → «Читать оферту» или `/offer` |
-| **GitHub Actions** | Красный крестик → смотреть лог сборки Flutter |
+| **Админка** | Профиль → Админ-панель → Mobile ID + код на почту |
+| **Оферта** | `/offer` — раздел **10.8** правила модерации |
+| **Vision** | Код ✅; сервер ⏳ → `deploy/VISION.md` |
+| **Робокасса** | Ждём одобрение; правила модерации отправлены |
+| **GitHub Actions** | Красный крестик → открыть лог → Re-run workflow |
+
+## Если сервер «упал»
+
+**Терминал 1 (VNC):**
+```bash
+docker start darom_db
+cd /opt/darom_app && git pull
+cd backend && npm install && pm2 restart darom-api --update-env
+systemctl start nginx
+curl -s http://127.0.0.1:3000/api/health
+```
+
+**Успех:** `"ok":true` в ответе curl.

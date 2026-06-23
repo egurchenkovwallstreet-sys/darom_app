@@ -6,22 +6,22 @@
 
 ---
 
-## Снимок на 22.06.2026 (вечер)
+## Снимок на 23.06.2026
 
 | | |
 |---|---|
-| **Текущий этап** | **C — монетизация**; SMTP админ ✅; Firebase push ✅; Робокасса ⏸ |
+| **Текущий этап** | **C — монетизация**; модерация ✅ (код); **Yandex Vision** ⏳ (ключ на сервере); Робокасса ⏸ (ответ с правилами отправлен) |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
 | **Backend** | VPS `5.129.243.246`, PM2 `darom-api`, S3 ✅ |
 | **Flutter** | Web в продакшене (`git push` → GitHub Actions) + ПК `:8080` |
 | **Ядро MVP** | ~**99%** |
-| **Полное ТЗ** | ~**68%** |
+| **Полное ТЗ** | ~**72%** |
 | **Пользователь** | новичок, нужны **пошаговые** инструкции |
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
-| **GitHub** | `egurchenkovwallstreet-sys/darom_app` — после изменений **сразу push** |
+| **GitHub** | `egurchenkovwallstreet-sys/darom_app` — после изменений **сразу commit + push** |
 
-**Health:** https://darom-app.online/api/health — `ok:true`, `s3Ready:true`, `push.ready:true`, `adminEmail.ready:true`.
+**Health:** https://darom-app.online/api/health — `ok:true`, `s3Ready:true`, `push.ready:true`, `adminEmail.ready:true`, `vision.mock:true` (пока Vision не включён на сервере).
 
 **Новый чат:** скопируйте промпт из `docs/NEW_CHAT.md`.
 
@@ -77,14 +77,23 @@
 - **Health:** `push.ready:true`, `adminEmail.ready:true`
 - Миграция: `migrate_push_tokens.sql`
 
+### Модерация объявлений + оферта + Vision (23.06.2026) ✅ / ⏳
+- **Запрещённые товары (текст):** `backend/src/utils/prohibited_goods.js` — блокировка при создании/редактировании объявления (наркотики, оружие, лекарства, алкоголь, табак, пиротехника и др.)
+- **Стоп-слова:** коммерция, цены, ссылки, мессенджеры, Avito/Ozon (`stop_words.js`) — уже было ✅
+- **Yandex Vision (код):** `vision_service.js` + `photo_moderation.js` — moderation + OCR на фото объявлений и аватаров; инструкция `deploy/VISION.md`
+- **На сервере Vision пока НЕ включён** (`PHOTO_MOCK_MODERATION=true`, `vision.mock:true`) — **следующий шаг**
+- **Публичная оферта раздел 10.8:** правила модерации, разрешённые/запрещённые категории, автоматические проверки, жалобы, санкции (`lib/data/public_offer.dart`)
+- **Робокасса:** подготовлен и отправлен развёрнутый ответ поддержке — правила модерации и запрещённые категории (текст также в оферте п. 10.8)
+- Коммиты: `0e14dbc` (prohibited goods), `5ca805c` (Vision код), `f1178e9` (оферта 10.8)
+
 ---
 
 ## 🎯 Следующие шаги (приоритет)
 
 | № | Этап | Задача | Зачем |
 |---|------|--------|-------|
-| **1** | **C — Робокасса** | Реальная оплата (99₽ / 149→299→499₽) | Код ✅; магазин **на одобрении** ⏸ см. `deploy/ROBOKASSA.md` |
-| **2** | **Yandex Vision** ← **СЕЙЧАС** | Модерация фото | Автопроверка объявлений |
+| **1** | **Yandex Vision** ← **СЕЙЧАС** | Включить на сервере: Api-Key, `PHOTO_MOCK_MODERATION=false` | Боевая модерация фото; код ✅ см. `deploy/VISION.md` |
+| **2** | **C — Робокасса** | Дождаться одобрения магазина → тест оплаты | Код ✅; правила модерации отправлены в поддержку ⏸ |
 | **3** | Лента | Приоритет **основателя** в сортировке | Значок есть, приоритет ⏳ |
 | **4** | Админка | Роль **moderator** (без денег) | Отдельные модераторы |
 | **5** | **D — Магазины** | Android APK / iOS | Нативные приложения + badge на иконке |
@@ -107,7 +116,7 @@
 - **Защита номера в чате:** предупреждение при отправке телефона в сообщении
 - **GitHub Actions:** автодеплой Flutter Web на сервер (`deploy-web.yml`); после правок — **сразу `git push`**
 - **Фото объявлений:** S3 + API `/api/photos/listings/`; nginx `^~ /api/` обязателен на сервере
-- **Публичная оферта:** `lib/data/public_offer.dart` — тарифы и правила сервиса
+- **Публичная оферта:** `lib/data/public_offer.dart` — тарифы, правила сервиса, **раздел 10.8 — модерация и запрещённые категории**
 - **Геолокация HTTPS:** `location_service_web.dart` — запрос на darom-app.online
 - **Полноэкранная карта:** радиус на `NearbyMapScreen` (`map_radius_options.dart`)
 - **Иконка PWA/Android:** `assets/icon/app_icon.png`, `flutter_launcher_icons`
@@ -167,6 +176,8 @@
 | 7 заборов/мес → пакеты **149→299→499₽** (+10 каждый), после 3-го — блок до нового месяца | ✅ |
 | Бронь 24ч, «Отдал», «Активировать повторно» | ✅ |
 | Рейтинг 1–5, жалобы (3→скрытие), стоп-слова | ✅ |
+| Запрещённые товары (текст объявления) | ✅ `prohibited_goods.js` |
+| Yandex Vision (фото + OCR) | 🟡 код ✅; на сервере ⏳ `deploy/VISION.md` |
 | Уровни дарителя, теневой бан &lt;4.0 | ✅ backend |
 | SMS-код через API | ✅ SMS Aero боевой (`SMS_MOCK=false`) |
 | Mobile ID (подтверждение номера при активности) | ✅ ~3–6 ₽/попытка |
@@ -182,8 +193,8 @@
 | Нативное приложение Android/iOS | ⏳ этап D |
 
 ### Не сделано / ждём
-- **Робокасса** — код ✅; **магазин на одобрении** ⏸ → тест оплаты после активации
-- **Yandex Vision** — модерация фото
+- **Yandex Vision на сервере** — код ✅; нужен Api-Key + `PHOTO_MOCK_MODERATION=false` → `deploy/VISION.md`
+- **Робокасса** — код ✅; **магазин на одобрении** ⏸; правила модерации отправлены в поддержку
 - Роль **moderator** (отдельные аккаунты без доступа к деньгам)
 - Приоритет **основателя** в сортировке ленты
 - **Android / iOS** (этап D)
@@ -362,8 +373,8 @@ lib/
   models/      user, listing, deal_info, ...
 backend/
   src/routes/  auth.js, users.js, listings.js, partners.js, admin.js, chats.js, deploy_web.js, ...
-  src/utils/   admin_auth.js, real_phone_verify.js, phone_verify_token.js, admin_stats.js, ...
-  src/services/ sms_service.js, mobile_id_service.js, email_service.js
+  src/utils/   admin_auth.js, prohibited_goods.js, stop_words.js, photo_moderation.js, ...
+  src/services/ sms_service.js, mobile_id_service.js, email_service.js, vision_service.js, push_service.js
   db/          migrate_admin.sql, migrate_mobile_id.sql, migrate_real_phone_verify.sql, ...
 ```
 
@@ -432,10 +443,11 @@ backend/
 
 ## ⏳ Дальше
 
-6. Yandex Vision ← **СЕЙЧАС**
-7. Приоритет основателя в ленте
-8. Роль moderator
-9. Android / iOS (этап D)
+1. **Yandex Vision на сервере** ← **СЕЙЧАС** (`deploy/VISION.md`)
+2. Робокасса — после одобрения магазина
+3. Приоритет основателя в ленте
+4. Роль moderator
+5. Android / iOS (этап D)
 
 ---
 
@@ -464,6 +476,9 @@ backend/
 - [x] Админ: Mobile ID при входе ✅
 - [x] C: SMTP админ-почты (боевой ✅)
 - [x] C: Firebase push (боевой ✅)
+- [x] Модерация: запрещённые товары + стоп-слова + оферта 10.8 (23.06) ✅
+- [x] Модерация: Yandex Vision — код в backend (23.06) ✅
+- [ ] C: Yandex Vision — включить на сервере ⏳
 - [ ] C: Робокасса (код ✅, магазин на одобрении ⏸)
 - [ ] D: Android / iOS
 
