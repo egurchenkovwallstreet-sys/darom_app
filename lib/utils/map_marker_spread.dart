@@ -31,6 +31,8 @@ List<MapMarker> spreadOverlappingMapMarkers(List<MapMarker> markers) {
           lng: item.lng + radius * math.cos(angle),
           title: item.title,
           isReserved: item.isReserved,
+          isFounder: item.isFounder,
+          reservedUntil: item.reservedUntil,
         ),
       );
     }

@@ -290,6 +290,8 @@ class _HomeScreenState extends State<HomeScreen> {
             lng: item.lng!,
             title: item.title,
             isReserved: item.isReserved,
+            isFounder: item.authorIsFounder,
+            reservedUntil: item.reservedUntil,
           ),
         )
         .toList();

@@ -4,6 +4,7 @@ import '../models/listing.dart';
 import '../services/chats_api.dart';
 import '../services/listings_api.dart';
 import '../widgets/favorite_button.dart';
+import '../utils/reservation_countdown.dart';
 import '../widgets/listing_photo_gallery.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
@@ -290,38 +291,39 @@ class _ListingScreenState extends State<ListingScreen> {
         child: Column(
           children: [
             _buildHeader(),
-            Center(
-              child: FractionallySizedBox(
-                widthFactor: 0.8,
-                child: ListingPhotoGallery(urls: _listing.photoUrls),
-              ),
-            ),
-            const SizedBox(height: 12),
             Expanded(
               child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_listing.isReserved) _buildStatusBadge(),
-                  Text(
-                    _listing.title,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFFFFFFF),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: FractionallySizedBox(
+                        widthFactor: 0.8,
+                        child: ListingPhotoGallery(urls: _listing.photoUrls),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildTags(),
-                  const SizedBox(height: 20),
-                  _buildDescription(),
-                  const SizedBox(height: 20),
-                  _buildAuthor(),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 12),
+                    if (_listing.isReserved) _buildStatusBadge(),
+                    Text(
+                      _listing.title,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFFFFFFF),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTags(),
+                    const SizedBox(height: 20),
+                    _buildDescription(),
+                    const SizedBox(height: 20),
+                    _buildAuthor(),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
-            )),
+            ),
             _buildActions(),
           ],
         ),
@@ -395,12 +397,31 @@ class _ListingScreenState extends State<ListingScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF9E9E9E)),
       ),
-      child: Text(
-        _listing.statusLabel,
-        style: const TextStyle(
-          color: Color(0xFF9E9E9E),
-          fontWeight: FontWeight.bold,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _listing.statusLabel,
+            style: const TextStyle(
+              color: Color(0xFF9E9E9E),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (_listing.reservedUntil != null) ...[
+            const Text(
+              ' · ',
+              style: TextStyle(color: Color(0xFF9E9E9E), fontWeight: FontWeight.bold),
+            ),
+            ReservationCountdownText(
+              until: _listing.reservedUntil,
+              prefix: 'осталось ',
+              style: const TextStyle(
+                color: Color(0xFFFFC107),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

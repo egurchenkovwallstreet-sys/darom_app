@@ -80,6 +80,7 @@ function mapListingRow(row) {
     author_name: row.author_name,
     author_level: row.author_level,
     author_rating: row.author_rating,
+    author_is_founder: Boolean(row.author_is_founder),
     distance_km: row.distance_km ?? 0,
   };
 

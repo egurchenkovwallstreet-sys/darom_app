@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../models/map_marker.dart';
 import '../theme/app_colors.dart';
+import '../utils/reservation_countdown.dart';
 
 class OsmMapWidget extends StatefulWidget {
   const OsmMapWidget({
@@ -111,12 +112,14 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
             ...widget.markers.map(
               (marker) => Marker(
                 point: LatLng(marker.lat, marker.lng),
-                width: 52,
-                height: 52,
+                width: 72,
+                height: marker.isReserved ? 78 : 52,
                 alignment: Alignment.center,
                 child: _ListingPin(
                   title: marker.title,
                   isReserved: marker.isReserved,
+                  isFounder: marker.isFounder,
+                  reservedUntil: marker.reservedUntil,
                   onTap: widget.onMarkerTap == null
                       ? null
                       : () => widget.onMarkerTap!(marker),
@@ -214,53 +217,101 @@ class _UserLocationPin extends StatelessWidget {
     );
   }
 }
-class _ListingPin extends StatelessWidget {
+class _ListingPin extends StatefulWidget {
   const _ListingPin({
     required this.title,
     required this.isReserved,
+    required this.isFounder,
+    this.reservedUntil,
     this.onTap,
   });
 
   final String title;
   final bool isReserved;
+  final bool isFounder;
+  final DateTime? reservedUntil;
   final VoidCallback? onTap;
 
   @override
+  State<_ListingPin> createState() => _ListingPinState();
+}
+
+class _ListingPinState extends State<_ListingPin> {
+  @override
   Widget build(BuildContext context) {
-    final bgColor = isReserved ? const Color(0xFF757575) : AppColors.cyan;
-    final borderColor = isReserved ? AppColors.gold : AppColors.white;
+    final Color bgColor;
+    final Color borderColor;
+    final Color iconColor;
+
+    if (widget.isReserved) {
+      bgColor = const Color(0xFF757575);
+      borderColor = AppColors.gold;
+      iconColor = AppColors.white;
+    } else if (widget.isFounder) {
+      bgColor = AppColors.gold;
+      borderColor = AppColors.darkBlue;
+      iconColor = AppColors.darkBlue;
+    } else {
+      bgColor = AppColors.cyan;
+      borderColor = AppColors.white;
+      iconColor = AppColors.white;
+    }
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Tooltip(
-        message: title,
-        child: SizedBox(
-          width: 52,
-          height: 52,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: bgColor,
-              border: Border.all(color: borderColor, width: 3),
-              boxShadow: [
-                BoxShadow(
-                  color: bgColor.withOpacity(0.85),
-                  blurRadius: 10,
-                  spreadRadius: 2,
+        message: widget.title,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 52,
+              height: 52,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: bgColor,
+                  border: Border.all(color: borderColor, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: bgColor.withOpacity(0.85),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                    const BoxShadow(
+                      color: Color(0xAA000000),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
-                const BoxShadow(
-                  color: Color(0xAA000000),
-                  blurRadius: 6,
-                  offset: Offset(0, 2),
+                child: Icon(
+                  widget.isReserved ? Icons.lock_outline : Icons.card_giftcard,
+                  color: iconColor,
+                  size: 26,
                 ),
-              ],
+              ),
             ),
-            child: Icon(
-              isReserved ? Icons.lock_outline : Icons.card_giftcard,
-              color: AppColors.white,
-              size: 26,
-            ),
-          ),
+            if (widget.isReserved && widget.reservedUntil != null) ...[
+              const SizedBox(height: 2),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.darkBlue.withOpacity(0.92),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.gold, width: 1.2),
+                ),
+                child: ReservationCountdownText(
+                  until: widget.reservedUntil,
+                  style: const TextStyle(
+                    color: AppColors.gold,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

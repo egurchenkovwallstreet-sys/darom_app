@@ -70,6 +70,8 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
             lng: item.lng!,
             title: item.title,
             isReserved: item.isReserved,
+            isFounder: item.authorIsFounder,
+            reservedUntil: item.reservedUntil,
           ),
         )
         .toList();

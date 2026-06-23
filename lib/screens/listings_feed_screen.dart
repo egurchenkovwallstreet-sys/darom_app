@@ -5,6 +5,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../models/listing.dart';
 import '../services/listings_api.dart';
 import '../services/refresh_intervals.dart';
+import '../theme/app_colors.dart';
+import '../utils/reservation_countdown.dart';
 import '../widgets/listing_photo_image.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
@@ -309,7 +311,12 @@ class _ListingCardState extends State<_ListingCard> {
   Widget build(BuildContext context) {
     final listing = widget.listing;
     final isReserved = listing.isReserved;
+    final isFounder = listing.authorIsFounder && !isReserved;
     final cardColor = isReserved ? const Color(0xFF9E9E9E) : widget.categoryColor;
+    final cardBackground = isFounder
+        ? Color.alphaBlend(AppColors.gold.withOpacity(0.18), const Color(0xFF001F3F).withOpacity(0.85))
+        : const Color(0xFF001F3F).withOpacity(0.85);
+    final cardBorderColor = isFounder ? AppColors.gold : cardColor;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
@@ -336,12 +343,12 @@ class _ListingCardState extends State<_ListingCard> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF001F3F).withOpacity(0.85),
+            color: cardBackground,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: cardColor, width: 2),
+            border: Border.all(color: cardBorderColor, width: 2),
             boxShadow: [
               BoxShadow(
-                color: cardColor.withOpacity(0.2),
+                color: cardBorderColor.withOpacity(0.2),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),
@@ -364,13 +371,36 @@ class _ListingCardState extends State<_ListingCard> {
                     if (isReserved)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          'Забронировано',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: cardColor,
-                          ),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Забронировано',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: cardColor,
+                              ),
+                            ),
+                            if (listing.reservedUntil != null) ...[
+                              Text(
+                                ' · ',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: cardColor,
+                                ),
+                              ),
+                              ReservationCountdownText(
+                                until: listing.reservedUntil,
+                                prefix: 'осталось ',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.gold,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     Text(

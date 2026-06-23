@@ -8,6 +8,7 @@ class Listing {
   final String authorName;
   final String authorLevel;
   final double authorRating;
+  final bool authorIsFounder;
   final int photosCount;
   final List<String> photoUrls;
   final double distanceKm;
@@ -26,6 +27,7 @@ class Listing {
     required this.authorName,
     required this.authorLevel,
     required this.authorRating,
+    this.authorIsFounder = false,
     required this.photosCount,
     this.photoUrls = const [],
     required this.distanceKm,
@@ -49,6 +51,7 @@ class Listing {
       authorName: json['author_name'] as String,
       authorLevel: json['author_level'] as String,
       authorRating: _toDouble(json['author_rating']),
+      authorIsFounder: json['author_is_founder'] as bool? ?? false,
       photosCount: _toInt(json['photos_count']),
       photoUrls: _parsePhotoUrls(json['photo_urls']),
       distanceKm: _toDouble(json['distance_km']),
@@ -77,6 +80,7 @@ class Listing {
       authorName: authorName,
       authorLevel: authorLevel,
       authorRating: authorRating,
+      authorIsFounder: authorIsFounder,
       photosCount: photosCount,
       photoUrls: photoUrls ?? this.photoUrls,
       distanceKm: distanceKm,

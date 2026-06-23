@@ -4,6 +4,8 @@ class MapMarker {
   final double lng;
   final String title;
   final bool isReserved;
+  final bool isFounder;
+  final DateTime? reservedUntil;
 
   const MapMarker({
     required this.id,
@@ -11,5 +13,7 @@ class MapMarker {
     required this.lng,
     required this.title,
     this.isReserved = false,
+    this.isFounder = false,
+    this.reservedUntil,
   });
 }

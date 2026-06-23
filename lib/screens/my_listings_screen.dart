@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../models/listing.dart';
 import '../services/listings_api.dart';
+import '../utils/reservation_countdown.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import 'listing_screen.dart';
@@ -220,13 +221,29 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                                         borderRadius: BorderRadius.circular(10),
                                         border: Border.all(color: color),
                                       ),
-                                      child: Text(
-                                        listing.statusLabel,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: color,
-                                        ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            listing.statusLabel,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: color,
+                                            ),
+                                          ),
+                                          if (listing.isReserved &&
+                                              listing.reservedUntil != null)
+                                            ReservationCountdownText(
+                                              until: listing.reservedUntil,
+                                              prefix: 'осталось ',
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFFFFC107),
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ),
                                   ],
