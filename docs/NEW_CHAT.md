@@ -39,7 +39,7 @@ API:      https://darom-app.online/api/health
 Репо:     github.com/egurchenkovwallstreet-sys/darom_app
 Путь ПК:  C:\Users\User\Desktop\darom_app
 Сервер:   Timeweb VPS 5.129.243.246, /opt/darom_app, PM2 darom-api, Docker darom_db (порт 5433)
-Этап:     C — монетизация; F — модерация ✅ (Vision на сервере)
+Этап:     C — монетизация; F — модерация ✅ (Vision); Sightengine ⏳ (оружие на фото)
 Прогресс: ядро MVP ~99% | полное ТЗ ~73%
 
 Health сейчас: ok:true, s3Ready:true, push.ready:true, adminEmail.ready:true, vision.mock:false, vision.ready:true
@@ -65,7 +65,8 @@ Health сейчас: ok:true, s3Ready:true, push.ready:true, adminEmail.ready:tr
 Модерация (23.06.2026):
 - Стоп-слова: коммерция, цены, ссылки, мессенджеры, Avito/Ozon (stop_words.js)
 - Запрещённые товары в тексте: лекарства, алкоголь, табак, оружие, наркотики и др. (prohibited_goods.js)
-- Yandex Vision ✅: moderation + OCR на фото (сервер 23.06.2026, deploy/VISION.md)
+- Yandex Vision ✅: moderation + OCR на фото (~0,1–0,5 ₽/фото, deploy/VISION.md)
+- Sightengine ⏳: оружие/алкоголь/табак на фото — подключим позже (Free 2 000 фото/мес)
 - 3 жалобы → скрытие объявления; теневой бан при рейтинге <4.0
 - Правила модерации отправлены в поддержку Робокассы + в оферте п. 10.8
 
@@ -85,9 +86,11 @@ Health сейчас: ok:true, s3Ready:true, push.ready:true, adminEmail.ready:tr
    - После одобления: PAYMENT_MOCK=false, тест оплаты 99₽
    - deploy/ROBOKASSA.md
 
-2. Yandex Vision ✅ (23.06.2026, deploy/VISION.md)
+2. Sightengine ⏳ — оружие на фото (после Робокассы или по приоритету)
 
-3. Приоритет основателя в сортировке ленты (значок уже есть)
+3. Yandex Vision ✅ (23.06.2026, deploy/VISION.md)
+
+4. Приоритет основателя в сортировке ленты (значок уже есть)
 
 4. Роль moderator в админке (без доступа к деньгам и статистике)
 
@@ -172,7 +175,8 @@ YC_FOLDER_ID=b1gnk6agd6fsq1lo2dbj
 | **Тестовый аккаунт** | +79138931428, Евгений, основатель + super admin |
 | **Админка** | Профиль → Админ-панель → Mobile ID + код на почту |
 | **Оферта** | `/offer` — раздел **10.8** правила модерации |
-| **Vision** | ✅ код + сервер (`vision.mock:false`) |
+| **Vision** | ✅ сервер; платный ~0,1–0,5 ₽/фото |
+| **Sightengine** | ⏳ оружие на фото — позже |
 | **Робокасса** | Ждём одобрение; правила модерации отправлены |
 | **GitHub Actions** | Красный крестик → открыть лог → Re-run workflow |
 
