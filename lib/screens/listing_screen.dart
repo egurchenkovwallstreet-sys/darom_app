@@ -6,6 +6,7 @@ import '../services/listings_api.dart';
 import '../widgets/favorite_button.dart';
 import '../utils/reservation_countdown.dart';
 import '../widgets/listing_photo_gallery.dart';
+import '../theme/app_colors.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import 'add_listing_screen.dart';
@@ -504,13 +505,38 @@ class _ListingScreenState extends State<ListingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _listing.authorName,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFFFFFFF),
-                  ),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        _listing.authorName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFFFFFFF),
+                        ),
+                      ),
+                    ),
+                    if (_listing.authorIsFounder) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.gold.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.gold, width: 1),
+                        ),
+                        child: const Text(
+                          'Основатель',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.gold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 Text(
                   '${_listing.authorLevel} • ${_listing.authorRating} ★',

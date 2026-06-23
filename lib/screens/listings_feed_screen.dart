@@ -6,6 +6,7 @@ import '../models/listing.dart';
 import '../services/listings_api.dart';
 import '../services/refresh_intervals.dart';
 import '../theme/app_colors.dart';
+import '../utils/founder_listing_style.dart';
 import '../utils/reservation_countdown.dart';
 import '../widgets/listing_photo_image.dart';
 import '../widgets/midnight_glow_screen.dart';
@@ -311,12 +312,9 @@ class _ListingCardState extends State<_ListingCard> {
   Widget build(BuildContext context) {
     final listing = widget.listing;
     final isReserved = listing.isReserved;
-    final isFounder = listing.authorIsFounder && !isReserved;
     final cardColor = isReserved ? const Color(0xFF9E9E9E) : widget.categoryColor;
-    final cardBackground = isFounder
-        ? Color.alphaBlend(AppColors.gold.withOpacity(0.18), const Color(0xFF001F3F).withOpacity(0.85))
-        : const Color(0xFF001F3F).withOpacity(0.85);
-    final cardBorderColor = isFounder ? AppColors.gold : cardColor;
+    final cardBorderColor = FounderListingStyle.borderColor(listing, cardColor);
+    final cardBackground = FounderListingStyle.backgroundColor(listing);
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),

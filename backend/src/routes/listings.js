@@ -133,6 +133,7 @@ router.get('/nearby', async (req, res) => {
         )
       ORDER BY
         CASE WHEN l.status = 'reserved' THEN 1 ELSE 0 END,
+        CASE WHEN u.is_founder THEN 0 ELSE 1 END,
         distance_km ASC,
         l.created_at DESC
       LIMIT 200
@@ -191,6 +192,7 @@ router.get('/search', async (req, res) => {
         )
       ORDER BY
         CASE WHEN l.status = 'reserved' THEN 1 ELSE 0 END,
+        CASE WHEN u.is_founder THEN 0 ELSE 1 END,
         distance_km ASC,
         l.created_at DESC
       LIMIT 100
@@ -285,6 +287,7 @@ router.get('/', async (req, res) => {
         AND l.subcategory = $2
       ORDER BY
         CASE WHEN l.status = 'reserved' THEN 1 ELSE 0 END,
+        CASE WHEN u.is_founder THEN 0 ELSE 1 END,
         distance_km ASC,
         l.created_at DESC
       `,

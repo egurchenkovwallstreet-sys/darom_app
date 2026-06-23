@@ -37,6 +37,7 @@ async function fetchListingById(db, listingId) {
       u.name AS author_name,
       u.donor_level AS author_level,
       u.rating AS author_rating,
+      u.is_founder AS author_is_founder,
       ${photoUrlsField}
     FROM listings l
     JOIN users u ON u.id = l.user_id

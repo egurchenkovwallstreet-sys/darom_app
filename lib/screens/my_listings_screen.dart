@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../models/listing.dart';
 import '../services/listings_api.dart';
+import '../utils/founder_listing_style.dart';
 import '../utils/reservation_countdown.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
@@ -161,6 +162,8 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                     itemBuilder: (context, index) {
                       final listing = listings[index];
                       final color = _statusColor(listing.status);
+                      final borderColor = FounderListingStyle.borderColor(listing, color);
+                      final backgroundColor = FounderListingStyle.backgroundColor(listing);
 
                       return GestureDetector(
                         onTap: () async {
@@ -182,9 +185,9 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF001F3F).withOpacity(0.85),
+                            color: backgroundColor,
                             borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: color, width: 2),
+                            border: Border.all(color: borderColor, width: 2),
                           ),
                           child: Row(
                             children: [

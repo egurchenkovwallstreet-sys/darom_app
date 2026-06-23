@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/listing.dart';
 import '../services/listings_api.dart';
+import '../utils/founder_listing_style.dart';
 import '../widgets/keyboard_inset_padding.dart';
 import '../widgets/listing_photo_image.dart';
 import '../widgets/midnight_glow_screen.dart';
@@ -271,15 +272,9 @@ class _SearchScreenState extends State<SearchScreen> {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF001F3F).withOpacity(0.85),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: listing.isReserved
-                            ? const Color(0xFF9E9E9E)
-                            : const Color(0xFF00BFFF),
-                        width: 1.5,
-                      ),
+                    decoration: FounderListingStyle.cardDecoration(
+                      listing,
+                      const Color(0xFF00BFFF),
                     ),
                     child: Row(
                       children: [

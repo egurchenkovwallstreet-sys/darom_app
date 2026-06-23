@@ -21,6 +21,7 @@ async function fetchFavoriteListings(userId) {
       u.name AS author_name,
       u.donor_level AS author_level,
       u.rating AS author_rating,
+      u.is_founder AS author_is_founder,
       ST_Y(l.location::geometry) AS lat,
       ST_X(l.location::geometry) AS lng,
       ${photoUrlsField}
