@@ -12,6 +12,7 @@ const {
 const { normalizePhone } = require('../utils/phone');
 const { getListingLimit, buildListingLimitResponse } = require('../utils/limits');
 const { validateListingText } = require('../utils/stop_words');
+const { validateProhibitedGoods } = require('../utils/prohibited_goods');
 const { updateDonorLevel } = require('../utils/donor_level');
 const { notifyListingReserved, notifyDealGiven } = require('../services/push_service');
 const {
@@ -327,6 +328,20 @@ router.post('/', async (req, res) => {
   const textCheck = validateListingText(trimmedTitle, trimmedDescription);
   if (!textCheck.ok) {
     return res.status(400).json({ error: textCheck.error, code: 'STOP_WORD' });
+  }
+
+  const goodsCheck = validateProhibitedGoods(
+    trimmedTitle,
+    trimmedDescription,
+    category,
+    subcategory,
+  );
+  if (!goodsCheck.ok) {
+    return res.status(400).json({
+      error: goodsCheck.error,
+      code: 'PROHIBITED_GOODS',
+      kind: goodsCheck.kind,
+    });
   }
 
   try {
@@ -685,6 +700,20 @@ router.patch('/:id', async (req, res) => {
   const textCheck = validateListingText(trimmedTitle, trimmedDescription);
   if (!textCheck.ok) {
     return res.status(400).json({ error: textCheck.error, code: 'STOP_WORD' });
+  }
+
+  const goodsCheck = validateProhibitedGoods(
+    trimmedTitle,
+    trimmedDescription,
+    category,
+    subcategory,
+  );
+  if (!goodsCheck.ok) {
+    return res.status(400).json({
+      error: goodsCheck.error,
+      code: 'PROHIBITED_GOODS',
+      kind: goodsCheck.kind,
+    });
   }
 
   try {
