@@ -432,20 +432,21 @@ router.post('/:id/photos', upload.single('photo'), async (req, res) => {
       });
     }
 
-    const moderation = moderatePhoto(
+    const moderation = await moderatePhoto(
       req.file.buffer,
       req.file.mimetype,
       req.file.originalname
     );
     if (!moderation.ok) {
-      return res.status(400).json({ error: moderation.error, code: 'PHOTO_REJECTED' });
+      return res.status(400).json({
+        error: moderation.error,
+        code: moderation.code || 'PHOTO_REJECTED',
+      });
     }
 
-    const mimeType = resolveMimeType(
-      req.file.buffer,
-      req.file.mimetype,
-      req.file.originalname
-    );
+    const mimeType =
+      moderation.mimeType ||
+      resolveMimeType(req.file.buffer, req.file.mimetype, req.file.originalname);
     const url = await savePhoto(req.file.buffer, mimeType);
 
     await db.query(

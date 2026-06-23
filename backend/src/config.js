@@ -24,6 +24,8 @@ const config = {
   photoMaxCount: Number(process.env.PHOTO_MAX_COUNT || 5),
   photoMockModeration: process.env.PHOTO_MOCK_MODERATION !== 'false',
   visionApiKey: process.env.YC_VISION_API_KEY || '',
+  visionFolderId: process.env.YC_FOLDER_ID || '',
+  visionModerationThreshold: Number(process.env.YC_VISION_MODERATION_THRESHOLD || 0.6),
   s3: {
     bucket: process.env.YC_S3_BUCKET || '',
     accessKey: process.env.YC_S3_ACCESS_KEY || '',
@@ -120,6 +122,20 @@ if (config.pushMock) {
   console.log(`✓ Firebase push: project ${config.firebase.projectId}`);
 } else {
   console.warn('⚠ Push: PUSH_MOCK=false, но Firebase ключи пустые — уведомления не уйдут');
+}
+
+const visionMock = config.photoMockModeration || !config.visionApiKey;
+if (visionMock) {
+  if (!config.photoMockModeration && !config.visionApiKey) {
+    console.warn('⚠ Vision: PHOTO_MOCK_MODERATION=false, но YC_VISION_API_KEY пуст — загрузка фото будет отклоняться');
+  } else {
+    console.log('Vision: тестовый режим (PHOTO_MOCK_MODERATION=true или не задан YC_VISION_API_KEY)');
+  }
+} else {
+  console.log(
+    `✓ Yandex Vision: moderation threshold ${config.visionModerationThreshold}` +
+      (config.visionFolderId ? `, folder ${config.visionFolderId}` : ''),
+  );
 }
 
 module.exports = config;

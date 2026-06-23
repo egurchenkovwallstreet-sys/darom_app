@@ -19,6 +19,8 @@ router.get('/', async (_req, res) => {
         config.firebase.clientEmail &&
         config.firebase.privateKey
     );
+    const visionConfigured = Boolean(config.visionApiKey);
+    const visionMock = config.photoMockModeration || !visionConfigured;
 
     res.json({
       ok: true,
@@ -27,6 +29,12 @@ router.get('/', async (_req, res) => {
         mode: config.photoStorage,
         s3Ready,
         bucket: config.s3.bucket || null,
+      },
+      vision: {
+        mock: visionMock,
+        configured: visionConfigured,
+        ready: visionMock || visionConfigured,
+        threshold: config.visionModerationThreshold,
       },
       adminEmail: {
         mock: config.adminEmailMock,

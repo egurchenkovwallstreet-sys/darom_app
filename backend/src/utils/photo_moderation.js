@@ -1,4 +1,7 @@
 const config = require('../config');
+const { validateListingText } = require('./stop_words');
+const { validateProhibitedGoods } = require('./prohibited_goods');
+const { analyzeImageForModeration } = require('../services/vision_service');
 
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
@@ -27,7 +30,7 @@ function resolveMimeType(buffer, mimeType, fileName) {
   return mimeType || '';
 }
 
-function moderatePhoto(buffer, mimeType, fileName = '') {
+function validateBasicPhoto(buffer, mimeType, fileName = '') {
   const resolved = resolveMimeType(buffer, mimeType, fileName);
 
   if (!ALLOWED_MIME.has(resolved)) {
@@ -45,12 +48,104 @@ function moderatePhoto(buffer, mimeType, fileName = '') {
     };
   }
 
-  if (config.photoMockModeration || !config.visionApiKey) {
-    return { ok: true, mock: true };
-  }
-
-  // Боевой Yandex Vision подключим при наличии ключа (пока тестовый пропуск)
-  return { ok: true, mock: true };
+  return { ok: true, mimeType: resolved };
 }
 
-module.exports = { moderatePhoto, resolveMimeType };
+function validatePhotoText(extractedText) {
+  if (!extractedText) {
+    return { ok: true };
+  }
+
+  const stopCheck = validateListingText(extractedText, '');
+  if (!stopCheck.ok) {
+    return {
+      ok: false,
+      error:
+        'На фото обнаружен запрещённый текст (продажа, ссылки или контакты). ' +
+        'Загрузите другое изображение без таких надписей.',
+      code: 'PHOTO_TEXT_STOP_WORD',
+    };
+  }
+
+  const goodsCheck = validateProhibitedGoods(extractedText, '', '', '');
+  if (!goodsCheck.ok) {
+    return {
+      ok: false,
+      error:
+        'На фото обнаружены признаки запрещённого или лицензируемого товара. ' +
+        'Загрузите другое изображение.',
+      code: 'PHOTO_TEXT_PROHIBITED_GOODS',
+      kind: goodsCheck.kind,
+    };
+  }
+
+  return { ok: true };
+}
+
+async function moderatePhoto(buffer, mimeType, fileName = '') {
+  const basic = validateBasicPhoto(buffer, mimeType, fileName);
+  if (!basic.ok) {
+    return basic;
+  }
+
+  const useMock = config.photoMockModeration || !config.visionApiKey;
+  if (useMock) {
+    if (!config.photoMockModeration && !config.visionApiKey) {
+      return {
+        ok: false,
+        error:
+          'Проверка фото не настроена на сервере. Обратитесь в поддержку «Даром».',
+        code: 'VISION_NOT_CONFIGURED',
+      };
+    }
+    return { ok: true, mock: true, mimeType: basic.mimeType };
+  }
+
+  try {
+    const vision = await analyzeImageForModeration({
+      buffer,
+      mimeType: basic.mimeType,
+      apiKey: config.visionApiKey,
+      folderId: config.visionFolderId,
+      threshold: config.visionModerationThreshold,
+    });
+
+    if (!vision.moderation.ok) {
+      return {
+        ok: false,
+        error:
+          `Фото не прошло модерацию: ${vision.moderation.reason}. ` +
+          'Загрузите обычное фото вещи без запрещённого содержания.',
+        code: 'PHOTO_MODERATION',
+        label: vision.moderation.label,
+        score: vision.moderation.score,
+      };
+    }
+
+    const textCheck = validatePhotoText(vision.extractedText);
+    if (!textCheck.ok) {
+      return textCheck;
+    }
+
+    return {
+      ok: true,
+      mock: false,
+      mimeType: basic.mimeType,
+      visionScores: vision.scores,
+    };
+  } catch (error) {
+    const message =
+      error?.name === 'AbortError'
+        ? 'Сервис проверки фото не ответил вовремя. Попробуйте ещё раз.'
+        : 'Сервис проверки фото временно недоступен. Попробуйте позже.';
+
+    return {
+      ok: false,
+      error: message,
+      code: 'VISION_ERROR',
+      details: error.message,
+    };
+  }
+}
+
+module.exports = { moderatePhoto, resolveMimeType, validateBasicPhoto };
