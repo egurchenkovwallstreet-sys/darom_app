@@ -1,6 +1,22 @@
-const PICKUP_FREE_LIMIT_START = 7;
-const PICKUP_FREE_LIMIT_FULL = 3;
-const PLATFORM_ACTIVE_LISTINGS_THRESHOLD = 20000;
+const PICKUP_FREE_LIMIT_START_NORMAL = 5;
+const PICKUP_FREE_LIMIT_START_REFERRAL = 7;
+const PICKUP_FREE_LIMIT_MID_NORMAL = 3;
+const PICKUP_FREE_LIMIT_MID_REFERRAL = 5;
+const PICKUP_FREE_LIMIT_MATURE = 2;
+const REFERRAL_PICKUP_BONUS = 2;
+
+const PLATFORM_ACTIVE_LISTINGS_THRESHOLD_MID = 20000;
+const PLATFORM_ACTIVE_LISTINGS_THRESHOLD_MATURE = 50000;
+
+/** @deprecated используйте PLATFORM_ACTIVE_LISTINGS_THRESHOLD_MID */
+const PLATFORM_ACTIVE_LISTINGS_THRESHOLD = PLATFORM_ACTIVE_LISTINGS_THRESHOLD_MID;
+
+/** @deprecated используйте PICKUP_FREE_LIMIT_START_NORMAL */
+const PICKUP_FREE_LIMIT_START = PICKUP_FREE_LIMIT_START_NORMAL;
+
+/** @deprecated используйте PICKUP_FREE_LIMIT_MID_NORMAL */
+const PICKUP_FREE_LIMIT_FULL = PICKUP_FREE_LIMIT_MID_NORMAL;
+
 const PICKUP_PACK_SIZE = 10;
 const PICKUP_PACK_PRICES = [149, 299, 499];
 const MAX_PICKUP_PAID_TIERS = PICKUP_PACK_PRICES.length;
@@ -29,11 +45,46 @@ async function countPlatformActiveListings(db) {
   return result.rows[0].cnt;
 }
 
-async function getFreePickupLimit(db) {
+function getPlatformPickupTier(activeListings) {
+  if (activeListings >= PLATFORM_ACTIVE_LISTINGS_THRESHOLD_MATURE) {
+    return 'mature';
+  }
+  if (activeListings >= PLATFORM_ACTIVE_LISTINGS_THRESHOLD_MID) {
+    return 'mid';
+  }
+  return 'start';
+}
+
+function getBaseFreePickupLimit(tier) {
+  switch (tier) {
+    case 'mature':
+      return PICKUP_FREE_LIMIT_MATURE;
+    case 'mid':
+      return PICKUP_FREE_LIMIT_MID_NORMAL;
+    default:
+      return PICKUP_FREE_LIMIT_START_NORMAL;
+  }
+}
+
+async function isReferralUser(db, userId) {
+  const result = await db.query(
+    'SELECT referred_by_partner_id FROM users WHERE id = $1',
+    [userId],
+  );
+  return Boolean(result.rows[0]?.referred_by_partner_id);
+}
+
+async function getFreePickupLimit(db, userId) {
   const activeListings = await countPlatformActiveListings(db);
-  return activeListings >= PLATFORM_ACTIVE_LISTINGS_THRESHOLD
-    ? PICKUP_FREE_LIMIT_FULL
-    : PICKUP_FREE_LIMIT_START;
+  const tier = getPlatformPickupTier(activeListings);
+  const baseLimit = getBaseFreePickupLimit(tier);
+
+  if (tier === 'mature') {
+    return baseLimit;
+  }
+
+  const referral = await isReferralUser(db, userId);
+  return referral ? baseLimit + REFERRAL_PICKUP_BONUS : baseLimit;
 }
 
 async function ensurePickupMonth(db, userId) {
@@ -67,8 +118,10 @@ async function countActiveReservations(db, userId) {
 async function getPickupStatus(db, userId) {
   await ensurePickupMonth(db, userId);
 
-  const freeLimit = await getFreePickupLimit(db);
   const platformActiveListings = await countPlatformActiveListings(db);
+  const platformTier = getPlatformPickupTier(platformActiveListings);
+  const freeLimit = await getFreePickupLimit(db, userId);
+  const referral = platformTier !== 'mature' && (await isReferralUser(db, userId));
 
   const userResult = await db.query(
     `
@@ -99,7 +152,10 @@ async function getPickupStatus(db, userId) {
     blocked,
     next_pack_price: nextPackPrice,
     platform_active_listings: platformActiveListings,
-    platform_full_launch: platformActiveListings >= PLATFORM_ACTIVE_LISTINGS_THRESHOLD,
+    platform_tier: platformTier,
+    is_referral: referral,
+    platform_full_launch: platformActiveListings >= PLATFORM_ACTIVE_LISTINGS_THRESHOLD_MID,
+    platform_mature_launch: platformActiveListings >= PLATFORM_ACTIVE_LISTINGS_THRESHOLD_MATURE,
   };
 }
 
@@ -114,6 +170,9 @@ function buildPickupLimitResponse(status) {
     pickup_paid_tiers_bought: status.pickup_paid_tiers_bought,
     blocked: status.blocked,
     platform_full_launch: status.platform_full_launch,
+    platform_mature_launch: status.platform_mature_launch,
+    platform_tier: status.platform_tier,
+    is_referral: status.is_referral,
   };
 
   if (status.blocked) {
@@ -150,7 +209,7 @@ function buildPickupLimitResponse(status) {
 async function consumePickupOnGive(db, userId) {
   await ensurePickupMonth(db, userId);
 
-  const freeLimit = await getFreePickupLimit(db);
+  const freeLimit = await getFreePickupLimit(db, userId);
   const result = await db.query(
     'SELECT pickups_this_month, pickup_credits FROM users WHERE id = $1',
     [userId],
@@ -178,7 +237,15 @@ async function consumePickupOnGive(db, userId) {
 module.exports = {
   PICKUP_FREE_LIMIT_START,
   PICKUP_FREE_LIMIT_FULL,
+  PICKUP_FREE_LIMIT_START_NORMAL,
+  PICKUP_FREE_LIMIT_START_REFERRAL,
+  PICKUP_FREE_LIMIT_MID_NORMAL,
+  PICKUP_FREE_LIMIT_MID_REFERRAL,
+  PICKUP_FREE_LIMIT_MATURE,
+  REFERRAL_PICKUP_BONUS,
   PLATFORM_ACTIVE_LISTINGS_THRESHOLD,
+  PLATFORM_ACTIVE_LISTINGS_THRESHOLD_MID,
+  PLATFORM_ACTIVE_LISTINGS_THRESHOLD_MATURE,
   PICKUP_PACK_SIZE,
   PICKUP_PACK_PRICES,
   MAX_PICKUP_PAID_TIERS,

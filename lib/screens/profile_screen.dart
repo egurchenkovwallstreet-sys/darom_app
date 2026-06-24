@@ -501,7 +501,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                _buildStatItem(Icons.inventory_2, '${user.activeListings}', 'Объявления'),
+                                _buildStatItem(Icons.inventory_2, '${user.activeListings}/${user.listingLimit}', 'Объявления'),
                                 Container(
                                   width: 1,
                                   height: 50,

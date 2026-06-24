@@ -1,16 +1,18 @@
-const BASE_LISTING_LIMIT = 10;
-const FOUNDER_LISTING_LIMIT = 20;
+const BASE_LISTING_LIMIT = 30;
 const SUPER_DONOR_EXTRA = 10;
 const SUPER_DONOR_PRICE_RUB = 99;
 const SUPER_DONOR_DAYS = 30;
+
+/** @deprecated основатели больше не получают отдельный лимит объявлений */
+const FOUNDER_LISTING_LIMIT = BASE_LISTING_LIMIT;
 
 function isSuperDonorActive(user) {
   if (!user?.super_donor_until) return false;
   return new Date(user.super_donor_until) > new Date();
 }
 
-function getBaseListingLimit(user) {
-  return user.is_founder ? FOUNDER_LISTING_LIMIT : BASE_LISTING_LIMIT;
+function getBaseListingLimit(_user) {
+  return BASE_LISTING_LIMIT;
 }
 
 function getExtraListingPacks(user) {
@@ -18,8 +20,7 @@ function getExtraListingPacks(user) {
 }
 
 function getListingLimit(user) {
-  const base = getBaseListingLimit(user);
-  return base + getExtraListingPacks(user) * SUPER_DONOR_EXTRA;
+  return BASE_LISTING_LIMIT + getExtraListingPacks(user) * SUPER_DONOR_EXTRA;
 }
 
 function canOfferSuperDonor(user, activeCount) {
