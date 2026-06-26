@@ -317,14 +317,18 @@ pm2 logs darom-api --lines 15
 | I-D4 | Сайт: вход, лента, карта | ✅ (26.06, пользователь) |
 | I-D5 | Observatory → цель **B+** | по желанию |
 
-### Подэтап I-E — DDoS (Infra, ~1 день)
+### Подэтап I-E — Cloudflare + DDoS (Infra) ⏳
+
+**Инструкция:** `deploy/CLOUDFLARE.md`
 
 | Шаг | Что делаем | Где |
 |-----|------------|-----|
-| I-E1 | Reg.ru: DNS → Cloudflare (бесплатный план) | Панель Reg.ru |
-| I-E2 | Cloudflare: SSL Full, «Under Attack Mode» при атаке | dash.cloudflare.com |
-| I-E3 | Timeweb файрвол: только 80, 443 | Панель Timeweb |
-| I-E4 | nginx `limit_req_zone` на `/api/` | nginx config |
+| I-E1 | Cloudflare Free + домен `darom-app.online` | dash.cloudflare.com |
+| I-E2 | A `@` и `www` → `5.129.243.246`, Proxied ☁️ | Cloudflare DNS |
+| I-E3 | NS Reg.ru → NS Cloudflare | Reg.ru |
+| I-E4 | SSL **Full (strict)** | Cloudflare SSL/TLS |
+| I-E5 | Timeweb DDoS включена + файрвол 80/443 | Timeweb |
+| I-E6 | Сайт + health + вход по PIN | браузер |
 
 ### Подэтап I-F — Rate limit в backend (P2) ✅ 26.06.2026
 
