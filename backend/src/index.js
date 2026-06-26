@@ -16,6 +16,7 @@ const adminRouter = require('./routes/admin');
 const deployWebRouter = require('./routes/deploy_web');
 const paymentsRouter = require('./routes/payments');
 const configRouter = require('./routes/config');
+const deployBackendRouter = require('./routes/deploy_backend');
 
 const app = express();
 
@@ -62,6 +63,7 @@ app.use('/api/partners', partnersRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/deploy-web', deployWebRouter);
+app.use('/api/deploy-backend', deployBackendRouter);
 
 const server = app.listen(config.port, () => {
   console.log(`Darom API: http://localhost:${config.port}`);

@@ -1,0 +1,53 @@
+# Автодеплой backend на Timeweb после push в main (папка backend/).
+# Секреты: VPS_HOST, DEPLOY_SECRET (те же, что для deploy-web.yml).
+
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check GitHub secrets
+        run: |
+          test -n "${{ secrets.VPS_HOST }}" || (echo "❌ Нет секрета VPS_HOST" && exit 1)
+          test -n "${{ secrets.DEPLOY_SECRET }}" || (echo "❌ Нет секрета DEPLOY_SECRET" && exit 1)
+          echo "✅ Секреты на месте"
+
+      - name: Deploy backend via API
+        run: |
+          HTTP_CODE=$(curl -sS -w "%{http_code}" -o /tmp/deploy-backend-response.txt \
+            --connect-timeout 30 --max-time 300 \
+            -X POST \
+            -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" \
+            "http://${{ secrets.VPS_HOST }}:3000/api/deploy-backend")
+          echo "HTTP $HTTP_CODE"
+          cat /tmp/deploy-backend-response.txt || true
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "❌ Деплой backend не удался (код $HTTP_CODE)"
+            exit 1
+          fi
+
+      - name: Verify security version
+        run: |
+          BODY=$(curl -sS "http://${{ secrets.VPS_HOST }}:3000/api/health")
+          echo "$BODY"
+          echo "$BODY" | grep -q '"stage":"I-B"' || (echo "❌ security.stage не I-B" && exit 1)
+          echo "✅ security I-B на сервере"
+
+      - name: Verify partners next-code closed
+        run: |
+          HTTP_CODE=$(curl -sS -o /tmp/next-code.txt -w "%{http_code}" \
+            "http://${{ secrets.VPS_HOST }}:3000/api/partners/next-code")
+          cat /tmp/next-code.txt || true
+          test "$HTTP_CODE" = "403" || (echo "❌ next-code должен быть 403, получен $HTTP_CODE" && exit 1)
+          echo "✅ next-code закрыт (403)"

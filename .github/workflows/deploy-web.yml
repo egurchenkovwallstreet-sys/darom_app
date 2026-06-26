@@ -13,6 +13,8 @@ on:
       - 'pubspec.yaml'
       - 'pubspec.lock'
       - 'backend/src/routes/deploy_web.js'
+      - 'backend/src/routes/deploy_backend.js'
+      - 'backend/scripts/deploy_backend.sh'
       - 'backend/src/config.js'
       - 'backend/src/index.js'
       - '.github/workflows/deploy-web.yml'

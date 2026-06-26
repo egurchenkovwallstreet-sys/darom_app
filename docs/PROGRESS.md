@@ -360,7 +360,7 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsaf
 - **API:** https://darom-app.online/api/health
 - **Запасной IP:** http://5.129.243.246/
 - **Деплой сайта:** `git push` → GitHub Actions
-- **Деплой backend:** `git pull` + `pm2 restart darom-api` (VNC)
+- **Деплой backend:** `git push` → GitHub Actions `Deploy Backend` (или один раз VNC bootstrap, см. ниже)
 
 ### Разработка UI на ПК (пока сайт не выложен)
 **Терминал 2 — Flutter** (Docker и backend на ПК **не нужны**):

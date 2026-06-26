@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db/pool');
 const config = require('../config');
+const securityVersion = require('../security_version');
 
 const router = express.Router();
 
@@ -25,6 +26,7 @@ router.get('/', async (_req, res) => {
     res.json({
       ok: true,
       service: 'darom-api',
+      security: securityVersion,
       photos: {
         mode: config.photoStorage,
         s3Ready,
