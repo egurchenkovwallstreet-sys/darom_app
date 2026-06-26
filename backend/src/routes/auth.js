@@ -14,7 +14,7 @@ const {
 const { hashPin, verifyPin } = require('../utils/pin_hash');
 const { storeVerifyToken, consumeVerifyToken } = require('../utils/phone_verify_token');
 const { validateActivationCode } = require('../utils/partner_helpers');
-const { createUserSession } = require('../middleware/user_auth');
+const { createUserSession, formatSessionDbError } = require('../middleware/user_auth');
 const config = require('../config');
 
 const router = express.Router();
@@ -411,21 +411,27 @@ router.post('/set-pin', async (req, res) => {
       UPDATE users
       SET pin_hash = $2, pin_set_at = NOW(), phone_verified_at = NOW()
       WHERE phone = $1
-      RETURNING id
+      RETURNING id, name
       `,
       [normalizedPhone, pinHash]
     );
 
     const sessionInfo = await createUserSession(updated.rows[0].id);
+    const row = updated.rows[0];
 
     res.json({
       ok: true,
       phone: normalizedPhone,
       session_token: sessionInfo.token,
       expires_at: sessionInfo.expires_at,
+      user: {
+        id: row.id,
+        phone: normalizedPhone,
+        name: row.name,
+      },
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: formatSessionDbError(error) });
   }
 });
 
@@ -479,7 +485,7 @@ router.post('/login-pin', async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: formatSessionDbError(error) });
   }
 });
 

@@ -299,7 +299,7 @@ class AuthApi {
     return PartnerVerifyCompleteResult.fromJson(body);
   }
 
-  Future<String> setPin({
+  Future<PinLoginResult> setPin({
     required String phone,
     required String pin,
     required String verificationToken,
@@ -324,11 +324,29 @@ class AuthApi {
       throw AuthApiException(body['error'] as String? ?? 'Не удалось сохранить пароль');
     }
 
-    final token = body['session_token'] as String?;
-    if (token == null || token.isEmpty) {
-      throw AuthApiException('Сервер не выдал токен входа');
+    return _parseLoginResponse(body);
+  }
+
+  PinLoginResult _parseLoginResponse(Map<String, dynamic> body) {
+    final sessionToken = body['session_token'] as String?;
+    if (sessionToken == null || sessionToken.isEmpty) {
+      throw AuthApiException(
+        'Сервер не выдал токен входа. Обновите страницу (Ctrl+F5) и проверьте миграцию на сервере.',
+      );
     }
-    return token;
+
+    final user = body['user'] as Map<String, dynamic>?;
+    if (user == null) {
+      throw AuthApiException('Сервер не вернул данные пользователя');
+    }
+
+    return PinLoginResult(
+      id: user['id'] as String,
+      phone: user['phone'] as String,
+      name: user['name'] as String,
+      realPhoneVerified: user['real_phone_verified'] as bool? ?? false,
+      sessionToken: sessionToken,
+    );
   }
 
   Future<PinLoginResult> loginWithPin({
@@ -351,14 +369,7 @@ class AuthApi {
       throw AuthApiException(body['error'] as String? ?? 'Неверный пароль');
     }
 
-    final user = body['user'] as Map<String, dynamic>;
-    return PinLoginResult(
-      id: user['id'] as String,
-      phone: user['phone'] as String,
-      name: user['name'] as String,
-      realPhoneVerified: user['real_phone_verified'] as bool? ?? false,
-      sessionToken: body['session_token'] as String,
-    );
+    return _parseLoginResponse(body);
   }
 
   void dispose() => _client.close();

@@ -110,6 +110,14 @@ function rejectMismatchedPhone(req, res, phoneRaw) {
   return false;
 }
 
+function formatSessionDbError(error) {
+  const message = String(error?.message ?? error ?? '');
+  if (error?.code === '42P01' && message.includes('user_sessions')) {
+    return 'База данных не обновлена: выполните migrate_user_sessions.sql на сервере (VNC)';
+  }
+  return message || 'Ошибка сервера';
+}
+
 module.exports = {
   SESSION_TTL_DAYS,
   getBearerToken,
@@ -119,4 +127,5 @@ module.exports = {
   isBlockedUser,
   phoneMatchesSession,
   rejectMismatchedPhone,
+  formatSessionDbError,
 };

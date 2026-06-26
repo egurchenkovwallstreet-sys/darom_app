@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../models/user.dart';
 import '../services/auth_api.dart';
 import '../services/session_service.dart';
-import '../services/users_api.dart';
 import '../widgets/auth_form_scroll.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/pin_code_fields.dart';
@@ -26,7 +26,6 @@ class PinLoginScreen extends StatefulWidget {
 
 class _PinLoginScreenState extends State<PinLoginScreen> {
   final AuthApi _authApi = AuthApi();
-  final UsersApi _usersApi = UsersApi();
   final FocusNode _pinFocus = FocusNode();
   final GlobalKey _formKey = GlobalKey();
   final _controllers = PinCodeFields.createControllers();
@@ -40,7 +39,6 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
     }
     _pinFocus.dispose();
     _authApi.dispose();
-    _usersApi.dispose();
     super.dispose();
   }
 
@@ -57,8 +55,15 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
 
     try {
       final loginResult = await _authApi.loginWithPin(phone: widget.phoneNumber, pin: pin);
-      await SessionService.saveToken(loginResult.sessionToken);
-      final user = await _usersApi.fetchProfile(phone: widget.phoneNumber);
+      final user = User(
+        id: loginResult.id,
+        name: loginResult.name,
+        phoneNumber: loginResult.phone,
+        donorLevel: 'новичок',
+        rating: 0,
+        isFounder: false,
+        realPhoneVerified: loginResult.realPhoneVerified,
+      );
       await SessionService.saveLogin(user: user, sessionToken: loginResult.sessionToken);
 
       if (!mounted) return;
