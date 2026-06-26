@@ -331,8 +331,8 @@ pm2 logs darom-api --lines 15
 | Шаг | Что делаем | Успех |
 |-----|------------|-------|
 | I-F1 | `express-rate-limit`: 100 req/min общий, 20/min на `/api/auth` | ✅ код |
-| I-F2 | `git push` → GitHub Actions Deploy Backend | ⏳ после push |
-| I-F3 | `/api/health` → `security.stage:"I-F"`, `apiRateLimit:true` | curl |
+| I-F2 | `git push` → GitHub Actions Deploy Backend | ✅ |
+| I-F3 | `/api/health` → `security.stage:"I-F"`, `apiRateLimit:true` | ✅ |
 
 ---
 
@@ -348,7 +348,7 @@ pm2 logs darom-api --lines 15
 - [x] I-B2: `is_blocked` на защищённых маршрутах ✅ *(middleware I-A)*
 - [x] I-B6: webhook Mobile ID — секрет в `.env` ✅ *(проверить `MOBILE_ID_WEBHOOK_SECRET` на сервере)*
 - [x] I-F1: общий rate limit API (100/min) + auth (20/min) ✅ (26.06)
-- [ ] I-F3: health `security.stage:"I-F"` на сервере
+- [x] I-F3: health `security.stage:"I-F"` на сервере ✅ (26.06)
 
 ### Сервер
 - [x] I-C1: mock-режимы выключены на боевом `.env` ✅ (26.06, health + pm2 logs)
