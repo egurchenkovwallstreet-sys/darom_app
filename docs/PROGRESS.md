@@ -10,7 +10,7 @@
 
 | | |
 |---|---|
-| **Текущий этап** | **I — безопасность** ⚠️ **I-A/B/C/D ✅** (26.06); **следующий: I-E или I-F**; **C — Робокасса** ⏸ |
+| **Текущий этап** | **I — безопасность** ⚠️ **I-A…F** (I-F код); **следующий: I-E** Cloudflare; **C — Робокасса** ⏸ |
 | **Публичный запуск** | ⏳ **запрещён** до 100% чеклиста Этапа I (см. ниже) |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
@@ -130,7 +130,7 @@
 
 | № | Этап | Задача | Зачем |
 |---|------|--------|-------|
-| **0** | **I — Безопасность** ← **СЕЙЧАС** | **I-E** Cloudflare; **I-F** rate limit API | До публичного запуска |
+| **0** | **I — Безопасность** ← **СЕЙЧАС** | **I-E** Cloudflare + чеклист | До публичного запуска |
 | **1** | **C — Робокасса** | Дождаться одобрения → тест оплаты; `PAYMENT_MOCK=false` | Монетизация |
 | **2** | **Sightengine** | Оружие/алкоголь/табак на фото | ⏳ после запуска или по приоритету |
 | **3** | Админка | Роль **moderator** | Отдельные модераторы |
@@ -326,12 +326,13 @@ pm2 logs darom-api --lines 15
 | I-E3 | Timeweb файрвол: только 80, 443 | Панель Timeweb |
 | I-E4 | nginx `limit_req_zone` на `/api/` | nginx config |
 
-### Подэтап I-F — Rate limit в backend (P2)
+### Подэтап I-F — Rate limit в backend (P2) ✅ 26.06.2026
 
-| Шаг | Что делаем |
-|-----|------------|
-| I-F1 | `express-rate-limit`: 100 req/min общий, 20/min на auth |
-| I-F2 | npm install + deploy |
+| Шаг | Что делаем | Успех |
+|-----|------------|-------|
+| I-F1 | `express-rate-limit`: 100 req/min общий, 20/min на `/api/auth` | ✅ код |
+| I-F2 | `git push` → GitHub Actions Deploy Backend | ⏳ после push |
+| I-F3 | `/api/health` → `security.stage:"I-F"`, `apiRateLimit:true` | curl |
 
 ---
 
@@ -346,7 +347,8 @@ pm2 logs darom-api --lines 15
 - [x] I-B5: CORS не `*` ✅
 - [x] I-B2: `is_blocked` на защищённых маршрутах ✅ *(middleware I-A)*
 - [x] I-B6: webhook Mobile ID — секрет в `.env` ✅ *(проверить `MOBILE_ID_WEBHOOK_SECRET` на сервере)*
-- [x] `curl admin/stats` → «Нужен вход» ✅
+- [x] I-F1: общий rate limit API (100/min) + auth (20/min) ✅ (26.06)
+- [ ] I-F3: health `security.stage:"I-F"` на сервере
 
 ### Сервер
 - [x] I-C1: mock-режимы выключены на боевом `.env` ✅ (26.06, health + pm2 logs)

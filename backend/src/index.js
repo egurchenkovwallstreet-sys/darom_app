@@ -17,6 +17,7 @@ const deployWebRouter = require('./routes/deploy_web');
 const paymentsRouter = require('./routes/payments');
 const configRouter = require('./routes/config');
 const deployBackendRouter = require('./routes/deploy_backend');
+const { apiGeneralLimiter, authGeneralLimiter } = require('./middleware/rate_limit');
 
 const app = express();
 
@@ -35,6 +36,9 @@ app.use(
   })
 );
 app.use(express.json());
+
+app.use('/api/auth', authGeneralLimiter);
+app.use('/api', apiGeneralLimiter);
 
 if (config.photoStorage !== 's3') {
   ensureUploadDir();
