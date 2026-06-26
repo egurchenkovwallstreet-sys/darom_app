@@ -245,48 +245,14 @@ router.get('/stats/bloggers', attachAdmin, requireSuper, async (req, res) => {
   }
 });
 
-// POST /api/admin/partner-payout { partner_id } или legacy { admin_secret, partner_code }
-router.post('/partner-payout', async (req, res) => {
-  const secret = req.body?.admin_secret ?? req.headers['x-admin-secret'];
-  const isLegacy = secret && config.adminSecret && secret === config.adminSecret;
-
-  if (!isLegacy) {
-    return attachAdmin(req, res, () =>
-      requireSuper(req, res, async () => {
-        const { partner_id: partnerId } = req.body ?? {};
-        if (!partnerId) {
-          return res.status(400).json({ error: 'Нужен partner_id' });
-        }
-        try {
-          const payout = await markPartnerPayoutComplete(db, partnerId);
-          res.json({ ok: true, ...payout });
-        } catch (error) {
-          res.status(500).json({ error: error.message });
-        }
-      })
-    );
+// POST /api/admin/partner-payout { partner_id } — только super_admin с admin token
+router.post('/partner-payout', attachAdmin, requireSuper, async (req, res) => {
+  const { partner_id: partnerId } = req.body ?? {};
+  if (!partnerId) {
+    return res.status(400).json({ error: 'Нужен partner_id' });
   }
-
-  const { partner_id: partnerId, partner_code: partnerCode, phone } = req.body ?? {};
   try {
-    let id = partnerId;
-    if (!id && partnerCode) {
-      const r = await db.query(
-        'SELECT id FROM users WHERE partner_public_code = $1 AND is_partner = TRUE',
-        [partnerCode]
-      );
-      id = r.rows[0]?.id;
-    }
-    if (!id && phone) {
-      const { normalizePhone } = require('../utils/phone');
-      const r = await db.query(
-        'SELECT id FROM users WHERE phone = $1 AND is_partner = TRUE',
-        [normalizePhone(phone)]
-      );
-      id = r.rows[0]?.id;
-    }
-    if (!id) return res.status(404).json({ error: 'Партнёр не найден' });
-    const payout = await markPartnerPayoutComplete(db, id);
+    const payout = await markPartnerPayoutComplete(db, partnerId);
     res.json({ ok: true, ...payout });
   } catch (error) {
     res.status(500).json({ error: error.message });

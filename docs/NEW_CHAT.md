@@ -5,7 +5,7 @@
 ---
 
 ```
-@docs/TZ_DAROM.md @docs/PROGRESS.md @deploy/README.md @deploy/VISION.md @deploy/ROBOKASSA.md @deploy/MOBILE_ID.md @deploy/SMTP.md @deploy/FIREBASE.md @.cursor/rules/beginner-instructions.mdc @.cursor/rules/darom-project.mdc
+@docs/TZ_DAROM.md @docs/PROGRESS.md @deploy/README.md @deploy/MOBILE_ID.md @deploy/SMTP.md @deploy/ROBOKASSA.md @.cursor/rules/beginner-instructions.mdc @.cursor/rules/darom-project.mdc
 
 Проект «Даром» — бесплатная передача вещей (Flutter Web + Node.js + PostgreSQL + PostGIS).
 
@@ -21,16 +21,19 @@
 • что делать, если ошибка.
 
 Терминалы ВСЕГДА называй «Терминал 1» и «Терминал 2».
-Не используй жаргон без пояснения (backend = сервер на компьютере, миграция = обновление базы данных).
+Не используй жаргон без пояснения (backend = сервер на компьютере, миграция = обновление базы данных, токен = секретный пропуск после входа).
 
-После ЛЮБЫХ изменений в коде — ОБЯЗАТЕЛЬНО:
+После ЛЮБЫХ изменений в коде — ты (Cursor) ОБЯЗАН САМ:
 1) git add нужные файлы
 2) git commit с понятным сообщением
-3) git push на GitHub
+3) git push на GitHub (origin main)
+Не спрашивай «отправить на GitHub?» — делай push автоматически после каждого завершённого подэтапа.
 Без push сайт на сервере не обновится через GitHub Actions.
 
+После push backend-изменений — напиши мне команды для VNC (git pull + pm2 restart), я выполню сам.
+
 ═══════════════════════════════════════
-СНИМОК НА 23.06.2026
+СНИМОК НА 24.06.2026
 ═══════════════════════════════════════
 
 Сайт:     https://darom-app.online/
@@ -39,130 +42,124 @@ API:      https://darom-app.online/api/health
 Репо:     github.com/egurchenkovwallstreet-sys/darom_app
 Путь ПК:  C:\Users\User\Desktop\darom_app
 Сервер:   Timeweb VPS 5.129.243.246, /opt/darom_app, PM2 darom-api, Docker darom_db (порт 5433)
-Этап:     C — монетизация; F — модерация ✅ (Vision); Sightengine ⏳ (оружие на фото)
+
+Текущий этап: **I — БЕЗОПАСНОСТЬ** ⚠️ КРИТИЧНО (перед публичным запуском для всех)
+Также: C — Робокасса ⏸ (магазин на одобрении); Sightengine ⏳
+
 Прогресс: ядро MVP ~99% | полное ТЗ ~73%
 
-Health сейчас: ok:true, s3Ready:true, push.ready:true, adminEmail.ready:true, vision.mock:false, vision.ready:true
+⚠️ ПРАВИЛО: публичный запуск для ВСЕХ пользователей ЗАПРЕЩЁН, пока не выполнен Этап I и 100% чеклиста в docs/PROGRESS.md (раздел «Чеклист перед запуском для всех»).
+
+Health: ok:true, s3Ready:true, push.ready:true, vision.ready:true
+
+Последние коммиты: 21cdf4d (лимиты 30/заборы), 4b29aaf (основатели), 9565542 (UX лента/карта)
 
 ═══════════════════════════════════════
-ЧТО УЖЕ СДЕЛАНО (кратко)
+АУДИТ БЕЗОПАСНОСТИ 24.06.2026 (подтверждено curl + Observatory)
 ═══════════════════════════════════════
 
-Инфраструктура:
-- Flutter Web на сервере (/var/www/darom), GitHub Actions → POST /api/deploy-web
-- HTTPS darom-app.online, nginx прокси /api/ (location ^~ /api/ — обязательно для фото JPG)
-- Backend PM2, PostgreSQL+PostGIS, фото Yandex S3 (бакет darom-photos)
+🔴 УЯЗВИМО (исправляем в этом чате):
+1. API «верит» только номеру телефона — без токена после PIN можно читать чужие данные
+   curl "https://darom-app.online/api/users?phone=79138931428" → вернулся полный профиль
+2. GET /api/partners/next-code открыт всем → вернул {"code":"0007"}
+3. Webhook Mobile ID без проверки подписи
+4. PIN 4 цифры, нет rate limit на login-pin
+5. Блок пользователя только при login-pin, не на всех действиях
+6. CORS Access-Control-Allow-Origin: *
+7. nginx: нет HSTS, CSP, X-Frame-Options (Mozilla Observatory)
 
-Приложение:
-- Midnight Glow UI, онбординг, карта OSM, лента, чаты, избранное, профиль
-- PIN: регистрация БЕЗ SMS (номер → имя → PIN); вход только PIN
-- Mobile ID (~3–6 ₽) один раз: первое объявление ИЛИ первое сообщение в чате
-- Партнёры: коды 0001–1000, 30% с оплат реферала 365 дней
-- Лимиты: 10 объявлений (20 у основателя), Супер даритель 99₽/+10/30д
-- Заборы: 7/мес (3/мес при ≥20k объявлений) → 149→299→499₽ за +10
-- Публичная оферта: раздел 10.8 — правила модерации и запрещённые категории
+✅ УЖЕ ЗАКРЫТО (26.06.2026):
+• I-A: токены после PIN — curl users?phone= → 401
+• I-B: next-code → 403; CORS не *; rate limit PIN/SMS/админ; webhook Mobile ID секрет
+• Автодеплой backend: git push → GitHub Actions Deploy Backend
+• Вход по PIN в приложении — протестирован ✅
 
-Модерация (23.06.2026):
-- Стоп-слова: коммерция, цены, ссылки, мессенджеры, Avito/Ozon (stop_words.js)
-- Запрещённые товары в тексте: лекарства, алкоголь, табак, оружие, наркотики и др. (prohibited_goods.js)
-- Yandex Vision ✅: moderation + OCR на фото (~0,1–0,5 ₽/фото, deploy/VISION.md)
-- Sightengine ⏳: оружие/алкоголь/табак на фото — подключим позже (Free 2 000 фото/мес)
-- 3 жалобы → скрытие объявления; теневой бан при рейтинге <4.0
-- Правила модерации отправлены в поддержку Робокассы + в оферте п. 10.8
+✅ УЖЕ ХОРОШО (раньше):
+• curl admin/stats → «Нужен вход в админ-панель»
+• Админ: Mobile ID + код с почты; admin token на API
+• PIN хранится захешированным (pbkdf2)
+• HTTPS + редирект
 
-Админ-панель (Профиль → Админ-панель или /admin):
-- 2FA: Mobile ID + код на e.gurchenkov@yandex.ru ✅
-- Push Firebase ✅ (бронь, чат, «Отдал») — darom-6509d
-- Жалобы, блоки, статистика, блогеры, выплаты
-- Admin-телефон: +79138931428 (Евгений, super_admin, основатель)
+Полный список: docs/TZ_DAROM.md раздел 13
+План по шагам: docs/PROGRESS.md → «План реализации защиты (Этап I)»
 
 ═══════════════════════════════════════
-СЛЕДУЮЩИЕ ШАГИ (строго по порядку)
+ЧТО УЖЕ СДЕЛАНО В ПРИЛОЖЕНИИ (кратко)
 ═══════════════════════════════════════
 
-1. Робокасса ⏸ ← СЕЙЧАС
-   - Код ✅; магазин на одобрении в кабинете
-   - Правила модерации уже отправлены в поддержку
-   - После одобления: PAYMENT_MOCK=false, тест оплаты 99₽
-   - deploy/ROBOKASSA.md
-
-2. Sightengine ⏳ — оружие на фото (после Робокассы или по приоритету)
-
-3. Yandex Vision ✅ (23.06.2026, deploy/VISION.md)
-
-4. Приоритет основателя в сортировке ленты (значок уже есть)
-
-4. Роль moderator в админке (без доступа к деньгам и статистике)
-
-5. Android / iOS — этап D
+- Flutter Web на сервере, GitHub Actions deploy-web
+- HTTPS darom-app.online, nginx location ^~ /api/
+- PIN: регистрация без SMS; Mobile ID один раз при первом объявлении/чате
+- 30 объявлений бесплатно для всех; заборы 5/7 → 3/5 → 2 (реферал блогера +2)
+- Основатели: значок + приоритет в ленте (первые 1000)
+- Чаты, избранное, карта OSM, модерация Vision + стоп-слова
+- Админка 2FA, Firebase push
+- Тестовый аккаунт: +79138931428, Евгений, основатель + super_admin
 
 ═══════════════════════════════════════
-ЗАПУСК И ДЕПЛОЙ (шпаргалка)
+ЗАДАЧА ЭТОГО ЧАТА — ЭТАП I БЕЗОПАСНОСТЬ (продолжение)
 ═══════════════════════════════════════
 
-Терминал 2 — ПК (разработка UI, API идёт на Timeweb):
+I-A ✅ / I-B ✅ / I-C (код) ✅ — 26.06.2026. **Сейчас: I-C на VNC** (`.env`), затем I-D.
+
+─── I-C: Сервер .env (я делаю на VNC — команды ниже) ───
+PAYMENT_MOCK=false — только после одобления Робокассы (пока можно true)
+Удалить строку ADMIN_SECRET=… из .env
+pm2 restart darom-api --update-env
+
+─── I-D: nginx заголовки (команды для VNC — см. PROGRESS I-D) ───
+HSTS, X-Frame-Options, nosniff, Referrer-Policy, CSP
+
+─── I-E: Cloudflare + DDoS (инструкция для меня, не код) ───
+
+─── I-F: rate limit общий на API ───
+
+После КАЖДОГО подэтапа:
+1. Обновляй docs/PROGRESS.md (галочки в чеклисте)
+2. git commit + git push (сам, без вопроса)
+3. Напиши мне что проверить curl-командами из TZ §13.4
+
+═══════════════════════════════════════
+ПРОВЕРКИ (я выполню в Терминале 2 на ПК)
+═══════════════════════════════════════
+
+curl.exe "https://darom-app.online/api/health"
+→ ok:true, security.stage:"I-B"
+
+curl.exe "https://darom-app.online/api/users?phone=79138931428"
+→ 401 «Нужен вход» (НЕ JSON с профилем)
+
+curl.exe "https://darom-app.online/api/partners/next-code"
+→ 403 (НЕ {"code":"0007"})
+
+curl.exe "https://darom-app.online/api/admin/stats/platform?period=day"
+→ «Нужен вход в админ-панель»
+
+═══════════════════════════════════════
+ЗАПУСК UI НА ПК
+═══════════════════════════════════════
+
+Терминал 2:
   cd C:\Users\User\Desktop\darom_app
   flutter run -d chrome --web-port=8080
-  ⚠️ Порт 8080 ОБЯЗАТЕЛЕН — иначе вход не сохраняется!
+⚠️ Порт 8080 ОБЯЗАТЕЛЕН — иначе вход не сохраняется!
 
-Деплой САЙТА (оферта, UI) после git push:
-  GitHub → Actions → Deploy Flutter Web → Run workflow (или push в main)
-  Ждать зелёную галочку 5–10 мин → Ctrl+F5 на https://darom-app.online/
-
-Деплой BACKEND (сервер, VNC) — Терминал 1:
-  docker start darom_db
-  cd /opt/darom_app && git pull
-  cat backend/db/ИМЯ_МИГРАЦИИ.sql | docker exec -i darom_db psql -U darom -d darom
+═══════════════════════════════════════
+ДЕПЛОЙ BACKEND — автоматически через git push (GitHub Actions).
+Запасной вариант на VNC (если Actions не сработал):
+  cd /opt/darom_app && git fetch origin && git reset --hard origin/main
   cd backend && npm install && pm2 restart darom-api --update-env
-  pm2 logs darom-api --lines 20
-
-Nginx (фото — если JPG не открываются):
-  sed -i 's/location \/api\/ {/location ^~ \/api\/ {/' /etc/nginx/sites-available/darom
-  nginx -t && systemctl reload nginx
-
-Mobile ID миграции (строго по порядку, из /opt/darom_app):
-  1. migrate_real_phone_verify.sql
-  2. migrate_mobile_id.sql
-  3. migrate_partner_mobile_id.sql
-  4. migrate_admin_mobile_id.sql
 
 ═══════════════════════════════════════
-КЛЮЧЕВЫЕ БИЗНЕС-ПРАВИЛА
+НАЧНИ СЕЙЧАС
 ═══════════════════════════════════════
 
-- «Даром» = только БЕСПЛАТНАЯ передача вещей; продажа запрещена
-- Основатель (первые 1000): 20 объявлений, значок; монетизация как у всех
-- Супер даритель: 99₽ → +10 объявлений на 30 дней, можно покупать снова
-- «Активировать повторно» — лимит заборов НЕ тратится
-- Сделка только после «Отдал»; счётчики не обнуляются
-- 3 жалобы от разных пользователей → объявление скрыто
-- Запрещены: лекарства, алкоголь, табак, оружие, наркотики, пиротехника и др. (оферта 10.8)
+1. Прочитай docs/TZ_DAROM.md §13 и docs/PROGRESS.md «План реализации защиты»
+2. Продолжи с подэтапа I-C (команды VNC для .env)
+3. commit + push на GitHub
+4. Дай curl-команды для проверки
 
-═══════════════════════════════════════
-.env НА СЕРВЕРЕ (/opt/darom_app/backend/.env)
-═══════════════════════════════════════
-
-PUBLIC_BASE_URL=https://darom-app.online
-SMS_MOCK=false
-SMS_AUTH_MODE=mobile_id
-SMS_AERO_EMAIL, SMS_AERO_API_KEY, SMS_AERO_MOBILE_ID_SIGN
-PUSH_MOCK=false
-FIREBASE_* (настроено)
-ADMIN_EMAIL_MOCK=false, SMTP_* (настроено)
-DEPLOY_SECRET, WEB_ROOT=/var/www/darom
-PAYMENT_MOCK=true  (до одобления Робокассы)
-PHOTO_MOCK_MODERATION=false  ✅
-YC_VISION_API_KEY=  (настроено на сервере)
-YC_FOLDER_ID=b1gnk6agd6fsq1lo2dbj
-
-═══════════════════════════════════════
-ЗАДАЧА В ЭТОМ ЧАТЕ
-═══════════════════════════════════════
-
-Продолжаем по порядку из «Следующие шаги».
-Начни с: [УКАЖИ — например: «Дождаться одобрения Робокассы» или «Приоритет основателя в ленте»]
-
-После каждого этапа обновляй docs/PROGRESS.md и docs/TZ_DAROM.md, затем commit + push.
+Не делай Sightengine, Робокассу и Android — только безопасность (Этап I).
 ```
 
 ---
@@ -171,24 +168,8 @@ YC_FOLDER_ID=b1gnk6agd6fsq1lo2dbj
 
 | | |
 |---|---|
-| **Последние коммиты** | `f1178e9` оферта 10.8; `5ca805c` Vision код; `0e14dbc` запрещённые товары |
-| **Тестовый аккаунт** | +79138931428, Евгений, основатель + super admin |
-| **Админка** | Профиль → Админ-панель → Mobile ID + код на почту |
-| **Оферта** | `/offer` — раздел **10.8** правила модерации |
-| **Vision** | ✅ сервер; платный ~0,1–0,5 ₽/фото |
-| **Sightengine** | ⏳ оружие на фото — позже |
-| **Робокасса** | Ждём одобрение; правила модерации отправлены |
-| **GitHub Actions** | Красный крестик → открыть лог → Re-run workflow |
-
-## Если сервер «упал»
-
-**Терминал 1 (VNC):**
-```bash
-docker start darom_db
-cd /opt/darom_app && git pull
-cd backend && npm install && pm2 restart darom-api --update-env
-systemctl start nginx
-curl -s http://127.0.0.1:3000/api/health
-```
-
-**Успех:** `"ok":true` в ответе curl.
+| **Этап** | **I — безопасность** (I-C VNC → I-D) |
+| **Первый шаг** | I-C: `.env` на VNC + проверка health |
+| **Проверки** | 3 curl из блока выше |
+| **Cursor** | commit + push сам после каждого подэтапа |
+| **VNC** | git pull + миграция + pm2 restart — вы сами |

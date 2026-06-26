@@ -6,23 +6,23 @@
 
 ---
 
-## Снимок на 24.06.2026
+## Снимок на 26.06.2026
 
 | | |
 |---|---|
-| **Текущий этап** | **I — безопасность** ⚠️ **I-A ✅ I-B ✅** (26.06); дальше **I-C/D**; **C — Робокасса** ⏸ |
-| **Публичный запуск** | ⏳ **запрещён** до Этапа I + чеклиста (см. ниже) |
+| **Текущий этап** | **I — безопасность** ⚠️ **I-A ✅ I-B ✅ I-C** (код 26.06); **следующий: I-C VNC + I-D**; **C — Робокасса** ⏸ |
+| **Публичный запуск** | ⏳ **запрещён** до 100% чеклиста Этапа I (см. ниже) |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
-| **Backend** | VPS `5.129.243.246`, PM2 `darom-api`, S3 ✅ |
+| **Backend** | VPS `5.129.243.246`, PM2 `darom-api`, S3 ✅, **автодеплой** GitHub Actions |
 | **Flutter** | Web в продакшене (`git push` → GitHub Actions) + ПК `:8080` |
 | **Ядро MVP** | ~**99%** |
-| **Полное ТЗ** | ~**73%** |
+| **Полное ТЗ** | ~**75%** |
 | **Пользователь** | новичок, нужны **пошаговые** инструкции |
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
 | **GitHub** | `egurchenkovwallstreet-sys/darom_app` — после изменений **сразу commit + push** |
 
-**Health:** https://darom-app.online/api/health — `ok:true`, `s3Ready:true`, `push.ready:true`, `adminEmail.ready:true`, `vision.mock:false`, `vision.ready:true`.
+**Health:** https://darom-app.online/api/health — `security.stage:"I-C"`, `sms.mock:false`, `adminEmail.mock:false`, `payment.mock` (зависит от Робокассы).
 
 **Новый чат:** скопируйте промпт из `docs/NEW_CHAT.md`.
 
@@ -54,7 +54,8 @@
 
 ### Деплой ✅
 - GitHub Actions: таймаут загрузки увеличен до 5 мин
-- `git push` → сборка → `/api/deploy-web`
+- **Сайт:** `git push` → `Deploy Flutter Web` → `/api/deploy-web`
+- **Backend:** `git push` (папка `backend/`) → `Deploy Backend` → `/api/deploy-backend` (26.06)
 
 ### Авторизация и SMS (21.06.2026, вечер) ✅
 - **Регистрация без SMS:** номер (без маски) → имя → PIN → вход; номер **не проверяется**
@@ -98,20 +99,30 @@
 - **Объявления:** **30** бесплатно для всех → «Супер даритель» 99₽ (+10)
 - Код: `pickup_limits.js`, `limits.js`, `public_offer.dart`, профиль
 
-### ⚠️ Аудит безопасности (24.06.2026) — ОЧЕНЬ ВАЖНО
+### ⚠️ Аудит безопасности (24.06.2026) — исправления 26.06.2026
 
-**Проверки пользователя (curl + Mozilla Observatory) — подтверждено:**
+**Исходный аудит (24.06):**
 
-| Проверка | Результат | Статус |
-|----------|-----------|--------|
-| `GET /api/users?phone=…` без PIN/токена | Вернулся **полный профиль** (имя, телефон, лимиты…) | 🔴 уязвимость |
-| `GET /api/partners/next-code` | Вернулся `{"code":"0007",…}` | 🔴 уязвимость |
-| `GET /api/admin/stats/platform` | «Нужен вход в админ-панель» | ✅ OK |
-| Mozilla Observatory | Нет HSTS (−20), CSP (−25), X-Frame (−20), nosniff (−5) | 🟡 nginx |
+| Проверка | Было | Сейчас |
+|----------|------|--------|
+| `GET /api/users?phone=…` без токена | Полный профиль | **401** «Нужен вход» ✅ I-A |
+| `GET /api/partners/next-code` | `{"code":"0007"…}` | **403** «Доступ запрещён» ✅ I-B |
+| `GET /api/admin/stats/platform` | Закрыто | ✅ без изменений |
+| CORS `Access-Control-Allow-Origin: *` | `*` | Только darom-app.online + localhost:8080 ✅ I-B |
+| Mozilla Observatory | Нет HSTS, CSP… | ⏳ I-D (nginx) |
 
-**Полный список уязвимостей и приоритеты:** `docs/TZ_DAROM.md` → **раздел 13**.
+**Полный список:** `docs/TZ_DAROM.md` → **раздел 13**.
 
-**Правило:** публичный запуск **для всех** — только после **Этапа I** и **100% чеклиста** ниже.
+### Безопасность I-A / I-B + автодеплой backend (26.06.2026) ✅
+
+- **I-A:** токены после PIN (`user_sessions`), Bearer на защищённых API, Flutter `auth_headers.dart`
+- **I-B:** закрыт `next-code`, rate limit PIN/SMS/админ, CORS, секрет webhook Mobile ID
+- **Деплой backend:** GitHub Actions `Deploy Backend` (`.github/workflows/deploy-backend.yml`) — `git push` → `/api/deploy-backend`
+- **Проверка версии на сервере:** `GET /api/health` → `"security":{"stage":"I-B",…}`
+- **Один раз bootstrap (VNC):** `git fetch && git reset --hard origin/main` — если сервер отставал от GitHub
+- **Вход по PIN:** протестирован в приложении ✅
+
+**Правило:** публичный запуск **для всех** — только после **100% чеклиста** Этапа I.
 
 ---
 
@@ -119,7 +130,7 @@
 
 | № | Этап | Задача | Зачем |
 |---|------|--------|-------|
-| **0** | **I — Безопасность** ← **СЕЙЧАС** | **I-C/D:** .env mock, nginx заголовки | Следующий подэтап |
+| **0** | **I — Безопасность** ← **СЕЙЧАС** | **I-C VNC:** `.env` на сервере; **I-D:** nginx HSTS/CSP | До публичного запуска |
 | **1** | **C — Робокасса** | Дождаться одобрения → тест оплаты; `PAYMENT_MOCK=false` | Монетизация |
 | **2** | **Sightengine** | Оружие/алкоголь/табак на фото | ⏳ после запуска или по приоритету |
 | **3** | Админка | Роль **moderator** | Отдельные модераторы |
@@ -187,9 +198,10 @@
 ### Сервер Timeweb
 - VPS `5.129.243.246`, проект `/opt/darom_app`
 - Docker `darom_db`, backend через **PM2** `darom-api`
-- Обновление: `git pull` → миграции (если есть) → `cd backend && npm install` → `pm2 restart darom-api`
-- **Важно:** миграции запускать из `/opt/darom_app`, не из `backend/`
-- **Деплой сайта:** `git push` → GitHub Actions → API `/api/deploy-web`
+- **Деплой backend (основной):** `git push` → GitHub Actions `Deploy Backend`
+- **Запасной (VNC):** `git fetch origin && git reset --hard origin/main` → `cd backend && npm install` → `pm2 restart darom-api --update-env`
+- **Миграции:** из `/opt/darom_app` (не из `backend/`)
+- **Деплой сайта:** `git push` → GitHub Actions → `/api/deploy-web`
 
 ### Backend + БД
 - Node.js + Express + PostgreSQL/PostGIS (Docker, порт **5433**)
@@ -220,7 +232,7 @@
 | Нативное приложение Android/iOS | ⏳ этап D |
 
 ### Не сделано / ждём
-- **⚠️ Этап I — безопасность** — **критично перед публичным запуском** (см. «План реализации защиты»)
+- **Этап I — осталось:** I-C (mock `.env`), I-D (nginx), I-E (Cloudflare), I-F (общий rate limit) + 100% чеклист
 - **Sightengine** — оружие, алкоголь, табак **по картинке**
 - **Робокасса** — код ✅; **магазин на одобрении** ⏸
 - Роль **moderator**
@@ -230,8 +242,8 @@
 
 ## ⚠️ План реализации защиты (Этап I)
 
-> Пошагово для новичка. Код — через Cursor; сервер — VNC Timeweb.  
-> После **каждого подэтапа** — `git commit` + `git push` + на сервере `git pull` + `pm2 restart darom-api`.
+> Пошагово для новичка. Код — через Cursor; **деплой backend — автоматически** (`git push` → GitHub Actions).  
+> Миграции БД и nginx — **VNC Timeweb**. Проверка: `/api/health` → `security.stage`.
 
 ### Подэтап I-A — Закрыть утечку данных (P0, ~3–5 дней) ✅ 26.06.2026
 
@@ -255,14 +267,42 @@
 | I-B5 | CORS: `darom-app.online` + `localhost:8080` | ✅ |
 | I-B6 | Webhook Mobile ID: секрет в URL (`MOBILE_ID_WEBHOOK_SECRET`) | ✅ |
 
-### Подэтап I-C — Сервер и .env (P2, ~0.5 дня, VNC)
+### Подэтап I-C — Сервер и .env (P2, ~0.5 дня, VNC) ⏳
 
 | Шаг | Что делаем | Где | Успех |
 |-----|------------|-----|-------|
-| I-C1 | `.env`: `PAYMENT_MOCK=false`, `ADMIN_EMAIL_MOCK=false`, `SMS_MOCK=false` | `/opt/darom_app/backend/.env` | health ok |
-| I-C2 | Проверить: `.env` **не** в GitHub | git | Секреты только на сервере |
-| I-C3 | Убрать или усилить `ADMIN_SECRET` (legacy payout) | `admin.js` | Только admin token |
-| I-C4 | `pm2 restart darom-api --update-env` | VNC | online |
+| I-C1 | `.env`: `SMS_MOCK=false`, `ADMIN_EMAIL_MOCK=false`; `PAYMENT_MOCK=false` — **после одобрения Робокассы** (или если ключи пустые — безопасно) | `/opt/darom_app/backend/.env` | health: mock false |
+| I-C2 | Проверить: `.env` **не** в GitHub | git | ✅ в `.gitignore` |
+| I-C3 | Убрать legacy `ADMIN_SECRET` (выплаты только admin token) | `admin.js` | ✅ код 26.06 |
+| I-C4 | Удалить строку `ADMIN_SECRET=…` из `.env` на сервере; `pm2 restart darom-api --update-env` | VNC | online |
+
+**Команды VNC (Терминал 1 на сервере):**
+
+```bash
+cd /opt/darom_app/backend
+nano .env
+```
+
+Проверьте / измените строки (Ctrl+W — поиск):
+
+```
+SMS_MOCK=false
+ADMIN_EMAIL_MOCK=false
+PUSH_MOCK=false
+```
+
+Строку `ADMIN_SECRET=…` — **удалите** (устарела).
+
+`PAYMENT_MOCK=false` — ставьте **только когда Робокасса одобрена**. Пока магазин на одобрении — оставьте `PAYMENT_MOCK=true`.
+
+Сохранить: Ctrl+O → Enter → Ctrl+X. Затем:
+
+```bash
+pm2 restart darom-api --update-env
+pm2 logs darom-api --lines 15
+```
+
+В логах не должно быть «SMS: тестовый режим» и «Admin email: тестовый режим».
 
 ### Подэтап I-D — nginx заголовки (P3, ~0.5 дня, VNC)
 
@@ -305,17 +345,20 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsaf
 Отмечать **все** пункты. Запуск для всех **только при 100%**.
 
 ### Код и API
-- [x] I-A6: `curl users?phone=` → **401**, не JSON *(после деплоя)*
-- [ ] I-B1: `curl partners/next-code` → **403** *(проверить после VNC)*
-- [ ] I-B3: после 10 неверных PIN — блок / пауза *(проверить после VNC)*
-- [ ] I-B5: CORS не `*`
-- [ ] Заблокированный пользователь не может чаты/объявления
-- [ ] `curl admin/stats` → «Нужен вход» (как сейчас)
+- [x] I-A6: `curl users?phone=` → **401**, не JSON ✅
+- [x] I-B1: `curl partners/next-code` → **403** ✅
+- [x] I-B3: rate limit на `login-pin` (5 / 15 мин) ✅ *(код; при желании проверить 6-й неверный PIN)*
+- [x] I-B5: CORS не `*` ✅
+- [x] I-B2: `is_blocked` на защищённых маршрутах ✅ *(middleware I-A)*
+- [x] I-B6: webhook Mobile ID — секрет в `.env` ✅ *(проверить `MOBILE_ID_WEBHOOK_SECRET` на сервере)*
+- [x] `curl admin/stats` → «Нужен вход» ✅
 
 ### Сервер
-- [ ] I-C1: mock-режимы выключены на боевом `.env`
-- [ ] `.env` не в git
-- [ ] `pm2 restart` после деплоя
+- [ ] I-C1: mock-режимы выключены на боевом `.env` (SMS, admin email; payment — после Робокассы)
+- [x] I-C2: `.env` **не** в GitHub ✅
+- [x] I-C3: legacy `ADMIN_SECRET` убран из кода ✅ (26.06)
+- [ ] I-C4: удалить `ADMIN_SECRET` из `.env` на сервере + pm2 restart
+- [x] Автодеплой backend через GitHub Actions ✅
 
 ### Инфраструктура
 - [ ] I-D3: Observatory B+ или лучше
@@ -329,7 +372,7 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsaf
 ### Повторять ежемесячно
 - [ ] Три curl из TZ §13.4
 - [ ] Observatory
-- [ ] `git pull` на сервере = последний commit с security fixes
+- [ ] `/api/health` → `security.stage` актуален
 
 ---
 
@@ -360,7 +403,7 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsaf
 - **API:** https://darom-app.online/api/health
 - **Запасной IP:** http://5.129.243.246/
 - **Деплой сайта:** `git push` → GitHub Actions
-- **Деплой backend:** `git push` → GitHub Actions `Deploy Backend` (или один раз VNC bootstrap, см. ниже)
+- **Деплой backend:** `git push` → GitHub Actions `Deploy Backend` (секреты `VPS_HOST`, `DEPLOY_SECRET`)
 
 ### Разработка UI на ПК (пока сайт не выложен)
 **Терминал 2 — Flutter** (Docker и backend на ПК **не нужны**):
@@ -579,11 +622,14 @@ backend/
 
 ## ⏳ Дальше
 
-1. **⚠️ Этап I — безопасность** ← **СЕЙЧАС (обязательно перед запуском для всех)**
-2. **Робокасса** — после одобрения магазина
-3. **Sightengine** — оружие/алкоголь/табак на фото ⏳
-4. Роль moderator
-5. Android / iOS (этап D)
+1. **I-C VNC** — `.env` на сервере (SMS/admin email mock off; удалить ADMIN_SECRET)
+2. **I-D** — nginx: HSTS, CSP, X-Frame, nosniff
+3. **I-E** — Cloudflare + файрвол Timeweb
+4. **I-F** — общий rate limit API (100 req/min)
+5. **100% чеклист** → только тогда публичный запуск для всех
+6. **Робокасса** — после одобрения магазина
+7. **Sightengine** — оружие/алкоголь/табак на фото
+8. Роль moderator → **D** Android / iOS
 
 ---
 
@@ -617,7 +663,8 @@ backend/
 - [x] C/F: Yandex Vision — на сервере ✅ (23.06.2026)
 - [x] Приоритет основателя в ленте + подсветка ✅ (23.06.2026)
 - [x] Новые лимиты монетизации (30 объявлений, заборы 5/7→3/5→2) ✅ (23.06.2026)
-- [ ] **I — Безопасность** ⚠️ I-A ✅ I-B ✅ (26.06), I-C/D… ← **критично**
+- [x] **I-C (код) — legacy ADMIN_SECRET убран, health sms/payment** ✅ (26.06.2026)
+- [ ] **I — Безопасность** ⚠️ I-C VNC + I-D/E/F + чеклист ← **критично перед запуском для всех**
 - [ ] F: Sightengine — weapon/alcohol/tobacco на фото ⏳
 - [ ] C: Робокасса (код ✅, магазин на одобрении ⏸)
 - [ ] D: Android / iOS

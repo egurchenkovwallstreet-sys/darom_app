@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db/pool');
 const config = require('../config');
 const securityVersion = require('../security_version');
+const { isRobokassaConfigured } = require('../utils/robokassa');
 
 const router = express.Router();
 
@@ -22,11 +23,24 @@ router.get('/', async (_req, res) => {
     );
     const visionConfigured = Boolean(config.visionApiKey);
     const visionMock = config.photoMockModeration || !visionConfigured;
+    const smsConfigured = Boolean(config.smsAeroEmail && config.smsAeroApiKey) || Boolean(config.smsRuApiId);
+    const robokassaConfigured = isRobokassaConfigured();
+    const paymentMock = config.paymentMock || !robokassaConfigured;
 
     res.json({
       ok: true,
       service: 'darom-api',
       security: securityVersion,
+      sms: {
+        mock: config.smsMock,
+        configured: smsConfigured,
+        ready: config.smsMock || smsConfigured,
+      },
+      payment: {
+        mock: paymentMock,
+        robokassaConfigured,
+        ready: paymentMock || robokassaConfigured,
+      },
       photos: {
         mode: config.photoStorage,
         s3Ready,

@@ -36,7 +36,6 @@ const config = {
   },
   deploySecret: process.env.DEPLOY_SECRET || '',
   webRoot: process.env.WEB_ROOT || '/var/www/darom',
-  adminSecret: process.env.ADMIN_SECRET || '',
   adminPhone: process.env.ADMIN_PHONE || '79138931428',
   adminEmail: process.env.ADMIN_EMAIL || 'e.gurchenkov@yandex.ru',
   adminEmailMock: process.env.ADMIN_EMAIL_MOCK !== 'false',
@@ -130,6 +129,23 @@ if (config.pushMock) {
   console.log(`✓ Firebase push: project ${config.firebase.projectId}`);
 } else {
   console.warn('⚠ Push: PUSH_MOCK=false, но Firebase ключи пустые — уведомления не уйдут');
+}
+
+const robokassaReady = Boolean(
+  config.robokassa.merchantLogin &&
+    config.robokassa.password1 &&
+    config.robokassa.password2,
+);
+if (config.paymentMock) {
+  console.log('Payments: тестовый режим (PAYMENT_MOCK=true)');
+} else if (robokassaReady) {
+  console.log('✓ Payments: Робокасса настроена (боевой режим)');
+} else {
+  console.warn('⚠ Payments: PAYMENT_MOCK=false, но ключи Робокассы пустые — оплата останется тестовой');
+}
+
+if (process.env.ADMIN_SECRET) {
+  console.warn('⚠ ADMIN_SECRET устарел (I-C) — выплаты партнёрам только через admin token');
 }
 
 const visionMock = config.photoMockModeration || !config.visionApiKey;

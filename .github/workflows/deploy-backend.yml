@@ -41,8 +41,8 @@ jobs:
         run: |
           BODY=$(curl -sS "http://${{ secrets.VPS_HOST }}:3000/api/health")
           echo "$BODY"
-          echo "$BODY" | grep -q '"stage":"I-B"' || (echo "❌ security.stage не I-B" && exit 1)
-          echo "✅ security I-B на сервере"
+          echo "$BODY" | grep -q '"stage":"I-C"' || (echo "❌ security.stage не I-C" && exit 1)
+          echo "✅ security I-C на сервере"
 
       - name: Verify partners next-code closed
         run: |

@@ -8,6 +8,8 @@
 
 **Приоритет:** Flutter (Android + iOS) → потом Flutter Web.
 
+> ⚠️ **КРИТИЧНО — БЕЗОПАСНОСТЬ (раздел 13):** публичный запуск для **всех** пользователей **запрещён**, пока не выполнен **Этап I — защита** и пройден **обязательный чеклист** (см. `docs/PROGRESS.md` → «Безопасность»). Мягкий тест среди знакомых — допустим с пониманием рисков.
+
 ## 2. Роли и монетизация
 
 ### Бесплатно всегда
@@ -219,20 +221,100 @@
 11. 🟡 **Flutter Web в продакшене** (GitHub Actions ✅, геолокация HTTPS ✅, иконка ✅)
 12. ⏳ Публикация в магазины (Android / iOS)
 
-**Оценка прогресса (23.06.2026):** ядро MVP ~**99%** | полное ТЗ ~**73%**. Подробности: `docs/PROGRESS.md`.
+**Оценка прогресса (26.06.2026):** ядро MVP ~**99%** | полное ТЗ ~**75%**. Подробности: `docs/PROGRESS.md`.
 
 ## 12. Следующие этапы (приоритет)
 
 | Этап | Задачи | Статус |
 |------|--------|--------|
-| **C — Монетизация** | Робокасса ⏸ (одобрение + ответ с правилами модерации); SMS Aero ✅; Mobile ID ✅; SMTP ✅; Firebase push ✅ | ⏳ **текущий** |
-| **D — Магазины** | Сборка Android APK / iOS, публикация | ⏳ |
-| **E — Уведомления** | Firebase push (бронь, чаты, сделки) | ✅ **протестировано** |
-| **F — Модерация** | Запрещённые товары ✅; оферта 10.8 ✅; Yandex Vision ✅; **Sightengine** (оружие на фото) ⏳ | 🟡 Vision ✅, Sightengine ⏳ |
-| **G — Админка** | Роль moderator (без доступа к деньгам) | ⏳ |
-| **H — Лента** | Приоритет основателя в сортировке (значок ✅) | ✅ |
+| **I — Безопасность** ← **ОБЯЗАТЕЛЬНО ПЕРЕД ЗАПУСКОМ** | I-A/I-B/I-C код ✅ (26.06); **I-C VNC** `.env`; **I-D** nginx; **I-E** Cloudflare | ⏳ **критично** |
+| **C — Монетизация** | Робокасса ⏸ (одобрение); SMS Aero ✅; Mobile ID ✅; SMTP ✅; Firebase push ✅ | ⏸ ждём магазин |
+| **D — Магазины** | Android APK / iOS | ⏳ |
+| **E — Уведомления** | Firebase push | ✅ **протестировано** |
+| **F — Модерация** | Vision ✅; **Sightengine** (оружие на фото) ⏳ | 🟡 |
+| **G — Админка** | Роль moderator | ⏳ |
+| **H — Лента** | Приоритет основателя | ✅ |
 
 Резюме сессии 16–21.06 и детальный чеклист: `docs/PROGRESS.md` → «Резюме» и «Следующие шаги».
+
+## 13. Безопасность — ⚠️ ОЧЕНЬ ВАЖНО (обязательно перед публичным запуском)
+
+> **Правило запуска:** объявлять приложение **для всех** можно только после **Этапа I** и **100% чеклиста** в `docs/PROGRESS.md`.  
+> Аудит 24.06.2026; **I-A и I-B закрыты 26.06.2026** (см. PROGRESS).
+
+### 13.1 Что уже хорошо ✅
+
+- HTTPS + редирект на HTTPS (darom-app.online)
+- **Сессионные токены после PIN** — защищённые API только с `Authorization: Bearer` (I-A, 26.06)
+- **Закрыт** публичный `GET /api/partners/next-code` — код только в админке (I-B, 26.06)
+- **Rate limit** на `login-pin`, SMS, вход в админку (I-B, 26.06)
+- **CORS** — только `darom-app.online` + `localhost:8080` (I-B, 26.06)
+- **Webhook Mobile ID** — секрет в URL (`MOBILE_ID_WEBHOOK_SECRET`, I-B)
+- **Автодеплой backend** — GitHub Actions `Deploy Backend` (26.06)
+- Админ-панель: Mobile ID + код с почты; API админки **без токена не пускает**
+- PIN **захеширован** (pbkdf2); блокировка пользователя на защищённых маршрутах
+- Робокасса: проверка подписи callback (в коде)
+- Фото через API `/api/photos/`, не прямой публичный S3
+- Теневой бан &lt;4.0; жалобы 3→скрытие объявления
+
+### 13.2 Аудит 24.06.2026 — статус исправлений
+
+| Приоритет | Уязвимость | Статус |
+|-----------|------------|--------|
+| 🔴 P0 | API без токена после PIN | ✅ **I-A** (26.06) |
+| 🔴 P0 | `GET /api/users?phone=` без авторизации | ✅ **I-A** |
+| 🔴 P0 | `GET /api/partners/next-code` публично | ✅ **I-B** |
+| 🔴 P1 | Webhook Mobile ID без секрета | ✅ **I-B** |
+| 🔴 P1 | PIN без rate limit | ✅ **I-B** |
+| 🔴 P1 | Блок пользователя не на всех API | ✅ **I-A** (middleware) |
+| 🟠 P2 | CORS `*` | ✅ **I-B** |
+| 🟠 P2 | `PAYMENT_MOCK`, mock админ-почты | ⏳ **I-C VNC** (код ✅) |
+| 🟠 P2 | Legacy `ADMIN_SECRET` | ✅ **I-C** (26.06) |
+| 🟠 P2 | Общий rate limit API | ⏳ **I-F** |
+| 🟡 P3 | nginx: HSTS, CSP, X-Frame, nosniff | ⏳ **I-D** |
+| 🔵 Infra | DDoS / Cloudflare | ⏳ **I-E** |
+
+### 13.2.1 Детали уязвимостей (справочно, аудит 24.06)
+
+| Приоритет | Уязвимость | Как закрыли |
+|-----------|------------|-------------|
+| 🔴 P0 | Утечка профиля по номеру | Токен + 401 |
+| 🔴 P0 | Утечка кода партнёра | Endpoint → 403; код в `/api/admin/partner-codes/status` |
+| 🔴 P1 | Подделка webhook | `MOBILE_ID_WEBHOOK_SECRET` в callback URL |
+| 🔴 P1 | Брутфорс PIN | express-rate-limit 5/15 мин |
+| 🟠 P2 | CORS `*` | whitelist origin в `index.js` |
+| 🟡 P3 | Observatory −65 | nginx заголовки (I-D) |
+
+### 13.3 DDoS — отдельно от кода приложения
+
+DDoS **не останавливается** только кодом Node.js. Обязательно:
+
+1. **Cloudflare** (бесплатный план) перед доменом
+2. Файрвол Timeweb: открыты только **80/443**
+3. Лимиты **nginx** (connections, body size, rate)
+4. Rate limit в **backend** (дополнение)
+
+### 13.4 Обязательная проверка перед запуском для всех
+
+Повторять **после каждого** крупного деплоя безопасности:
+
+```powershell
+# 0) Версия безопасности — "I-C" или новее; sms.mock и adminEmail.mock — false на боевом
+curl.exe "https://darom-app.online/api/health"
+
+# 1) Профиль без токена — 401, НЕ JSON с данными
+curl.exe "https://darom-app.online/api/users?phone=НОМЕР"
+
+# 2) Код партнёра — 403, НЕ {"code":"0007"}
+curl.exe "https://darom-app.online/api/partners/next-code"
+
+# 3) Админка — «Нужен вход в админ-панель»
+curl.exe "https://darom-app.online/api/admin/stats/platform?period=day"
+```
+
+Плюс: [Mozilla Observatory](https://observatory.mozilla.org) — цель **B+** после nginx-заголовков.
+
+**Пошаговый план реализации:** `docs/PROGRESS.md` → «План реализации защиты (Этап I)».
 
 ## 11. Структура кода (актуальная)
 
@@ -244,8 +326,10 @@ lib/
   services/     api_config, auth_api, admin_api, admin_session_service, partners_api, ...
   widgets/      real_phone_verify_dialog.dart, midnight_glow_screen, auth_form_scroll, ...
 backend/
-  src/routes/   auth.js (+ active-verify, mobile-id webhook), users.js, admin.js, ...
-  src/utils/    admin_auth.js, prohibited_goods.js, stop_words.js, photo_moderation.js, ...
-  src/services/ sms_service.js, mobile_id_service.js, email_service.js, vision_service.js, push_service.js
-  db/           migrate_admin.sql, migrate_admin_mobile_id.sql, migrate_mobile_id.sql, migrate_fix_photo_urls.sql, ...
+  src/routes/   auth.js, users.js, admin.js, deploy_backend.js, …
+  src/middleware/ user_auth.js, rate_limit.js, mobile_id_webhook.js
+  src/security_version.js   — метка I-B в /api/health
+  scripts/      deploy_backend.sh
+  db/           migrate_user_sessions.sql, …
+.github/workflows/  deploy-web.yml, deploy-backend.yml
 ```
