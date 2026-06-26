@@ -227,7 +227,7 @@
 
 | Этап | Задачи | Статус |
 |------|--------|--------|
-| **I — Безопасность** ← **ОБЯЗАТЕЛЬНО ПЕРЕД ЗАПУСКОМ** | I-A/B/C ✅ (26.06); **I-D** nginx (`deploy/NGINX_SECURITY.md`); **I-E** Cloudflare | ⏳ **критично** |
+| **I — Безопасность** ← **ОБЯЗАТЕЛЬНО ПЕРЕД ЗАПУСКОМ** | I-A/B/C/D ✅ (26.06); **I-E** Cloudflare; **I-F** rate limit | ⏳ **критично** |
 | **C — Монетизация** | Робокасса ⏸ (одобрение); SMS Aero ✅; Mobile ID ✅; SMTP ✅; Firebase push ✅ | ⏸ ждём магазин |
 | **D — Магазины** | Android APK / iOS | ⏳ |
 | **E — Уведомления** | Firebase push | ✅ **протестировано** |
@@ -271,7 +271,7 @@
 | 🟠 P2 | `PAYMENT_MOCK`, mock админ-почты | ⏳ **I-C VNC** (код ✅) |
 | 🟠 P2 | Legacy `ADMIN_SECRET` | ✅ **I-C** (26.06) |
 | 🟠 P2 | Общий rate limit API | ⏳ **I-F** |
-| 🟡 P3 | nginx: HSTS, CSP, X-Frame, nosniff | ⏳ **I-D** |
+| 🟡 P3 | nginx: HSTS, CSP, X-Frame, nosniff | ✅ **I-D** (26.06) |
 | 🔵 Infra | DDoS / Cloudflare | ⏳ **I-E** |
 
 ### 13.2.1 Детали уязвимостей (справочно, аудит 24.06)

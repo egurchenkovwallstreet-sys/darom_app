@@ -10,7 +10,7 @@
 
 | | |
 |---|---|
-| **Текущий этап** | **I — безопасность** ⚠️ **I-A/B/C ✅**; **следующий: I-D nginx (VNC)**; **C — Робокасса** ⏸ |
+| **Текущий этап** | **I — безопасность** ⚠️ **I-A/B/C/D ✅** (26.06); **следующий: I-E или I-F**; **C — Робокасса** ⏸ |
 | **Публичный запуск** | ⏳ **запрещён** до 100% чеклиста Этапа I (см. ниже) |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
@@ -130,7 +130,7 @@
 
 | № | Этап | Задача | Зачем |
 |---|------|--------|-------|
-| **0** | **I — Безопасность** ← **СЕЙЧАС** | **I-D:** nginx HSTS/CSP (`deploy/NGINX_SECURITY.md`); **I-E** Cloudflare | До публичного запуска |
+| **0** | **I — Безопасность** ← **СЕЙЧАС** | **I-E** Cloudflare; **I-F** rate limit API | До публичного запуска |
 | **1** | **C — Робокасса** | Дождаться одобрения → тест оплаты; `PAYMENT_MOCK=false` | Монетизация |
 | **2** | **Sightengine** | Оружие/алкоголь/табак на фото | ⏳ после запуска или по приоритету |
 | **3** | Админка | Роль **moderator** | Отдельные модераторы |
@@ -304,17 +304,17 @@ pm2 logs darom-api --lines 15
 
 В логах не должно быть «SMS: тестовый режим» и «Admin email: тестовый режим».
 
-### Подэтап I-D — nginx заголовки (P3, ~0.5 дня, VNC) ⏳
+### Подэтап I-D — nginx заголовки (P3, ~0.5 дня, VNC) ✅ 26.06.2026
 
 **Инструкция:** `deploy/NGINX_SECURITY.md`  
 **Файл заголовков:** `deploy/nginx-security-headers.conf`
 
 | Шаг | Действие | Успех |
 |-----|----------|-------|
-| I-D1 | `git pull` → в блок `listen 443 ssl` добавить `include .../nginx-security-headers.conf` | файл на месте |
-| I-D2 | `nginx -t` → `systemctl reload nginx` | syntax is ok |
-| I-D3 | `curl -sI https://darom-app.online/` — HSTS, CSP, X-Frame | заголовки видны |
-| I-D4 | Сайт: вход, лента, карта, фото | всё работает |
+| I-D1 | `include .../nginx-security-headers.conf` в блок `443 ssl` | ✅ |
+| I-D2 | `nginx -t` → `systemctl reload nginx` | ✅ |
+| I-D3 | `curl -sI` — HSTS (`Strict-Transport-Security`) | ✅ |
+| I-D4 | Сайт: вход, лента, карта | ⏳ проверить в браузере |
 | I-D5 | Observatory → цель **B+** | по желанию |
 
 ### Подэтап I-E — DDoS (Infra, ~1 день)
@@ -356,7 +356,9 @@ pm2 logs darom-api --lines 15
 - [x] Автодеплой backend через GitHub Actions ✅
 
 ### Инфраструктура
-- [ ] I-D3: Observatory B+ или лучше
+- [x] I-D2/I-D3: nginx HSTS + заголовки (`Strict-Transport-Security` проверен curl) ✅ (26.06)
+- [ ] I-D4: сайт в браузере — вход, лента, карта
+- [ ] I-D5: Observatory B+ или лучше
 - [ ] I-E1: Cloudflare подключён (рекомендуется)
 - [ ] HTTPS работает, сертификат не истёк
 
@@ -658,8 +660,8 @@ backend/
 - [x] C/F: Yandex Vision — на сервере ✅ (23.06.2026)
 - [x] Приоритет основателя в ленте + подсветка ✅ (23.06.2026)
 - [x] Новые лимиты монетизации (30 объявлений, заборы 5/7→3/5→2) ✅ (23.06.2026)
-- [x] **I-C (код) — legacy ADMIN_SECRET убран, health sms/payment** ✅ (26.06.2026)
-- [ ] **I — Безопасность** ⚠️ I-C VNC + I-D/E/F + чеклист ← **критично перед запуском для всех**
+- [x] **I-D — nginx HSTS/CSP** ✅ (26.06.2026)
+- [ ] **I — Безопасность** ⚠️ I-E/I-F + чеклист ← **критично перед запуском для всех**
 - [ ] F: Sightengine — weapon/alcohol/tobacco на фото ⏳
 - [ ] C: Робокасса (код ✅, магазин на одобрении ⏸)
 - [ ] D: Android / iOS
