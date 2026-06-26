@@ -3,8 +3,11 @@ const db = require('../db/pool');
 const { normalizePhone } = require('../utils/phone');
 const { getUserByPhone } = require('../db/listing_helpers');
 const { recalcUserRating } = require('../utils/ratings');
+const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
 
 const router = express.Router();
+
+router.use(requireUserSession);
 
 // POST /api/deals/:id/rate — оценка 1–5 после сделки
 router.post('/:id/rate', async (req, res) => {
@@ -13,6 +16,10 @@ router.post('/:id/rate', async (req, res) => {
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
+  }
+
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   const numericScore = Number(score);

@@ -12,6 +12,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await PlanetAssets.preload();
   await SessionService.migrateToRemoteServerIfNeeded();
+  await SessionService.migrateToTokenSessionIfNeeded();
   runApp(const DaromApp());
 }
 

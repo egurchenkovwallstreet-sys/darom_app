@@ -28,6 +28,7 @@ const {
 const { checkAdminAccessByPhone } = require('../utils/admin_auth');
 const { storeVerifyToken } = require('../utils/phone_verify_token');
 const { upsertPushToken } = require('../services/push_service');
+const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
 
 const router = express.Router();
 
@@ -226,12 +227,16 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/users?phone=9001234567
-router.get('/', async (req, res) => {
+// GET /api/users?phone=9001234567 — только с Bearer-токеном
+router.get('/', requireUserSession, async (req, res) => {
   const { phone } = req.query;
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен параметр phone' });
+  }
+
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {
@@ -249,7 +254,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/users/super-donor — только при PAYMENT_MOCK=true (иначе /api/payments/create)
-router.post('/super-donor', async (req, res) => {
+router.post('/super-donor', requireUserSession, async (req, res) => {
   if (!config.paymentMock) {
     return res.status(400).json({ error: 'Оплата через POST /api/payments/create' });
   }
@@ -258,6 +263,10 @@ router.post('/super-donor', async (req, res) => {
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
+  }
+
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {
@@ -293,7 +302,7 @@ router.post('/super-donor', async (req, res) => {
 });
 
 // POST /api/users/pickup-pack — только при PAYMENT_MOCK=true (иначе /api/payments/create)
-router.post('/pickup-pack', async (req, res) => {
+router.post('/pickup-pack', requireUserSession, async (req, res) => {
   if (!config.paymentMock) {
     return res.status(400).json({ error: 'Оплата через POST /api/payments/create' });
   }
@@ -302,6 +311,10 @@ router.post('/pickup-pack', async (req, res) => {
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
+  }
+
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {
@@ -357,11 +370,14 @@ router.post('/pickup-pack', async (req, res) => {
 });
 
 // POST /api/users/avatar — загрузить аватар (multipart: avatar + phone)
-router.post('/avatar', upload.single('avatar'), async (req, res) => {
+router.post('/avatar', requireUserSession, upload.single('avatar'), async (req, res) => {
   const phone = req.body?.phone;
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
+  }
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
   if (!req.file) {
     return res.status(400).json({ error: 'Нужен файл avatar' });
@@ -405,11 +421,15 @@ router.post('/avatar', upload.single('avatar'), async (req, res) => {
 });
 
 // POST /api/users/push-token { phone, token, platform? }
-router.post('/push-token', async (req, res) => {
+router.post('/push-token', requireUserSession, async (req, res) => {
   const { phone, token, platform } = req.body;
 
   if (!phone || !token) {
     return res.status(400).json({ error: 'Нужны phone и token' });
+  }
+
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {

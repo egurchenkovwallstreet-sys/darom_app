@@ -6,11 +6,12 @@
 
 ---
 
-## Снимок на 23.06.2026
+## Снимок на 24.06.2026
 
 | | |
 |---|---|
-| **Текущий этап** | **C — монетизация** (новые лимиты ⏳ в коде); **F — модерация** ✅ (Vision); **Sightengine** ⏳; **Робокасса** ⏸ |
+| **Текущий этап** | **I — безопасность** ⚠️ **I-A ✅** (токены API); дальше **I-B**; **C — Робокасса** ⏸ |
+| **Публичный запуск** | ⏳ **запрещён** до Этапа I + чеклиста (см. ниже) |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
 | **Backend** | VPS `5.129.243.246`, PM2 `darom-api`, S3 ✅ |
@@ -97,18 +98,32 @@
 - **Объявления:** **30** бесплатно для всех → «Супер даритель» 99₽ (+10)
 - Код: `pickup_limits.js`, `limits.js`, `public_offer.dart`, профиль
 
+### ⚠️ Аудит безопасности (24.06.2026) — ОЧЕНЬ ВАЖНО
+
+**Проверки пользователя (curl + Mozilla Observatory) — подтверждено:**
+
+| Проверка | Результат | Статус |
+|----------|-----------|--------|
+| `GET /api/users?phone=…` без PIN/токена | Вернулся **полный профиль** (имя, телефон, лимиты…) | 🔴 уязвимость |
+| `GET /api/partners/next-code` | Вернулся `{"code":"0007",…}` | 🔴 уязвимость |
+| `GET /api/admin/stats/platform` | «Нужен вход в админ-панель» | ✅ OK |
+| Mozilla Observatory | Нет HSTS (−20), CSP (−25), X-Frame (−20), nosniff (−5) | 🟡 nginx |
+
+**Полный список уязвимостей и приоритеты:** `docs/TZ_DAROM.md` → **раздел 13**.
+
+**Правило:** публичный запуск **для всех** — только после **Этапа I** и **100% чеклиста** ниже.
+
 ---
 
 ## 🎯 Следующие шаги (приоритет)
 
 | № | Этап | Задача | Зачем |
 |---|------|--------|-------|
-| **1** | **C — Робокасса** ← **СЕЙЧАС** | Дождаться одобрения магазина → тест оплаты | Код ✅; правила модерации отправлены ⏸ |
-| **2** | **C — Лимиты** | ✅ новые лимиты в backend + оферте + UI | 30 объявлений, заборы 5/7→3/5→2 |
-| **3** | **Sightengine** | Оружие/алкоголь/табак **на фото** | ⏳ Free 2 000 фото/мес |
-| **4** | **Yandex Vision** | ✅ на сервере | `deploy/VISION.md` |
-| **5** | Админка | Роль **moderator** (без денег) | Отдельные модераторы |
-| **6** | **D — Магазины** | Android APK / iOS | Нативные приложения |
+| **0** | **I — Безопасность** ← **СЕЙЧАС** | **I-B:** next-code, rate limit, CORS, webhook | Следующий подэтап |
+| **1** | **C — Робокасса** | Дождаться одобрения → тест оплаты; `PAYMENT_MOCK=false` | Монетизация |
+| **2** | **Sightengine** | Оружие/алкоголь/табак на фото | ⏳ после запуска или по приоритету |
+| **3** | Админка | Роль **moderator** | Отдельные модераторы |
+| **4** | **D — Магазины** | Android APK / iOS | Нативные приложения |
 
 ---
 
@@ -205,10 +220,116 @@
 | Нативное приложение Android/iOS | ⏳ этап D |
 
 ### Не сделано / ждём
+- **⚠️ Этап I — безопасность** — **критично перед публичным запуском** (см. «План реализации защиты»)
 - **Sightengine** — оружие, алкоголь, табак **по картинке**
 - **Робокасса** — код ✅; **магазин на одобрении** ⏸
-- Роль **moderator** (отдельные аккаунты без доступа к деньгам)
+- Роль **moderator**
 - **Android / iOS** (этап D)
+
+---
+
+## ⚠️ План реализации защиты (Этап I)
+
+> Пошагово для новичка. Код — через Cursor; сервер — VNC Timeweb.  
+> После **каждого подэтапа** — `git commit` + `git push` + на сервере `git pull` + `pm2 restart darom-api`.
+
+### Подэтап I-A — Закрыть утечку данных (P0, ~3–5 дней) ✅ 26.06.2026
+
+| Шаг | Что делаем | Файлы / где | Успех |
+|-----|------------|-------------|-------|
+| I-A1 | Таблица `user_sessions` (token, user_id, expires_at) | `backend/db/migrate_user_sessions.sql` | ✅ |
+| I-A2 | После `login-pin` / `set-pin` — выдать token; middleware проверяет token | `auth.js`, `middleware/user_auth.js` | ✅ |
+| I-A3 | Flutter: сохранять token, слать `Authorization: Bearer` | `session_service.dart`, `auth_headers.dart`, все `*_api.dart` | ✅ |
+| I-A4 | Все `/api/users`, `/api/chats`, `/api/listings/mine`, favorites… — **только с token** | routes | ✅ |
+| I-A5 | Публичные без token: лента, nearby, search, health, auth | routes | ✅ |
+| I-A6 | **Проверка curl:** `users?phone=` → **401** | Терминал 2 | ⏳ после деплоя на сервер |
+
+### Подэтап I-B — Быстрые дыры (P0–P1, ~1–2 дня)
+
+| Шаг | Что делаем | Успех |
+|-----|------------|-------|
+| I-B1 | Удалить или закрыть `GET /api/partners/next-code` (только admin token) | curl → 403 |
+| I-B2 | `is_blocked` на всех защищённых маршрутах | Заблокированный не создаёт объявления |
+| I-B3 | Rate limit: `login-pin` (5 попыток / 15 мин / IP) | express-rate-limit |
+| I-B4 | Rate limit: SMS, admin auth start | Меньше брутфорса |
+| I-B5 | CORS: только `https://darom-app.online` + `http://localhost:8080` | `index.js` |
+| I-B6 | Webhook Mobile ID: секрет в URL или проверка подписи | Только SMS Aero |
+
+### Подэтап I-C — Сервер и .env (P2, ~0.5 дня, VNC)
+
+| Шаг | Что делаем | Где | Успех |
+|-----|------------|-----|-------|
+| I-C1 | `.env`: `PAYMENT_MOCK=false`, `ADMIN_EMAIL_MOCK=false`, `SMS_MOCK=false` | `/opt/darom_app/backend/.env` | health ok |
+| I-C2 | Проверить: `.env` **не** в GitHub | git | Секреты только на сервере |
+| I-C3 | Убрать или усилить `ADMIN_SECRET` (legacy payout) | `admin.js` | Только admin token |
+| I-C4 | `pm2 restart darom-api --update-env` | VNC | online |
+
+### Подэтап I-D — nginx заголовки (P3, ~0.5 дня, VNC)
+
+Добавить в `/etc/nginx/sites-available/darom` внутри `server { … }` для HTTPS:
+
+```nginx
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://darom-app.online wss:; font-src 'self' data:;" always;
+```
+
+| Шаг | Действие | Успех |
+|-----|----------|-------|
+| I-D1 | `nginx -t` | syntax is ok |
+| I-D2 | `systemctl reload nginx` | без ошибок |
+| I-D3 | Observatory → цель **B+** | меньше красных пунктов |
+
+### Подэтап I-E — DDoS (Infra, ~1 день)
+
+| Шаг | Что делаем | Где |
+|-----|------------|-----|
+| I-E1 | Reg.ru: DNS → Cloudflare (бесплатный план) | Панель Reg.ru |
+| I-E2 | Cloudflare: SSL Full, «Under Attack Mode» при атаке | dash.cloudflare.com |
+| I-E3 | Timeweb файрвол: только 80, 443 | Панель Timeweb |
+| I-E4 | nginx `limit_req_zone` на `/api/` | nginx config |
+
+### Подэтап I-F — Rate limit в backend (P2)
+
+| Шаг | Что делаем |
+|-----|------------|
+| I-F1 | `express-rate-limit`: 100 req/min общий, 20/min на auth |
+| I-F2 | npm install + deploy |
+
+---
+
+## ✅ Чеклист перед запуском для всех (обязательный)
+
+Отмечать **все** пункты. Запуск для всех **только при 100%**.
+
+### Код и API
+- [ ] I-A6: `curl users?phone=` → **401**, не JSON *(проверить после VNC-деплоя)*
+- [ ] I-B1: `curl partners/next-code` → **403**
+- [ ] I-B3: после 10 неверных PIN — блок / пауза
+- [ ] I-B5: CORS не `*`
+- [ ] Заблокированный пользователь не может чаты/объявления
+- [ ] `curl admin/stats` → «Нужен вход» (как сейчас)
+
+### Сервер
+- [ ] I-C1: mock-режимы выключены на боевом `.env`
+- [ ] `.env` не в git
+- [ ] `pm2 restart` после деплоя
+
+### Инфраструктура
+- [ ] I-D3: Observatory B+ или лучше
+- [ ] I-E1: Cloudflare подключён (рекомендуется)
+- [ ] HTTPS работает, сертификат не истёк
+
+### Бизнес
+- [ ] Робокасса: тестовая оплата 99₽ прошла (или сознательно mock до одобрения)
+- [ ] Оферта актуальна
+
+### Повторять ежемесячно
+- [ ] Три curl из TZ §13.4
+- [ ] Observatory
+- [ ] `git pull` на сервере = последний commit с security fixes
 
 ---
 
@@ -292,7 +413,7 @@ cat backend/db/migrate_mobile_id.sql | docker exec -i darom_db psql -U darom -d 
 # 3) доработка для партнёров — только после шага 2
 cat backend/db/migrate_partner_mobile_id.sql | docker exec -i darom_db psql -U darom -d darom
 cat backend/db/migrate_admin_mobile_id.sql | docker exec -i darom_db psql -U darom -d darom
-cat backend/db/migrate_fix_photo_urls.sql | docker exec -i darom_db psql -U darom -d darom
+cat backend/db/migrate_user_sessions.sql | docker exec -i darom_db psql -U darom -d darom
 pm2 restart darom-api --update-env
 ```
 
@@ -458,8 +579,8 @@ backend/
 
 ## ⏳ Дальше
 
-1. **Робокасса** — после одобрения магазина ← **СЕЙЧАС**
-2. **Новые лимиты** — backend + оферта + UI (30 объявлений, заборы 5/7→3/5→2)
+1. **⚠️ Этап I — безопасность** ← **СЕЙЧАС (обязательно перед запуском для всех)**
+2. **Робокасса** — после одобрения магазина
 3. **Sightengine** — оружие/алкоголь/табак на фото ⏳
 4. Роль moderator
 5. Android / iOS (этап D)
@@ -496,6 +617,7 @@ backend/
 - [x] C/F: Yandex Vision — на сервере ✅ (23.06.2026)
 - [x] Приоритет основателя в ленте + подсветка ✅ (23.06.2026)
 - [x] Новые лимиты монетизации (30 объявлений, заборы 5/7→3/5→2) ✅ (23.06.2026)
+- [ ] **I — Безопасность** ⚠️ I-A ✅ (26.06), I-B… ← **критично**
 - [ ] F: Sightengine — weapon/alcohol/tobacco на фото ⏳
 - [ ] C: Робокасса (код ✅, магазин на одобрении ⏸)
 - [ ] D: Android / iOS

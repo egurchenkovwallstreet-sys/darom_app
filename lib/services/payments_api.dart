@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
+import 'auth_headers.dart';
 
 class PaymentCreateResult {
   final bool mock;
@@ -66,7 +67,7 @@ class PaymentsApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({
             'phone': phone,
             'product_type': productType,
@@ -94,7 +95,7 @@ class PaymentsApi {
       },
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
     final body = jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode != 200) {

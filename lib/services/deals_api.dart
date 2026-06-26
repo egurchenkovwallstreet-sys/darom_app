@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
+import 'auth_headers.dart';
 
 class DealsApi {
   DealsApi({http.Client? client}) : _client = client ?? http.Client();
@@ -19,7 +20,7 @@ class DealsApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone, 'score': score}),
         )
         .timeout(const Duration(seconds: 10));

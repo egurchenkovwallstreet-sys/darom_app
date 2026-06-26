@@ -27,8 +27,20 @@ const {
   isRealPhoneVerified,
   buildRealPhoneRequiredResponse,
 } = require('../utils/real_phone_verify');
+const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
 
 const router = express.Router();
+
+function ensureSessionPhone(req, res, phoneRaw) {
+  if (!phoneRaw) {
+    res.status(400).json({ error: 'Нужен phone' });
+    return false;
+  }
+  if (!rejectMismatchedPhone(req, res, phoneRaw)) {
+    return false;
+  }
+  return true;
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -65,12 +77,13 @@ async function countActiveListings(userId) {
 }
 
 // GET /api/listings/mine?phone=9001234567
-router.get('/mine', async (req, res) => {
+router.get('/mine', requireUserSession, async (req, res) => {
   const { phone } = req.query;
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен параметр phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     await expireReservations(db);
@@ -301,7 +314,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/listings — создать объявление
-router.post('/', async (req, res) => {
+router.post('/', requireUserSession, async (req, res) => {
   const {
     phone,
     title,
@@ -318,6 +331,7 @@ router.post('/', async (req, res) => {
       error: 'Нужны phone, title, description, category, subcategory',
     });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   const trimmedTitle = String(title).trim();
   const trimmedDescription = String(description).trim();
@@ -400,13 +414,14 @@ router.post('/', async (req, res) => {
 });
 
 // POST /api/listings/:id/photos — загрузить фото (multipart: photo + phone)
-router.post('/:id/photos', upload.single('photo'), async (req, res) => {
+router.post('/:id/photos', requireUserSession, upload.single('photo'), async (req, res) => {
   const { id } = req.params;
   const phone = req.body?.phone;
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
   if (!req.file) {
     return res.status(400).json({ error: 'Нужен файл photo' });
   }
@@ -478,13 +493,14 @@ router.post('/:id/photos', upload.single('photo'), async (req, res) => {
 });
 
 // POST /api/listings/:id/reserve — забронировать на 24 ч
-router.post('/:id/reserve', async (req, res) => {
+router.post('/:id/reserve', requireUserSession, async (req, res) => {
   const { phone } = req.body;
   const { id } = req.params;
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     await expireReservations(db);
@@ -535,13 +551,14 @@ router.post('/:id/reserve', async (req, res) => {
 });
 
 // POST /api/listings/:id/give — даритель отдал вещь
-router.post('/:id/give', async (req, res) => {
+router.post('/:id/give', requireUserSession, async (req, res) => {
   const { phone } = req.body;
   const { id } = req.params;
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     await expireReservations(db);
@@ -631,13 +648,14 @@ router.post('/:id/give', async (req, res) => {
 });
 
 // POST /api/listings/:id/reactivate — снова активно (лимит получателя не тратится)
-router.post('/:id/reactivate', async (req, res) => {
+router.post('/:id/reactivate', requireUserSession, async (req, res) => {
   const { phone } = req.body;
   const { id } = req.params;
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     const user = await getUserByPhone(db, normalizePhone(phone));
@@ -682,7 +700,7 @@ router.post('/:id/reactivate', async (req, res) => {
 });
 
 // PATCH /api/listings/:id — редактировать своё объявление
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireUserSession, async (req, res) => {
   const { phone, title, description, category, subcategory } = req.body;
   const { id } = req.params;
 
@@ -691,6 +709,7 @@ router.patch('/:id', async (req, res) => {
       error: 'Нужны phone, title, description, category, subcategory',
     });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   const trimmedTitle = String(title).trim();
   const trimmedDescription = String(description).trim();
@@ -755,13 +774,14 @@ router.patch('/:id', async (req, res) => {
 });
 
 // POST /api/listings/:id/delete — удалить своё объявление (скрыть)
-router.post('/:id/delete', async (req, res) => {
+router.post('/:id/delete', requireUserSession, async (req, res) => {
   const { phone } = req.body;
   const { id } = req.params;
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     const user = await getUserByPhone(db, normalizePhone(phone));
@@ -802,13 +822,14 @@ router.post('/:id/delete', async (req, res) => {
 });
 
 // POST /api/listings/:id/report — жалоба (3 → скрытие)
-router.post('/:id/report', async (req, res) => {
+router.post('/:id/report', requireUserSession, async (req, res) => {
   const { phone, reason } = req.body;
   const { id } = req.params;
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     const user = await getUserByPhone(db, normalizePhone(phone));

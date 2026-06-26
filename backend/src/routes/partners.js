@@ -7,6 +7,7 @@ const {
   normalizePartnerCode,
   getNextAvailableActivationCode,
 } = require('../utils/partner_helpers');
+const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
 
 const router = express.Router();
 
@@ -49,11 +50,14 @@ router.get('/next-code', async (_req, res) => {
 });
 
 // GET /api/partners/stats?phone=
-router.get('/stats', async (req, res) => {
+router.get('/stats', requireUserSession, async (req, res) => {
   const { phone } = req.query;
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен параметр phone' });
+  }
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {

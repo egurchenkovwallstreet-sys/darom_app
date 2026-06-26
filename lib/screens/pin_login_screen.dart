@@ -56,9 +56,10 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await _authApi.loginWithPin(phone: widget.phoneNumber, pin: pin);
+      final loginResult = await _authApi.loginWithPin(phone: widget.phoneNumber, pin: pin);
+      await SessionService.saveToken(loginResult.sessionToken);
       final user = await _usersApi.fetchProfile(phone: widget.phoneNumber);
-      await SessionService.save(user);
+      await SessionService.saveLogin(user: user, sessionToken: loginResult.sessionToken);
 
       if (!mounted) return;
 

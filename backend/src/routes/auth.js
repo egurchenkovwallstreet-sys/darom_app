@@ -13,8 +13,8 @@ const {
 } = require('../services/mobile_id_service');
 const { hashPin, verifyPin } = require('../utils/pin_hash');
 const { storeVerifyToken, consumeVerifyToken } = require('../utils/phone_verify_token');
-const { checkAdminAccessByPhone } = require('../utils/admin_auth');
 const { validateActivationCode } = require('../utils/partner_helpers');
+const { createUserSession } = require('../middleware/user_auth');
 const config = require('../config');
 
 const router = express.Router();
@@ -406,16 +406,24 @@ router.post('/set-pin', async (req, res) => {
 
     const pinHash = hashPin(trimmedPin);
 
-    await db.query(
+    const updated = await db.query(
       `
       UPDATE users
       SET pin_hash = $2, pin_set_at = NOW(), phone_verified_at = NOW()
       WHERE phone = $1
+      RETURNING id
       `,
       [normalizedPhone, pinHash]
     );
 
-    res.json({ ok: true, phone: normalizedPhone });
+    const sessionInfo = await createUserSession(updated.rows[0].id);
+
+    res.json({
+      ok: true,
+      phone: normalizedPhone,
+      session_token: sessionInfo.token,
+      expires_at: sessionInfo.expires_at,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -457,8 +465,12 @@ router.post('/login-pin', async (req, res) => {
       return res.status(401).json({ error: 'Неверный пароль' });
     }
 
+    const sessionInfo = await createUserSession(user.id);
+
     res.json({
       ok: true,
+      session_token: sessionInfo.token,
+      expires_at: sessionInfo.expires_at,
       user: {
         id: user.id,
         phone: user.phone,

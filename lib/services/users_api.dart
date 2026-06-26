@@ -6,6 +6,7 @@ import 'package:http_parser/http_parser.dart';
 
 import '../models/user.dart';
 import 'api_config.dart';
+import 'auth_headers.dart';
 import 'partners_api.dart';
 
 class UsersApi {
@@ -35,7 +36,7 @@ class UsersApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 10));
@@ -57,7 +58,7 @@ class UsersApi {
       queryParameters: {'phone': phone},
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -74,7 +75,7 @@ class UsersApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone}),
         )
         .timeout(const Duration(seconds: 10));
@@ -94,7 +95,7 @@ class UsersApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone}),
         )
         .timeout(const Duration(seconds: 10));
@@ -116,6 +117,7 @@ class UsersApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/users/avatar');
     final request = http.MultipartRequest('POST', uri);
     request.fields['phone'] = phone;
+    request.headers.addAll(await authHeaders());
     request.files.add(
       http.MultipartFile.fromBytes(
         'avatar',
@@ -157,7 +159,7 @@ class UsersApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({
             'phone': phone,
             'token': token,

@@ -68,14 +68,15 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     setState(() => _isSaving = true);
 
     try {
-      await _authApi.setPin(
+      final sessionToken = await _authApi.setPin(
         phone: widget.phoneNumber,
         pin: pin,
         verificationToken: widget.verificationToken,
       );
 
+      await SessionService.saveToken(sessionToken);
       final user = await _usersApi.fetchProfile(phone: widget.phoneNumber);
-      await SessionService.save(user);
+      await SessionService.saveLogin(user: user, sessionToken: sessionToken);
 
       if (!mounted) return;
 

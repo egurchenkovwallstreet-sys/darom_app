@@ -7,6 +7,7 @@ import '../models/conversation.dart';
 import '../models/listing.dart';
 import '../models/pickup_limit_info.dart';
 import 'api_config.dart';
+import 'auth_headers.dart';
 import 'listings_api.dart' show PickupLimitException;
 import 'real_phone_required.dart';
 
@@ -20,7 +21,7 @@ class ChatsApi {
       queryParameters: {'phone': phone},
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -41,7 +42,7 @@ class ChatsApi {
         queryParameters: {'phone': phone},
       );
 
-      final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+      final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -57,7 +58,7 @@ class ChatsApi {
       queryParameters: {'phone': phone},
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
       return 0;
@@ -87,7 +88,7 @@ class ChatsApi {
     await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone}),
         )
         .timeout(const Duration(seconds: 10));
@@ -102,7 +103,7 @@ class ChatsApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone, 'listing_id': listingId}),
         )
         .timeout(const Duration(seconds: 10));
@@ -126,7 +127,7 @@ class ChatsApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone, if (reason != null) 'reason': reason}),
         )
         .timeout(const Duration(seconds: 10));
@@ -150,7 +151,7 @@ class ChatsApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/chats/$conversationId/messages')
         .replace(queryParameters: params);
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -178,7 +179,7 @@ class ChatsApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone, 'body': body}),
         )
         .timeout(const Duration(seconds: 10));
@@ -209,7 +210,7 @@ class ChatsApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone}),
         )
         .timeout(const Duration(seconds: 10));

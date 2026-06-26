@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/listing.dart';
 import 'api_config.dart';
+import 'auth_headers.dart';
 
 class FavoritesApi {
   FavoritesApi({http.Client? client}) : _client = client ?? http.Client();
@@ -15,7 +16,7 @@ class FavoritesApi {
       queryParameters: {'phone': phone},
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -35,7 +36,7 @@ class FavoritesApi {
       queryParameters: {'phone': phone},
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
       return {};
@@ -55,7 +56,7 @@ class FavoritesApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone}),
         )
         .timeout(const Duration(seconds: 10));
@@ -74,7 +75,7 @@ class FavoritesApi {
       queryParameters: {'phone': phone},
     );
 
-    final response = await _client.delete(uri).timeout(const Duration(seconds: 10));
+    final response = await _client.delete(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;

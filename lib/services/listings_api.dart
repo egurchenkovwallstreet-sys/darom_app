@@ -9,6 +9,7 @@ import '../models/listing.dart';
 import '../models/listing_limit_info.dart';
 import '../models/pickup_limit_info.dart';
 import 'api_config.dart';
+import 'auth_headers.dart';
 import 'real_phone_required.dart';
 
 export 'real_phone_required.dart' show RealPhoneRequiredException;
@@ -137,7 +138,7 @@ class ListingsApi {
       queryParameters: {'phone': phone},
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -169,7 +170,7 @@ class ListingsApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({
             'phone': phone,
             'title': title,
@@ -214,6 +215,7 @@ class ListingsApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/listings/$listingId/photos');
     final request = http.MultipartRequest('POST', uri);
     request.fields['phone'] = phone;
+    request.headers.addAll(await authHeaders());
     request.files.add(
       http.MultipartFile.fromBytes(
         'photo',
@@ -243,7 +245,7 @@ class ListingsApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone}),
         )
         .timeout(const Duration(seconds: 10));
@@ -283,7 +285,7 @@ class ListingsApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone}),
         )
         .timeout(const Duration(seconds: 10));
@@ -320,7 +322,7 @@ class ListingsApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({
             'phone': phone,
             if (reason != null && reason.isNotEmpty) 'reason': reason,
@@ -358,7 +360,7 @@ class ListingsApi {
     final response = await _client
         .patch(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({
             'phone': phone,
             'title': title,
@@ -384,7 +386,7 @@ class ListingsApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: await jsonAuthHeaders(),
           body: jsonEncode({'phone': phone}),
         )
         .timeout(const Duration(seconds: 10));

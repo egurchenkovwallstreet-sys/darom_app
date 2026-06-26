@@ -299,7 +299,7 @@ class AuthApi {
     return PartnerVerifyCompleteResult.fromJson(body);
   }
 
-  Future<void> setPin({
+  Future<String> setPin({
     required String phone,
     required String pin,
     required String verificationToken,
@@ -323,6 +323,12 @@ class AuthApi {
     if (response.statusCode != 200) {
       throw AuthApiException(body['error'] as String? ?? 'Не удалось сохранить пароль');
     }
+
+    final token = body['session_token'] as String?;
+    if (token == null || token.isEmpty) {
+      throw AuthApiException('Сервер не выдал токен входа');
+    }
+    return token;
   }
 
   Future<PinLoginResult> loginWithPin({
@@ -351,6 +357,7 @@ class AuthApi {
       phone: user['phone'] as String,
       name: user['name'] as String,
       realPhoneVerified: user['real_phone_verified'] as bool? ?? false,
+      sessionToken: body['session_token'] as String,
     );
   }
 
@@ -538,12 +545,14 @@ class PinLoginResult {
     required this.id,
     required this.phone,
     required this.name,
+    required this.sessionToken,
     this.realPhoneVerified = false,
   });
 
   final String id;
   final String phone;
   final String name;
+  final String sessionToken;
   final bool realPhoneVerified;
 }
 

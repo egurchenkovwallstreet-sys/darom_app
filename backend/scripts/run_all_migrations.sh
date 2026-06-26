@@ -30,6 +30,7 @@ MIGRATIONS=(
   migrate_admin_mobile_id.sql
   migrate_fix_photo_urls.sql
   migrate_fix_founders.sql
+  migrate_user_sessions.sql
 )
 
 for file in "${MIGRATIONS[@]}"; do

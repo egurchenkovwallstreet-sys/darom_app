@@ -2,8 +2,11 @@ const express = require('express');
 const db = require('../db/pool');
 const { normalizePhone } = require('../utils/phone');
 const { getUserByPhone, mapListingRow, photoUrlsField } = require('../db/listing_helpers');
+const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
 
 const router = express.Router();
+
+router.use(requireUserSession);
 
 async function fetchFavoriteListings(userId) {
   const result = await db.query(
@@ -49,6 +52,10 @@ router.get('/', async (req, res) => {
     return res.status(400).json({ error: 'Нужен параметр phone' });
   }
 
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
+  }
+
   try {
     const user = await getUserByPhone(db, normalizePhone(phone));
     if (!user) {
@@ -78,6 +85,10 @@ router.get('/ids', async (req, res) => {
     return res.status(400).json({ error: 'Нужен параметр phone' });
   }
 
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
+  }
+
   try {
     const user = await getUserByPhone(db, normalizePhone(phone));
     if (!user) {
@@ -102,6 +113,10 @@ router.post('/:listingId', async (req, res) => {
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
+  }
+
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {
@@ -144,6 +159,10 @@ router.delete('/:listingId', async (req, res) => {
 
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
+  }
+
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {

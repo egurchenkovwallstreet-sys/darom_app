@@ -19,8 +19,22 @@ const {
   notifyListingReserved,
   notifyChatMessage,
 } = require('../services/push_service');
+const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
 
 const router = express.Router();
+
+router.use(requireUserSession);
+
+function ensureSessionPhone(req, res, phoneRaw) {
+  if (!phoneRaw) {
+    res.status(400).json({ error: 'Нужен phone' });
+    return false;
+  }
+  if (!rejectMismatchedPhone(req, res, phoneRaw)) {
+    return false;
+  }
+  return true;
+}
 
 const URL_RE = /https?:\/\/|www\./i;
 
@@ -127,6 +141,7 @@ router.get('/unread-summary', async (req, res) => {
   if (!phone) {
     return res.status(400).json({ error: 'Нужен параметр phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     const user = await getUserByPhone(db, normalizePhone(phone));
@@ -161,6 +176,7 @@ router.get('/', async (req, res) => {
   if (!phone) {
     return res.status(400).json({ error: 'Нужен параметр phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     const user = await getUserByPhone(db, normalizePhone(phone));
@@ -225,6 +241,7 @@ router.post('/start', async (req, res) => {
   if (!phone || !listingId) {
     return res.status(400).json({ error: 'Нужны phone и listing_id' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     const user = await getUserByPhone(db, normalizePhone(phone));
@@ -281,6 +298,7 @@ router.get('/:id/messages', async (req, res) => {
   if (!phone) {
     return res.status(400).json({ error: 'Нужен параметр phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     const user = await getUserByPhone(db, normalizePhone(phone));
@@ -334,6 +352,7 @@ router.post('/:id/read', async (req, res) => {
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     const user = await getUserByPhone(db, normalizePhone(phone));
@@ -361,6 +380,7 @@ router.post('/:id/messages', async (req, res) => {
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   const validation = validateMessageBody(body);
   if (!validation.ok) {
@@ -426,6 +446,7 @@ router.post('/:id/reserve', async (req, res) => {
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     await expireReservations(db);
@@ -495,6 +516,7 @@ router.post('/:id/report', async (req, res) => {
   if (!phone) {
     return res.status(400).json({ error: 'Нужен phone' });
   }
+  if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
     const user = await getUserByPhone(db, normalizePhone(phone));

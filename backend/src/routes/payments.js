@@ -15,6 +15,7 @@ const {
   formatOutSum,
 } = require('../utils/robokassa');
 const { fulfillPayment } = require('../utils/payment_fulfillment');
+const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
 
 const router = express.Router();
 
@@ -80,11 +81,14 @@ async function markPaymentPaid(db, paymentId) {
 }
 
 // POST /api/payments/create { phone, product_type }
-router.post('/create', async (req, res) => {
+router.post('/create', requireUserSession, async (req, res) => {
   const { phone, product_type: productType } = req.body;
 
   if (!phone || !productType) {
     return res.status(400).json({ error: 'Нужны phone и product_type' });
+  }
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {
@@ -147,12 +151,15 @@ router.post('/create', async (req, res) => {
 });
 
 // GET /api/payments/status?inv_id= — проверка после возврата с Робокассы
-router.get('/status', async (req, res) => {
+router.get('/status', requireUserSession, async (req, res) => {
   const invId = Number(req.query.inv_id);
   const phone = req.query.phone;
 
   if (!invId) {
     return res.status(400).json({ error: 'Нужен inv_id' });
+  }
+  if (phone && !rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {

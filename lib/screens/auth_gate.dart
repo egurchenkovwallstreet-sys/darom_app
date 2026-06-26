@@ -21,7 +21,12 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void initState() {
     super.initState();
-    _sessionFuture = SessionService.load().catchError((_) => null);
+    _sessionFuture = _loadSession();
+  }
+
+  Future<SessionData?> _loadSession() async {
+    await SessionService.migrateToTokenSessionIfNeeded();
+    return SessionService.load().catchError((_) => null);
   }
 
   @override
