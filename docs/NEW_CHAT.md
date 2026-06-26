@@ -171,8 +171,8 @@ curl.exe "https://darom-app.online/api/admin/stats/platform?period=day"
 
 | | |
 |---|---|
-| **Этап** | **I — безопасность** (I-D nginx VNC) |
-| **Первый шаг** | I-D: `deploy/NGINX_SECURITY.md` |
-| **Проверки** | 3 curl из блока выше |
+| **Этап** | **I ✅ закрыт** (26.06); чеклист + Робокасса |
+| **Cloudflare** | DNS only (серое ☁️), **не Proxied** — иначе в РФ нужен VPN |
+| **Проверки** | `curl health` → I-F; `nslookup … 8.8.8.8` → 5.129.243.246 |
 | **Cursor** | commit + push сам после каждого подэтапа |
 | **VNC** | git pull + миграция + pm2 restart — вы сами |

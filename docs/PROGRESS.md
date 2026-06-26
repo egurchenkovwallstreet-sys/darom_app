@@ -10,19 +10,21 @@
 
 | | |
 |---|---|
-| **Текущий этап** | **I — безопасность ✅** (26.06); **чеклист** перед запуском для всех; **C — Робокасса** ⏸ |
-| **Публичный запуск** | ⏳ **запрещён** до 100% чеклиста Этапа I (см. ниже) |
+| **Текущий этап** | **I — безопасность ✅** (26.06, I-A…I-F); **чеклист** + **C — Робокасса** ⏸ |
+| **Публичный запуск** | ⏳ до **100% чеклиста** (осталось: Робокасса, Observatory, оферта) |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
 | **Backend** | VPS `5.129.243.246`, PM2 `darom-api`, S3 ✅, **автодеплой** GitHub Actions |
 | **Flutter** | Web в продакшене (`git push` → GitHub Actions) + ПК `:8080` |
 | **Ядро MVP** | ~**99%** |
-| **Полное ТЗ** | ~**75%** |
+| **Полное ТЗ** | ~**76%** |
 | **Пользователь** | новичок, нужны **пошаговые** инструкции |
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
 | **GitHub** | `egurchenkovwallstreet-sys/darom_app` — после изменений **сразу commit + push** |
 
-**Health:** https://darom-app.online/api/health — `security.stage:"I-C"`, `sms.mock:false`, `adminEmail.mock:false`, `payment.mock` (зависит от Робокассы).
+**Health:** `security.stage:"I-F"`, `apiRateLimit:true`, `sms.mock:false`, `adminEmail.mock:false`.  
+**DNS:** Cloudflare **DNS only** (серое ☁️) → `5.129.243.246`; сайт **без VPN** в РФ ✅.  
+**DDoS:** Timeweb «Защита от DDoS» ✅ + rate limit backend + nginx HSTS.
 
 **Новый чат:** скопируйте промпт из `docs/NEW_CHAT.md`.
 
@@ -109,7 +111,7 @@
 | `GET /api/partners/next-code` | `{"code":"0007"…}` | **403** «Доступ запрещён» ✅ I-B |
 | `GET /api/admin/stats/platform` | Закрыто | ✅ без изменений |
 | CORS `Access-Control-Allow-Origin: *` | `*` | Только darom-app.online + localhost:8080 ✅ I-B |
-| Mozilla Observatory | Нет HSTS, CSP… | ⏳ I-D (nginx) |
+| Mozilla Observatory | Нет HSTS, CSP… | HSTS + CSP ✅ I-D |
 
 **Полный список:** `docs/TZ_DAROM.md` → **раздел 13**.
 
@@ -122,7 +124,22 @@
 - **Один раз bootstrap (VNC):** `git fetch && git reset --hard origin/main` — если сервер отставал от GitHub
 - **Вход по PIN:** протестирован в приложении ✅
 
-**Правило:** публичный запуск **для всех** — только после **100% чеклиста** Этапа I.
+**Правило:** публичный запуск **для всех** — только после **100% чеклиста** (раздел ниже).
+
+### Безопасность I-C … I-F + Cloudflare (26.06.2026) ✅
+
+| Подэтап | Результат |
+|---------|-----------|
+| **I-C** | Mock выключены на сервере; legacy `ADMIN_SECRET` убран; pm2 online |
+| **I-D** | nginx HSTS/CSP (`deploy/nginx-security-headers.conf`); curl + браузер ✅ |
+| **I-E** | Cloudflare Free, NS Reg.ru → Cloudflare; **DNS only** (не Proxied — иначе в РФ нужен VPN); Timeweb DDoS ✅ |
+| **I-F** | Rate limit 100 req/min + auth 20/min; `security.stage:"I-F"` |
+
+**Cloudflare + Россия (важно):** оранжевое облако (Proxied) — провайдеры РФ с июня 2025 режут Cloudflare → сайт без VPN не открывался. **Решение:** серое облако **DNS only** → трафик на Timeweb; `nslookup darom-app.online 8.8.8.8` → `5.129.243.246`. Инструкция: `deploy/CLOUDFLARE.md`.
+
+**Flutter dev (ПК :8080):** `api_config.dart` — API через `https://darom-app.online`, не `http://IP:3000` (коммит `7738432`).
+
+**Коммиты:** `d76aa88` I-C … `37e6405` I-F … `103df94` Cloudflare docs … `7738432` api_config.
 
 ---
 
@@ -232,7 +249,7 @@
 | Нативное приложение Android/iOS | ⏳ этап D |
 
 ### Не сделано / ждём
-- **Этап I — осталось:** I-C (mock `.env`), I-D (nginx), I-E (Cloudflare), I-F (общий rate limit) + 100% чеклист
+- **100% чеклист** — Observatory (по желанию), оферта, тест Робокассы
 - **Sightengine** — оружие, алкоголь, табак **по картинке**
 - **Робокасса** — код ✅; **магазин на одобрении** ⏸
 - Роль **moderator**
@@ -324,11 +341,11 @@ pm2 logs darom-api --lines 15
 | Шаг | Что делаем | Успех |
 |-----|------------|-------|
 | I-E1 | Cloudflare Free + домен `darom-app.online` | ✅ |
-| I-E2 | A `@` и `www` → `5.129.243.246`, Proxied ☁️ | ✅ |
+| I-E2 | A `@` и `www` → `5.129.243.246`, **DNS only** (серое ☁️) | ✅ (для РФ без VPN) |
 | I-E3 | NS Reg.ru → `kira` / `weston`.ns.cloudflare.com | ✅ |
 | I-E4 | SSL **Full (strict)** | ✅ |
-| I-E5 | Timeweb DDoS (рекомендуется) | ⏳ если ещё не включили |
-| I-E6 | Сайт + вход по PIN | ✅ (пользователь) |
+| I-E5 | Timeweb «Защита от DDoS» включена | ✅ (26.06) |
+| I-E6 | Сайт + вход по PIN **без VPN** | ✅ (26.06) |
 
 ### Подэтап I-F — Rate limit в backend (P2) ✅ 26.06.2026
 
@@ -365,10 +382,10 @@ pm2 logs darom-api --lines 15
 - [x] I-D2/I-D3: nginx HSTS + заголовки (`Strict-Transport-Security` проверен curl) ✅ (26.06)
 - [x] I-D4: сайт в браузере — вход, лента, карта ✅ (26.06)
 - [ ] I-D5: Observatory B+ или лучше
-- [x] I-E1–I-E4: Cloudflare Active, Proxied, NS Reg.ru, SSL Full (strict) ✅ (26.06)
-- [x] I-E6: сайт и вход по PIN через Cloudflare ✅ (26.06)
-- [ ] I-E5: Timeweb DDoS «Включить» (если ещё не нажали)
-- [ ] HTTPS работает, сертификат не истёк
+- [x] I-E1–I-E4: Cloudflare Active, DNS only (серое облако), NS Reg.ru, SSL Full (strict) ✅
+- [x] I-E5: Timeweb DDoS включена ✅ (26.06)
+- [x] I-E6: сайт **без VPN** в РФ ✅ (26.06)
+- [x] HTTPS работает (Let's Encrypt + Cloudflare DNS only) ✅
 
 ### Бизнес
 - [ ] Робокасса: тестовая оплата 99₽ прошла (или сознательно mock до одобрения)
@@ -601,6 +618,9 @@ backend/
 | Фото не показываются (JPG) | Nginx: `location ^~ /api/` + миграция `migrate_fix_photo_urls.sql` |
 | GitHub Actions: красный крестик | Открыть лог; часто ошибка Flutter-сборки; Re-run после fix |
 | SMS | Боевой: SMS Aero + Mobile ID; `SMS_MOCK=false`, `SMS_AUTH_MODE=mobile_id` на сервере |
+| Сайт не открывается **без VPN** (после Cloudflare) | Cloudflare DNS → **DNS only** (серое ☁️), не Proxied; `deploy/CLOUDFLARE.md` |
+| «Сервер не отвечает» на ПК `:8080` | API → `https://darom-app.online` (`api_config.dart`); backend на Timeweb, `npm run dev` не нужен |
+| `nslookup` без 8.8.8.8 падает, сайт открывается | DNS провайдера глючит; проверка: `nslookup darom-app.online 8.8.8.8` → `5.129.243.246` |
 
 ---
 
@@ -627,14 +647,10 @@ backend/
 
 ## ⏳ Дальше
 
-1. **I-D VNC** — nginx заголовки (`deploy/NGINX_SECURITY.md`)
-2. **I-E** — Cloudflare + файрвол Timeweb
-3. **I-E** — Cloudflare + файрвол Timeweb
-4. **I-F** — общий rate limit API (100 req/min)
-5. **100% чеклист** → только тогда публичный запуск для всех
-6. **Робокасса** — после одобрения магазина
-7. **Sightengine** — оружие/алкоголь/табак на фото
-8. Роль moderator → **D** Android / iOS
+1. **100% чеклист** — Observatory (по желанию), оферта, Робокасса
+2. **Робокасса** — после одобрения магазина → тест 99₽
+3. **Sightengine** — оружие/алкоголь/табак на фото
+4. Роль moderator → **D** Android / iOS
 
 ---
 
@@ -668,7 +684,7 @@ backend/
 - [x] C/F: Yandex Vision — на сервере ✅ (23.06.2026)
 - [x] Приоритет основателя в ленте + подсветка ✅ (23.06.2026)
 - [x] Новые лимиты монетизации (30 объявлений, заборы 5/7→3/5→2) ✅ (23.06.2026)
-- [x] **I-E — Cloudflare + SSL Full (strict)** ✅ (26.06.2026)
+- [x] **I-A … I-F — Безопасность (токены, nginx, rate limit, Cloudflare DNS only, Timeweb DDoS)** ✅ (26.06.2026)
 - [ ] **100% чеклист** + Робокасса ← перед запуском для всех
 - [ ] F: Sightengine — weapon/alcohol/tobacco на фото ⏳
 - [ ] C: Робокасса (код ✅, магазин на одобрении ⏸)

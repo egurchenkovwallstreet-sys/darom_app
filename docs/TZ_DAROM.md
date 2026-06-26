@@ -221,13 +221,13 @@
 11. 🟡 **Flutter Web в продакшене** (GitHub Actions ✅, геолокация HTTPS ✅, иконка ✅)
 12. ⏳ Публикация в магазины (Android / iOS)
 
-**Оценка прогресса (26.06.2026):** ядро MVP ~**99%** | полное ТЗ ~**75%**. Подробности: `docs/PROGRESS.md`.
+**Оценка прогресса (26.06.2026):** ядро MVP ~**99%** | полное ТЗ ~**76%**. Подробности: `docs/PROGRESS.md`.
 
 ## 12. Следующие этапы (приоритет)
 
 | Этап | Задачи | Статус |
 |------|--------|--------|
-| **I — Безопасность** | I-A…F + **I-E Cloudflare** ✅ (26.06) | ✅ **код + Cloudflare** |
+| **I — Безопасность** | I-A…I-F + Cloudflare DNS only + Timeweb DDoS ✅ (26.06) | ✅ **закрыт** |
 | **C — Монетизация** | Робокасса ⏸ (одобрение); SMS Aero ✅; Mobile ID ✅; SMTP ✅; Firebase push ✅ | ⏸ ждём магазин |
 | **D — Магазины** | Android APK / iOS | ⏳ |
 | **E — Уведомления** | Firebase push | ✅ **протестировано** |
@@ -240,22 +240,27 @@
 ## 13. Безопасность — ⚠️ ОЧЕНЬ ВАЖНО (обязательно перед публичным запуском)
 
 > **Правило запуска:** объявлять приложение **для всех** можно только после **Этапа I** и **100% чеклиста** в `docs/PROGRESS.md`.  
-> Аудит 24.06.2026; **I-A и I-B закрыты 26.06.2026** (см. PROGRESS).
+> Аудит 24.06.2026; **Этап I закрыт 26.06.2026** (см. PROGRESS).
 
 ### 13.1 Что уже хорошо ✅
 
 - HTTPS + редирект на HTTPS (darom-app.online)
 - **Сессионные токены после PIN** — защищённые API только с `Authorization: Bearer` (I-A, 26.06)
 - **Закрыт** публичный `GET /api/partners/next-code` — код только в админке (I-B, 26.06)
-- **Rate limit** на `login-pin`, SMS, вход в админку (I-B, 26.06)
+- **Rate limit** — PIN/SMS/админ (I-B); **общий API** 100/min + auth 20/min (I-F, 26.06)
 - **CORS** — только `darom-app.online` + `localhost:8080` (I-B, 26.06)
 - **Webhook Mobile ID** — секрет в URL (`MOBILE_ID_WEBHOOK_SECRET`, I-B)
+- **nginx:** HSTS, CSP, X-Frame, nosniff (I-D, 26.06) — `deploy/nginx-security-headers.conf`
+- **Cloudflare:** DNS на NS Cloudflare, записи **DNS only** (серое ☁️) — сайт в РФ **без VPN** (I-E, 26.06); `deploy/CLOUDFLARE.md`
+- **Timeweb DDoS** — «Защита от DDoS» включена на VPS (I-E, 26.06)
 - **Автодеплой backend** — GitHub Actions `Deploy Backend` (26.06)
+- Боевой `.env` на сервере (mock выключены, I-C); legacy `ADMIN_SECRET` убран
 - Админ-панель: Mobile ID + код с почты; API админки **без токена не пускает**
 - PIN **захеширован** (pbkdf2); блокировка пользователя на защищённых маршрутах
 - Робокасса: проверка подписи callback (в коде)
 - Фото через API `/api/photos/`, не прямой публичный S3
 - Теневой бан &lt;4.0; жалобы 3→скрытие объявления
+- **Flutter dev (:8080):** API → `https://darom-app.online` (`api_config.dart`, 26.06)
 
 ### 13.2 Аудит 24.06.2026 — статус исправлений
 
@@ -268,11 +273,11 @@
 | 🔴 P1 | PIN без rate limit | ✅ **I-B** |
 | 🔴 P1 | Блок пользователя не на всех API | ✅ **I-A** (middleware) |
 | 🟠 P2 | CORS `*` | ✅ **I-B** |
-| 🟠 P2 | `PAYMENT_MOCK`, mock админ-почты | ⏳ **I-C VNC** (код ✅) |
+| 🟠 P2 | `PAYMENT_MOCK`, mock админ-почты | ✅ **I-C** (26.06) |
 | 🟠 P2 | Legacy `ADMIN_SECRET` | ✅ **I-C** (26.06) |
 | 🟠 P2 | Общий rate limit API | ✅ **I-F** (26.06) |
 | 🟡 P3 | nginx: HSTS, CSP, X-Frame, nosniff | ✅ **I-D** (26.06) |
-| 🔵 Infra | DDoS / Cloudflare | ✅ **I-E** (26.06) |
+| 🔵 Infra | DDoS / Cloudflare | ✅ **I-E** — DNS only + Timeweb DDoS (26.06) |
 
 ### 13.2.1 Детали уязвимостей (справочно, аудит 24.06)
 
@@ -283,24 +288,31 @@
 | 🔴 P1 | Подделка webhook | `MOBILE_ID_WEBHOOK_SECRET` в callback URL |
 | 🔴 P1 | Брутфорс PIN | express-rate-limit 5/15 мин |
 | 🟠 P2 | CORS `*` | whitelist origin в `index.js` |
-| 🟡 P3 | Observatory −65 | nginx заголовки (I-D) |
+| 🟡 P3 | Observatory −65 | nginx HSTS/CSP ✅ (I-D) |
 
 ### 13.3 DDoS — отдельно от кода приложения
 
-DDoS **не останавливается** только кодом Node.js. Обязательно:
+DDoS **не останавливается** только кодом Node.js. Реализовано (26.06.2026):
 
-1. **Cloudflare** (бесплатный план) перед доменом
-2. Файрвол Timeweb: открыты только **80/443**
-3. Лимиты **nginx** (connections, body size, rate)
-4. Rate limit в **backend** (дополнение)
+| Слой | Статус |
+|------|--------|
+| **Timeweb DDoS** | ✅ «Защита от DDoS» на VPS |
+| **Cloudflare** | ✅ DNS (NS Cloudflare); записи **DNS only** — для РФ **не Proxied** (иначе провайдеры режут трафик) |
+| **nginx** | ✅ HSTS, CSP, лимит body 20M |
+| **Backend** | ✅ rate limit 100 req/min (I-F) |
+
+> **Россия:** оранжевое облако Cloudflare (Proxied) с июня 2025 часто **не открывается без VPN**. Для «Даром» — только **серое облако** (DNS only). См. `deploy/CLOUDFLARE.md`.
 
 ### 13.4 Обязательная проверка перед запуском для всех
 
 Повторять **после каждого** крупного деплоя безопасности:
 
 ```powershell
-# 0) Версия безопасности — "I-C" или новее; sms.mock и adminEmail.mock — false на боевом
+# 0) security.stage:"I-F", apiRateLimit:true
 curl.exe "https://darom-app.online/api/health"
+
+# DNS — должен быть IP Timeweb, не Cloudflare 104.21.x.x
+nslookup darom-app.online 8.8.8.8
 
 # 1) Профиль без токена — 401, НЕ JSON с данными
 curl.exe "https://darom-app.online/api/users?phone=НОМЕР"
