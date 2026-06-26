@@ -100,12 +100,15 @@ Health: ok:true, s3Ready:true, push.ready:true, vision.ready:true
 ЗАДАЧА ЭТОГО ЧАТА — ЭТАП I БЕЗОПАСНОСТЬ (продолжение)
 ═══════════════════════════════════════
 
-I-A ✅ / I-B ✅ / I-C (код) ✅ — 26.06.2026. **Сейчас: I-C на VNC** (`.env`), затем I-D.
+I-C ✅ — 26.06.2026. **Сейчас: I-D nginx** (`deploy/NGINX_SECURITY.md`).
 
-─── I-C: Сервер .env (я делаю на VNC — команды ниже) ───
-PAYMENT_MOCK=false — только после одобления Робокассы (пока можно true)
-Удалить строку ADMIN_SECRET=… из .env
-pm2 restart darom-api --update-env
+─── I-D: nginx заголовки (VNC — deploy/NGINX_SECURITY.md) ───
+cd /opt/darom_app && git pull
+nano /etc/nginx/sites-available/darom
+# В блок listen 443 ssl добавить:
+#   include /opt/darom_app/deploy/nginx-security-headers.conf;
+nginx -t && systemctl reload nginx
+curl -sI https://darom-app.online/ | grep -i strict-transport
 
 ─── I-D: nginx заголовки (команды для VNC — см. PROGRESS I-D) ───
 HSTS, X-Frame-Options, nosniff, Referrer-Policy, CSP
@@ -168,8 +171,8 @@ curl.exe "https://darom-app.online/api/admin/stats/platform?period=day"
 
 | | |
 |---|---|
-| **Этап** | **I — безопасность** (I-C VNC → I-D) |
-| **Первый шаг** | I-C: `.env` на VNC + проверка health |
+| **Этап** | **I — безопасность** (I-D nginx VNC) |
+| **Первый шаг** | I-D: `deploy/NGINX_SECURITY.md` |
 | **Проверки** | 3 curl из блока выше |
 | **Cursor** | commit + push сам после каждого подэтапа |
 | **VNC** | git pull + миграция + pm2 restart — вы сами |

@@ -10,7 +10,7 @@
 
 | | |
 |---|---|
-| **Текущий этап** | **I — безопасность** ⚠️ **I-A ✅ I-B ✅ I-C** (код 26.06); **следующий: I-C VNC + I-D**; **C — Робокасса** ⏸ |
+| **Текущий этап** | **I — безопасность** ⚠️ **I-A/B/C ✅**; **следующий: I-D nginx (VNC)**; **C — Робокасса** ⏸ |
 | **Публичный запуск** | ⏳ **запрещён** до 100% чеклиста Этапа I (см. ниже) |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
@@ -130,7 +130,7 @@
 
 | № | Этап | Задача | Зачем |
 |---|------|--------|-------|
-| **0** | **I — Безопасность** ← **СЕЙЧАС** | **I-C VNC:** `.env` на сервере; **I-D:** nginx HSTS/CSP | До публичного запуска |
+| **0** | **I — Безопасность** ← **СЕЙЧАС** | **I-D:** nginx HSTS/CSP (`deploy/NGINX_SECURITY.md`); **I-E** Cloudflare | До публичного запуска |
 | **1** | **C — Робокасса** | Дождаться одобрения → тест оплаты; `PAYMENT_MOCK=false` | Монетизация |
 | **2** | **Sightengine** | Оружие/алкоголь/табак на фото | ⏳ после запуска или по приоритету |
 | **3** | Админка | Роль **moderator** | Отдельные модераторы |
@@ -267,14 +267,14 @@
 | I-B5 | CORS: `darom-app.online` + `localhost:8080` | ✅ |
 | I-B6 | Webhook Mobile ID: секрет в URL (`MOBILE_ID_WEBHOOK_SECRET`) | ✅ |
 
-### Подэтап I-C — Сервер и .env (P2, ~0.5 дня, VNC) ⏳
+### Подэтап I-C — Сервер и .env (P2, ~0.5 дня, VNC) ✅ 26.06.2026
 
 | Шаг | Что делаем | Где | Успех |
 |-----|------------|-----|-------|
-| I-C1 | `.env`: `SMS_MOCK=false`, `ADMIN_EMAIL_MOCK=false`; `PAYMENT_MOCK=false` — **после одобрения Робокассы** (или если ключи пустые — безопасно) | `/opt/darom_app/backend/.env` | health: mock false |
+| I-C1 | `.env`: mock выключены | `/opt/darom_app/backend/.env` | ✅ health |
 | I-C2 | Проверить: `.env` **не** в GitHub | git | ✅ в `.gitignore` |
 | I-C3 | Убрать legacy `ADMIN_SECRET` (выплаты только admin token) | `admin.js` | ✅ код 26.06 |
-| I-C4 | Удалить строку `ADMIN_SECRET=…` из `.env` на сервере; `pm2 restart darom-api --update-env` | VNC | online |
+| I-C4 | Удалить `ADMIN_SECRET` из `.env`; pm2 restart | VNC | ✅ online |
 
 **Команды VNC (Терминал 1 на сервере):**
 
@@ -304,23 +304,18 @@ pm2 logs darom-api --lines 15
 
 В логах не должно быть «SMS: тестовый режим» и «Admin email: тестовый режим».
 
-### Подэтап I-D — nginx заголовки (P3, ~0.5 дня, VNC)
+### Подэтап I-D — nginx заголовки (P3, ~0.5 дня, VNC) ⏳
 
-Добавить в `/etc/nginx/sites-available/darom` внутри `server { … }` для HTTPS:
-
-```nginx
-add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-add_header X-Frame-Options "SAMEORIGIN" always;
-add_header X-Content-Type-Options "nosniff" always;
-add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://darom-app.online wss:; font-src 'self' data:;" always;
-```
+**Инструкция:** `deploy/NGINX_SECURITY.md`  
+**Файл заголовков:** `deploy/nginx-security-headers.conf`
 
 | Шаг | Действие | Успех |
 |-----|----------|-------|
-| I-D1 | `nginx -t` | syntax is ok |
-| I-D2 | `systemctl reload nginx` | без ошибок |
-| I-D3 | Observatory → цель **B+** | меньше красных пунктов |
+| I-D1 | `git pull` → в блок `listen 443 ssl` добавить `include .../nginx-security-headers.conf` | файл на месте |
+| I-D2 | `nginx -t` → `systemctl reload nginx` | syntax is ok |
+| I-D3 | `curl -sI https://darom-app.online/` — HSTS, CSP, X-Frame | заголовки видны |
+| I-D4 | Сайт: вход, лента, карта, фото | всё работает |
+| I-D5 | Observatory → цель **B+** | по желанию |
 
 ### Подэтап I-E — DDoS (Infra, ~1 день)
 
@@ -354,10 +349,10 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsaf
 - [x] `curl admin/stats` → «Нужен вход» ✅
 
 ### Сервер
-- [ ] I-C1: mock-режимы выключены на боевом `.env` (SMS, admin email; payment — после Робокассы)
+- [x] I-C1: mock-режимы выключены на боевом `.env` ✅ (26.06, health + pm2 logs)
 - [x] I-C2: `.env` **не** в GitHub ✅
 - [x] I-C3: legacy `ADMIN_SECRET` убран из кода ✅ (26.06)
-- [ ] I-C4: удалить `ADMIN_SECRET` из `.env` на сервере + pm2 restart
+- [x] I-C4: pm2 restart, `darom-api` online ✅ (26.06)
 - [x] Автодеплой backend через GitHub Actions ✅
 
 ### Инфраструктура
@@ -622,8 +617,8 @@ backend/
 
 ## ⏳ Дальше
 
-1. **I-C VNC** — `.env` на сервере (SMS/admin email mock off; удалить ADMIN_SECRET)
-2. **I-D** — nginx: HSTS, CSP, X-Frame, nosniff
+1. **I-D VNC** — nginx заголовки (`deploy/NGINX_SECURITY.md`)
+2. **I-E** — Cloudflare + файрвол Timeweb
 3. **I-E** — Cloudflare + файрвол Timeweb
 4. **I-F** — общий rate limit API (100 req/min)
 5. **100% чеклист** → только тогда публичный запуск для всех
