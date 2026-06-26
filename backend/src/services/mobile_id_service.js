@@ -25,7 +25,11 @@ function canUseMobileId() {
 
 function mobileIdCallbackUrl() {
   const base = String(config.publicBaseUrl || '').replace(/\/$/, '');
-  return `${base}/api/auth/mobile-id/webhook`;
+  const url = `${base}/api/auth/mobile-id/webhook`;
+  if (config.mobileIdWebhookSecret) {
+    return `${url}?secret=${encodeURIComponent(config.mobileIdWebhookSecret)}`;
+  }
+  return url;
 }
 
 async function aeroMobileIdRequest(path, body) {

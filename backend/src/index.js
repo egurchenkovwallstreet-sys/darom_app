@@ -19,7 +19,20 @@ const configRouter = require('./routes/config');
 
 const app = express();
 
-app.use(cors());
+app.set('trust proxy', 1);
+
+const corsOrigins = new Set(config.corsOrigins);
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || corsOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
+  })
+);
 app.use(express.json());
 
 if (config.photoStorage !== 's3') {

@@ -18,6 +18,7 @@ const {
 } = require('../utils/admin_stats');
 const { blockUser, blockListing } = require('../utils/block_helpers');
 const config = require('../config');
+const { adminAuthStartLimiter } = require('../middleware/rate_limit');
 
 const router = express.Router();
 
@@ -47,7 +48,7 @@ function requireSuper(req, res, next) {
 }
 
 // POST /api/admin/auth/start { phone }
-router.post('/auth/start', async (req, res) => {
+router.post('/auth/start', adminAuthStartLimiter, async (req, res) => {
   try {
     const result = await startAdminLogin(db, req.body?.phone);
     if (!result.ok) {

@@ -72,6 +72,11 @@ const config = {
     testMode: process.env.ROBOKASSA_TEST_MODE === 'true',
   },
   paymentMock: process.env.PAYMENT_MOCK !== 'false',
+  mobileIdWebhookSecret: process.env.MOBILE_ID_WEBHOOK_SECRET || '',
+  corsOrigins: (process.env.CORS_ORIGINS || 'https://darom-app.online,http://localhost:8080,http://127.0.0.1:8080')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean),
 };
 
 if (!config.databaseUrl) {
@@ -99,6 +104,9 @@ if (config.smsMock) {
 } else if (config.smsAeroEmail && config.smsAeroApiKey) {
   if (config.smsAeroMobileIdSign && config.smsAuthMode !== 'sms') {
     console.log(`✓ SMS Aero Mobile ID: ${config.smsAeroMobileIdSign}, webhook ${config.publicBaseUrl}/api/auth/mobile-id/webhook`);
+    if (!config.mobileIdWebhookSecret) {
+      console.warn('⚠ Mobile ID webhook: задайте MOBILE_ID_WEBHOOK_SECRET в .env (иначе webhook отклоняет запросы)');
+    }
   } else {
     console.log(`✓ SMS Aero: обычные SMS, ${config.smsAeroEmail}, sign="${config.smsAeroSign}"`);
   }

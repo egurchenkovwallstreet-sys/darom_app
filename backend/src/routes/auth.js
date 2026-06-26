@@ -15,6 +15,8 @@ const { hashPin, verifyPin } = require('../utils/pin_hash');
 const { storeVerifyToken, consumeVerifyToken } = require('../utils/phone_verify_token');
 const { validateActivationCode } = require('../utils/partner_helpers');
 const { createUserSession, formatSessionDbError } = require('../middleware/user_auth');
+const { loginPinLimiter, smsSendLimiter } = require('../middleware/rate_limit');
+const { requireMobileIdWebhookSecret } = require('../middleware/mobile_id_webhook');
 const config = require('../config');
 
 const router = express.Router();
@@ -287,7 +289,7 @@ router.post('/check-phone', async (req, res) => {
 });
 
 // POST /api/auth/send-code { phone, purpose?: register|reset_pin|partner }
-router.post('/send-code', async (req, res) => {
+router.post('/send-code', smsSendLimiter, async (req, res) => {
   const { phone, purpose = 'register' } = req.body;
 
   if (!phone) {
@@ -436,7 +438,7 @@ router.post('/set-pin', async (req, res) => {
 });
 
 // POST /api/auth/login-pin { phone, pin }
-router.post('/login-pin', async (req, res) => {
+router.post('/login-pin', loginPinLimiter, async (req, res) => {
   const { phone, pin } = req.body;
 
   if (!phone || !pin) {
@@ -747,7 +749,7 @@ router.post('/partner-verify/confirm', async (req, res) => {
 });
 
 // POST /api/auth/mobile-id/webhook — SMS Aero Mobile ID
-router.post('/mobile-id/webhook', async (req, res) => {
+router.post('/mobile-id/webhook', requireMobileIdWebhookSecret, async (req, res) => {
   const { id, status } = req.body ?? {};
 
   if (id == null || status == null) {

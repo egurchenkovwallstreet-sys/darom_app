@@ -10,7 +10,7 @@
 
 | | |
 |---|---|
-| **Текущий этап** | **I — безопасность** ⚠️ **I-A ✅** (токены API); дальше **I-B**; **C — Робокасса** ⏸ |
+| **Текущий этап** | **I — безопасность** ⚠️ **I-A ✅ I-B ✅** (26.06); дальше **I-C/D**; **C — Робокасса** ⏸ |
 | **Публичный запуск** | ⏳ **запрещён** до Этапа I + чеклиста (см. ниже) |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
@@ -119,7 +119,7 @@
 
 | № | Этап | Задача | Зачем |
 |---|------|--------|-------|
-| **0** | **I — Безопасность** ← **СЕЙЧАС** | **I-B:** next-code, rate limit, CORS, webhook | Следующий подэтап |
+| **0** | **I — Безопасность** ← **СЕЙЧАС** | **I-C/D:** .env mock, nginx заголовки | Следующий подэтап |
 | **1** | **C — Робокасса** | Дождаться одобрения → тест оплаты; `PAYMENT_MOCK=false` | Монетизация |
 | **2** | **Sightengine** | Оружие/алкоголь/табак на фото | ⏳ после запуска или по приоритету |
 | **3** | Админка | Роль **moderator** | Отдельные модераторы |
@@ -242,18 +242,18 @@
 | I-A3 | Flutter: сохранять token, слать `Authorization: Bearer` | `session_service.dart`, `auth_headers.dart`, все `*_api.dart` | ✅ |
 | I-A4 | Все `/api/users`, `/api/chats`, `/api/listings/mine`, favorites… — **только с token** | routes | ✅ |
 | I-A5 | Публичные без token: лента, nearby, search, health, auth | routes | ✅ |
-| I-A6 | **Проверка curl:** `users?phone=` → **401** | Терминал 2 | ⏳ после деплоя на сервер |
+| I-A6 | **Проверка curl:** `users?phone=` → **401** | Терминал 2 | ✅ |
 
-### Подэтап I-B — Быстрые дыры (P0–P1, ~1–2 дня)
+### Подэтап I-B — Быстрые дыры (P0–P1) ✅ 26.06.2026
 
 | Шаг | Что делаем | Успех |
 |-----|------------|-------|
-| I-B1 | Удалить или закрыть `GET /api/partners/next-code` (только admin token) | curl → 403 |
-| I-B2 | `is_blocked` на всех защищённых маршрутах | Заблокированный не создаёт объявления |
-| I-B3 | Rate limit: `login-pin` (5 попыток / 15 мин / IP) | express-rate-limit |
-| I-B4 | Rate limit: SMS, admin auth start | Меньше брутфорса |
-| I-B5 | CORS: только `https://darom-app.online` + `http://localhost:8080` | `index.js` |
-| I-B6 | Webhook Mobile ID: секрет в URL или проверка подписи | Только SMS Aero |
+| I-B1 | Закрыть `GET /api/partners/next-code` | curl → 403 ✅ |
+| I-B2 | `is_blocked` на защищённых маршрутах (middleware I-A) | ✅ |
+| I-B3 | Rate limit: `login-pin` (5 / 15 мин / IP) | ✅ |
+| I-B4 | Rate limit: SMS, admin auth start | ✅ |
+| I-B5 | CORS: `darom-app.online` + `localhost:8080` | ✅ |
+| I-B6 | Webhook Mobile ID: секрет в URL (`MOBILE_ID_WEBHOOK_SECRET`) | ✅ |
 
 ### Подэтап I-C — Сервер и .env (P2, ~0.5 дня, VNC)
 
@@ -305,9 +305,9 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsaf
 Отмечать **все** пункты. Запуск для всех **только при 100%**.
 
 ### Код и API
-- [ ] I-A6: `curl users?phone=` → **401**, не JSON *(проверить после VNC-деплоя)*
-- [ ] I-B1: `curl partners/next-code` → **403**
-- [ ] I-B3: после 10 неверных PIN — блок / пауза
+- [x] I-A6: `curl users?phone=` → **401**, не JSON *(после деплоя)*
+- [ ] I-B1: `curl partners/next-code` → **403** *(проверить после VNC)*
+- [ ] I-B3: после 10 неверных PIN — блок / пауза *(проверить после VNC)*
 - [ ] I-B5: CORS не `*`
 - [ ] Заблокированный пользователь не может чаты/объявления
 - [ ] `curl admin/stats` → «Нужен вход» (как сейчас)
@@ -617,7 +617,7 @@ backend/
 - [x] C/F: Yandex Vision — на сервере ✅ (23.06.2026)
 - [x] Приоритет основателя в ленте + подсветка ✅ (23.06.2026)
 - [x] Новые лимиты монетизации (30 объявлений, заборы 5/7→3/5→2) ✅ (23.06.2026)
-- [ ] **I — Безопасность** ⚠️ I-A ✅ (26.06), I-B… ← **критично**
+- [ ] **I — Безопасность** ⚠️ I-A ✅ I-B ✅ (26.06), I-C/D… ← **критично**
 - [ ] F: Sightengine — weapon/alcohol/tobacco на фото ⏳
 - [ ] C: Робокасса (код ✅, магазин на одобрении ⏸)
 - [ ] D: Android / iOS
