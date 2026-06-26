@@ -314,7 +314,7 @@ pm2 logs darom-api --lines 15
 | I-D1 | `include .../nginx-security-headers.conf` в блок `443 ssl` | ✅ |
 | I-D2 | `nginx -t` → `systemctl reload nginx` | ✅ |
 | I-D3 | `curl -sI` — HSTS (`Strict-Transport-Security`) | ✅ |
-| I-D4 | Сайт: вход, лента, карта | ⏳ проверить в браузере |
+| I-D4 | Сайт: вход, лента, карта | ✅ (26.06, пользователь) |
 | I-D5 | Observatory → цель **B+** | по желанию |
 
 ### Подэтап I-E — DDoS (Infra, ~1 день)
@@ -357,7 +357,7 @@ pm2 logs darom-api --lines 15
 
 ### Инфраструктура
 - [x] I-D2/I-D3: nginx HSTS + заголовки (`Strict-Transport-Security` проверен curl) ✅ (26.06)
-- [ ] I-D4: сайт в браузере — вход, лента, карта
+- [x] I-D4: сайт в браузере — вход, лента, карта ✅ (26.06)
 - [ ] I-D5: Observatory B+ или лучше
 - [ ] I-E1: Cloudflare подключён (рекомендуется)
 - [ ] HTTPS работает, сертификат не истёк
