@@ -273,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _loadingListings = false;
         _listingsError = error is ListingsApiException
             ? error.message
-            : 'Сервер не отвечает — запустите backend (Терминал 1: npm run dev)';
+            : 'Не удалось связаться с сервером. Проверьте интернет или откройте https://darom-app.online/';
       });
     } finally {
       _listingsLoadInFlight = false;

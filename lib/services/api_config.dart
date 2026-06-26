@@ -35,7 +35,8 @@ class ApiConfig {
     }
 
     if (remoteHost.isNotEmpty) {
-      return 'http://$remoteHost:$port';
+      // Разработка на ПК (:8080) — API через боевой HTTPS, не :3000 (после Cloudflare надёжнее).
+      return 'https://$productionDomain';
     }
 
     return 'http://localhost:$port';
