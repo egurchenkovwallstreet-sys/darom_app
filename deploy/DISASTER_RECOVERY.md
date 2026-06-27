@@ -13,7 +13,7 @@
 curl.exe -s "https://darom-app.online/api/health"
 ```
 
-**Успех:** текст с `"ok":true` и `"security":{"stage":"J-B"` (или новее).
+**Успех:** текст с `"ok":true` и `"security":{"stage":"J-E"` (или новее).
 
 **Сайт не открывается в браузере:** см. разделы ниже по очереди.
 
@@ -83,8 +83,21 @@ curl.exe -s "https://darom-app.online/api/health"
 
 **Где должен быть backup (НЕ в GitHub):**
 
-- Флешка / облако с паролем / менеджер паролей
-- Копия: `/opt/darom_app/backend/.env` на сервере
+- Менеджер паролей (1Password, Bitwarden, KeePass) или зашифрованная флешка
+- На сервере: `/opt/darom_app/backend/.env` + ежедневная копия в `/opt/darom_backups/env/` (скрипт `daily_db_backup.sh`)
+
+**Как сохранить `.env` на свой ПК (один раз, VNC → Терминал 1):**
+
+```bash
+cat /opt/darom_app/backend/.env
+```
+
+1. Выделите **весь** текст в консоли → скопируйте (Ctrl+Shift+C в VNC или меню «Копировать»).
+2. На ПК: откройте **Блокнот** → вставьте → **Файл → Сохранить как** → имя `darom_env_backup.txt`.
+3. Сохраните файл **не в GitHub** и **не в общую папку**: лучше флешка, облако с паролем (Yandex Disk/Google с 2FA) или менеджер паролей.
+4. **Никому не отправляйте** этот файл в чат/e-mail.
+
+Просмотр без сохранения: `cat /opt/darom_app/backend/.env` (только чтение). Редактирование на сервере: `nano /opt/darom_app/backend/.env` (осторожно — Ctrl+O сохранить, Ctrl+X выход).
 
 **Минимальный список переменных:** см. `backend/.env.example` (если есть) или `deploy/` инструкции (SMS, SMTP, FIREBASE, ROBOKASSA, S3, DEPLOY_SECRET).
 
@@ -104,9 +117,24 @@ curl -s http://127.0.0.1:3000/api/health
 |---------------|-----|
 | Контейнер | `docker ps` → `darom_db` |
 | Бэкап Timeweb | Панель VPS → Бэкапы (если включены) |
-| Ручной дамп | Рекомендуется **еженедельно** (команда ниже) |
+| Ручной дамп | Рекомендуется **ежедневно** (скрипт + cron ниже) |
 
-**Создать бэкап (VNC, Терминал 1 на сервере):**
+**Автоматический бэкап (ежедневно, хранение 15 дней):**
+
+После `git pull` на сервере:
+
+```bash
+chmod +x /opt/darom_app/deploy/scripts/daily_db_backup.sh
+/opt/darom_app/deploy/scripts/daily_db_backup.sh
+crontab -l 2>/dev/null | grep -v daily_db_backup.sh | crontab - 2>/dev/null || true
+(crontab -l 2>/dev/null; echo "0 3 * * * /opt/darom_app/deploy/scripts/daily_db_backup.sh >> /var/log/darom_backup.log 2>&1") | crontab -
+crontab -l
+```
+
+**Успех:** в `/opt/darom_backups/` файл `darom_YYYYMMDD.sql`; в `crontab -l` строка с `daily_db_backup.sh`.  
+Копия `.env` (без GitHub): `/opt/darom_backups/env/env_YYYYMMDD.backup` (права только root).
+
+**Создать бэкап вручную (VNC, Терминал 1 на сервере):**
 
 ```bash
 docker exec darom_db pg_dump -U darom darom > /opt/darom_backups/darom_$(date +%Y%m%d).sql
@@ -183,7 +211,7 @@ cd backend && npm install && pm2 restart darom-api --update-env
 - [ ] Три curl из `docs/TZ_DAROM.md` §13.4 (401, 403, админка)
 - [ ] `nslookup darom-app.online 8.8.8.8` → 5.129.243.246
 - [ ] Срок домена Reg.ru
-- [ ] Свежий pg_dump (раздел 6)
+- [ ] Свежий pg_dump (раздел 6) — **авто:** cron `daily_db_backup.sh` ✅
 - [ ] Recovery codes GitHub на месте
 
 ---
