@@ -60,7 +60,9 @@ class _KeyboardInsetPaddingState extends State<KeyboardInsetPadding> {
 
   @override
   Widget build(BuildContext context) {
-    final inset = math.max(_keyboardHeight, MediaQuery.viewInsetsOf(context).bottom);
+    final viewInset = MediaQuery.viewInsetsOf(context).bottom;
+    // Не суммировать: на iOS Safari Flutter уже сжимает viewport, max() давал пустую полосу над клавиатурой.
+    final inset = viewInset > 0 ? viewInset : _keyboardHeight;
     return AnimatedPadding(
       padding: EdgeInsets.only(bottom: inset),
       duration: const Duration(milliseconds: 120),

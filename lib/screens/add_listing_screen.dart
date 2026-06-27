@@ -294,7 +294,22 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final content = KeyboardInsetPadding(child: SafeArea(child: _buildContent()));
+    final content = KeyboardInsetPadding(
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.only(bottom: 16),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: _buildContent(),
+              ),
+            );
+          },
+        ),
+      ),
+    );
     if (widget.inShell) return content;
     return MidnightGlowScreen(child: content);
   }
@@ -352,11 +367,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
                     ),
                   ),
 
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
                           Container(
                             padding: EdgeInsets.all(20),
                             decoration: BoxDecoration(
@@ -675,7 +689,6 @@ class _AddListingScreenState extends State<AddListingScreen> {
                           
                           SizedBox(height: 30),
                         ],
-                      ),
                     ),
                   ),
                 ],
