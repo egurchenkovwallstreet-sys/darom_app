@@ -7,7 +7,9 @@ class Conversation {
   final String recipientId;
   final String counterpartyName;
   final bool isDonor;
+  final bool showReserveButton;
   final bool canReserve;
+  final bool showDonorActions;
   final bool isReservedByMe;
   final String? lastMessage;
   final DateTime? lastMessageAt;
@@ -22,7 +24,9 @@ class Conversation {
     required this.recipientId,
     required this.counterpartyName,
     required this.isDonor,
+    this.showReserveButton = false,
     this.canReserve = false,
+    this.showDonorActions = false,
     this.isReservedByMe = false,
     this.lastMessage,
     this.lastMessageAt,
@@ -30,6 +34,8 @@ class Conversation {
   });
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
+    final showReserveButton = json['show_reserve_button'] as bool? ??
+        _legacyShowReserveButton(json);
     return Conversation(
       id: json['id'] as String,
       listingId: json['listing_id'] as String,
@@ -39,7 +45,9 @@ class Conversation {
       recipientId: json['recipient_id'] as String,
       counterpartyName: json['counterparty_name'] as String,
       isDonor: json['is_donor'] as bool? ?? false,
+      showReserveButton: showReserveButton,
       canReserve: json['can_reserve'] as bool? ?? false,
+      showDonorActions: json['show_donor_actions'] as bool? ?? false,
       isReservedByMe: json['is_reserved_by_me'] as bool? ?? false,
       lastMessage: json['last_message'] as String?,
       lastMessageAt: _parseDate(json['last_message_at']),
@@ -47,9 +55,17 @@ class Conversation {
     );
   }
 
+  static bool _legacyShowReserveButton(Map<String, dynamic> json) {
+    final isDonor = json['is_donor'] as bool? ?? false;
+    final status = json['listing_status'] as String? ?? 'active';
+    return !isDonor && status == 'active';
+  }
+
   Conversation copyWith({
     String? listingStatus,
+    bool? showReserveButton,
     bool? canReserve,
+    bool? showDonorActions,
     bool? isReservedByMe,
     String? lastMessage,
     DateTime? lastMessageAt,
@@ -64,7 +80,9 @@ class Conversation {
       recipientId: recipientId,
       counterpartyName: counterpartyName,
       isDonor: isDonor,
+      showReserveButton: showReserveButton ?? this.showReserveButton,
       canReserve: canReserve ?? this.canReserve,
+      showDonorActions: showDonorActions ?? this.showDonorActions,
       isReservedByMe: isReservedByMe ?? this.isReservedByMe,
       lastMessage: lastMessage ?? this.lastMessage,
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,

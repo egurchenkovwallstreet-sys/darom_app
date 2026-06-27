@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/chat_message.dart';
 import '../models/conversation.dart';
 import '../services/chats_api.dart';
-import '../services/listings_api.dart' show PickupLimitException;
+import '../services/listings_api.dart' show ListingsApi, PickupLimitException;
 import '../services/real_phone_required.dart';
 import '../services/refresh_intervals.dart';
 import '../theme/app_colors.dart';
@@ -13,6 +13,7 @@ import '../widgets/keyboard_inset_padding.dart';
 import '../widgets/phone_sharing_dialog.dart';
 import '../widgets/primary_action_button.dart';
 import '../widgets/pickup_pack_offer_dialog.dart';
+import '../widgets/rating_dialog.dart';
 import '../widgets/real_phone_verify_dialog.dart';
 
 class ChatThreadScreen extends StatefulWidget {
@@ -33,6 +34,7 @@ class ChatThreadScreen extends StatefulWidget {
 
 class _ChatThreadScreenState extends State<ChatThreadScreen> {
   final ChatsApi _api = ChatsApi();
+  final ListingsApi _listingsApi = ListingsApi();
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _inputFocus = FocusNode();
@@ -43,6 +45,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   bool _loading = true;
   bool _sending = false;
   bool _reserving = false;
+  bool _donorActionBusy = false;
   bool _loadInFlight = false;
   Timer? _pollTimer;
   String? _error;
@@ -78,6 +81,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     _inputController.dispose();
     _scrollController.dispose();
     _api.dispose();
+    _listingsApi.dispose();
     super.dispose();
   }
 
@@ -103,7 +107,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   }
 
   Future<void> _loadMessages({bool initial = false}) async {
-    if (_loadInFlight || _sending || _reserving) return;
+    if (_loadInFlight || _sending || _reserving || _donorActionBusy) return;
 
     _loadInFlight = true;
     try {
@@ -184,6 +188,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         showPhoneSharingReminder(context);
       }
       _scrollToBottom();
+      await _loadMessages();
     } catch (error) {
       if (!mounted) return;
       setState(() => _sending = false);
@@ -223,7 +228,11 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       setState(() {
         _conversation = result.conversation;
         _reserving = false;
+        if (result.systemMessage != null) {
+          _messages = _mergeMessages(_messages, [result.systemMessage!]);
+        }
       });
+      await _loadMessages();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.message),
@@ -255,6 +264,84 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     }
   }
 
+  Future<void> _markGiven() async {
+    if (_donorActionBusy) return;
+    setState(() => _donorActionBusy = true);
+    try {
+      final result = await _listingsApi.markGivenWithDeal(
+        listingId: _conversation.listingId,
+        phone: _activePhone,
+      );
+      if (!mounted) return;
+      setState(() {
+        _donorActionBusy = false;
+        _conversation = _conversation.copyWith(
+          listingStatus: result.listing.status,
+          showDonorActions: false,
+          showReserveButton: false,
+        );
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Сделка завершена!'),
+          backgroundColor: Color(0xFF00BFFF),
+        ),
+      );
+      final deal = result.deal;
+      if (deal != null && mounted) {
+        await showRatingDialog(
+          context,
+          dealId: deal.id,
+          counterpartyName: deal.counterpartyName,
+          phoneNumber: _activePhone,
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _donorActionBusy = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$error'),
+          backgroundColor: const Color(0xFFFF5722),
+        ),
+      );
+    }
+  }
+
+  Future<void> _reactivateListing() async {
+    if (_donorActionBusy) return;
+    setState(() => _donorActionBusy = true);
+    try {
+      final updated = await _listingsApi.reactivate(
+        listingId: _conversation.listingId,
+        phone: _activePhone,
+      );
+      if (!mounted) return;
+      setState(() {
+        _donorActionBusy = false;
+        _conversation = _conversation.copyWith(
+          listingStatus: updated.status,
+          showDonorActions: false,
+        );
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Объявление снова активно'),
+          backgroundColor: Color(0xFF00BFFF),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _donorActionBusy = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$error'),
+          backgroundColor: const Color(0xFFFF5722),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -269,7 +356,8 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
             child: Column(
               children: [
                 _buildHeader(),
-                if (_conversation.canReserve) _buildReserveBanner(),
+                if (_conversation.showReserveButton) _buildReserveBanner(),
+                if (_conversation.showDonorActions) _buildDonorActionsBanner(),
                 if (_conversation.isReservedByMe) _buildReservedBanner(),
                 Expanded(child: _buildMessages()),
                 _buildInput(),
@@ -379,17 +467,72 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   }
 
   Widget _buildReserveBanner() {
+    final canReserve = _conversation.canReserve;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: PrimaryActionButton(
-        label: _reserving ? 'Бронируем...' : 'Забронировать на 24 ч',
-        height: 48,
-        fontSize: 15,
-        borderRadius: 14,
-        icon: Icons.schedule,
-        loading: _reserving,
-        gradientColors: PrimaryActionButton.primaryShortGradient,
-        onPressed: _reserving ? null : _reserve,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          PrimaryActionButton(
+            label: _reserving ? 'Бронируем...' : 'Забронировать на 24 ч',
+            height: 48,
+            fontSize: 15,
+            borderRadius: 14,
+            icon: Icons.schedule,
+            loading: _reserving,
+            enabled: canReserve && !_reserving,
+            gradientColors: canReserve
+                ? PrimaryActionButton.primaryShortGradient
+                : const [Color(0xFF616161), Color(0xFF424242)],
+            onPressed: canReserve && !_reserving ? _reserve : null,
+          ),
+          if (!canReserve)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                'Напишите сообщение и дождитесь ответа дарителя',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: const Color(0xFFFFFFFF).withOpacity(0.65),
+                  fontSize: 12,
+                  height: 1.3,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDonorActionsBanner() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Column(
+        children: [
+          PrimaryActionButton(
+            label: _donorActionBusy ? 'Отмечаем...' : 'Отдал вещь',
+            height: 48,
+            fontSize: 15,
+            borderRadius: 14,
+            icon: Icons.check_circle_outline,
+            loading: _donorActionBusy,
+            enabled: !_donorActionBusy,
+            gradientColors: PrimaryActionButton.successGradient,
+            shadowColor: const Color(0xFF4CAF50),
+            onPressed: _donorActionBusy ? null : _markGiven,
+          ),
+          const SizedBox(height: 8),
+          PrimaryActionButton(
+            label: 'Активировать повторно',
+            height: 44,
+            fontSize: 14,
+            borderRadius: 14,
+            enabled: !_donorActionBusy,
+            gradientColors: PrimaryActionButton.warningGradient,
+            shadowColor: const Color(0xFFFFC107),
+            onPressed: _donorActionBusy ? null : _reactivateListing,
+          ),
+        ],
       ),
     );
   }
@@ -438,7 +581,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Text(
-            'Напишите первое сообщение.\nКогда договоритесь — нажмите «Забронировать».',
+            'Напишите первое сообщение.\nКогда даритель ответит — станет доступна кнопка «Забронировать».',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: const Color(0xFFFFFFFF).withOpacity(0.7),
@@ -455,6 +598,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       itemCount: _messages.length,
       itemBuilder: (context, index) {
         final message = _messages[index];
+        if (message.isSystem) {
+          return _buildSystemMessage(message);
+        }
         final isMine = message.senderId == widget.currentUserId;
         return Align(
           alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
@@ -481,6 +627,44 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSystemMessage(ChatMessage message) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.88,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFF9E9E9E).withOpacity(0.18),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF9E9E9E).withOpacity(0.55)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.info_outline, color: Color(0xFF9E9E9E), size: 18),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  message.body,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: const Color(0xFFFFFFFF).withOpacity(0.85),
+                    fontSize: 13,
+                    height: 1.35,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

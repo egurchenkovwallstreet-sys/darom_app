@@ -226,9 +226,16 @@ class ChatsApi {
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
+    ChatMessage? systemMessage;
+    final systemJson = data['system_message'] as Map<String, dynamic>?;
+    if (systemJson != null) {
+      systemMessage = ChatMessage.fromJson(systemJson);
+    }
+
     return ChatReserveResult(
       listing: Listing.fromJson(data['item'] as Map<String, dynamic>),
       conversation: Conversation.fromJson(data['conversation'] as Map<String, dynamic>),
+      systemMessage: systemMessage,
       message: data['message'] as String? ?? 'Забронировано',
     );
   }
@@ -260,11 +267,13 @@ class ChatReserveResult {
   const ChatReserveResult({
     required this.listing,
     required this.conversation,
+    this.systemMessage,
     required this.message,
   });
 
   final Listing listing;
   final Conversation conversation;
+  final ChatMessage? systemMessage;
   final String message;
 }
 
