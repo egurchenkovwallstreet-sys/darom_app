@@ -1,5 +1,9 @@
 const rateLimit = require('express-rate-limit');
 
+/** Лимиты на одного пользователя (один IP). Чаты опрашиваются раз в 1 с → ~120 req/min только на чаты. */
+const API_GENERAL_MAX = 400;
+const AUTH_GENERAL_MAX = 60;
+
 function skipApiRateLimit(req) {
   return (
     req.path === '/health' ||
@@ -8,20 +12,20 @@ function skipApiRateLimit(req) {
   );
 }
 
-/** Общий лимит API: 100 запросов / мин / IP (I-F). */
+/** Общий лимит API: 400 запросов / мин / IP. */
 const apiGeneralLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 100,
+  max: API_GENERAL_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   skip: skipApiRateLimit,
   message: { error: 'Слишком много запросов. Подождите минуту.' },
 });
 
-/** Лимит на /api/auth/*: 20 запросов / мин / IP (I-F). */
+/** Лимит на /api/auth/*: 60 запросов / мин / IP (Mobile ID poll ~30/min). */
 const authGeneralLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 20,
+  max: AUTH_GENERAL_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Слишком много запросов авторизации. Подождите минуту.' },

@@ -6,4 +6,6 @@ module.exports = {
   userSessionAuth: true,
   legacyAdminSecretRemoved: true,
   apiRateLimit: true,
+  apiRateLimitMax: 400,
+  authRateLimitMax: 60,
 };
