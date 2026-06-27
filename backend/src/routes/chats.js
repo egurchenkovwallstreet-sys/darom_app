@@ -26,6 +26,24 @@ const router = express.Router();
 
 router.use(requireUserSession);
 
+const RESERVE_SYSTEM_MESSAGE =
+  'Вещь забронирована. После передачи обязательно отметьте, что сделка прошла успешно — так вам засчитается отданная вещь в рейтинг';
+
+const conversationMessageCountsSelect = `
+  EXISTS (
+    SELECT 1 FROM chat_messages cm_r
+    WHERE cm_r.conversation_id = c.id
+      AND cm_r.sender_id = c.recipient_id
+      AND cm_r.message_type = 'user'
+  ) AS recipient_has_message,
+  EXISTS (
+    SELECT 1 FROM chat_messages cm_d
+    WHERE cm_d.conversation_id = c.id
+      AND cm_d.sender_id = c.donor_id
+      AND cm_d.message_type = 'user'
+  ) AS donor_has_message
+`;
+
 function ensureSessionPhone(req, res, phoneRaw) {
   if (!phoneRaw) {
     res.status(400).json({ error: 'Нужен phone' });
@@ -71,7 +89,8 @@ async function getConversationForUser(conversationId, userId) {
       l.reserved_by_user_id,
       l.reserved_until,
       du.name AS donor_name,
-      ru.name AS recipient_name
+      ru.name AS recipient_name,
+      ${conversationMessageCountsSelect}
     FROM conversations c
     JOIN listings l ON l.id = c.listing_id
     JOIN users du ON du.id = c.donor_id
@@ -85,6 +104,12 @@ async function getConversationForUser(conversationId, userId) {
 
 function mapConversationRow(row, userId) {
   const isDonor = row.donor_id === userId;
+  const isRecipient = row.recipient_id === userId;
+  const listingActive = row.listing_status === 'active';
+  const listingReserved = row.listing_status === 'reserved';
+  const dialogueReady = Boolean(row.recipient_has_message) && Boolean(row.donor_has_message);
+  const showReserveButton = isRecipient && listingActive;
+
   return {
     id: row.id,
     listing_id: row.listing_id,
@@ -94,10 +119,9 @@ function mapConversationRow(row, userId) {
     recipient_id: row.recipient_id,
     counterparty_name: isDonor ? row.recipient_name : row.donor_name,
     is_donor: isDonor,
-    can_reserve:
-      !isDonor &&
-      row.listing_status === 'active' &&
-      row.recipient_id === userId,
+    show_reserve_button: showReserveButton,
+    can_reserve: showReserveButton && dialogueReady,
+    show_donor_actions: isDonor && listingReserved,
     is_reserved_by_me:
       row.listing_status === 'reserved' && row.reserved_by_user_id === userId,
     last_message: row.last_message ?? null,
@@ -133,7 +157,7 @@ const unreadCountSelect = `
     LEFT JOIN conversation_reads cr
       ON cr.conversation_id = cm.conversation_id AND cr.user_id = $1
     WHERE cm.conversation_id = c.id
-      AND cm.sender_id != $1
+      AND (cm.sender_id IS DISTINCT FROM $1 OR cm.message_type = 'system')
       AND cm.created_at > COALESCE(cr.last_read_at, TIMESTAMPTZ '1970-01-01')
   ), 0) AS unread_count
 `;
@@ -161,7 +185,7 @@ router.get('/unread-summary', async (req, res) => {
       LEFT JOIN conversation_reads cr
         ON cr.conversation_id = c.id AND cr.user_id = $1
       WHERE (c.donor_id = $1 OR c.recipient_id = $1)
-        AND cm.sender_id != $1
+        AND (cm.sender_id IS DISTINCT FROM $1 OR cm.message_type = 'system')
         AND cm.created_at > COALESCE(cr.last_read_at, TIMESTAMPTZ '1970-01-01')
       `,
       [user.id]
@@ -205,6 +229,7 @@ router.get('/', async (req, res) => {
         ru.name AS recipient_name,
         lm.body AS last_message,
         lm.created_at AS last_message_at,
+        ${conversationMessageCountsSelect},
         ${unreadCountSelect}
       FROM conversations c
       JOIN listings l ON l.id = c.listing_id
@@ -330,7 +355,7 @@ router.get('/:id/messages', async (req, res) => {
 
     const result = await db.query(
       `
-      SELECT id, conversation_id, sender_id, body, created_at
+      SELECT id, conversation_id, sender_id, body, message_type, created_at
       FROM chat_messages
       WHERE conversation_id = $1 ${afterClause}
       ORDER BY created_at ASC
@@ -475,6 +500,28 @@ router.post('/:id/reserve', async (req, res) => {
       return res.status(400).json({ error: 'Объявление уже забронировано или недоступно' });
     }
 
+    const dialogueCheck = await db.query(
+      `
+      SELECT
+        EXISTS (
+          SELECT 1 FROM chat_messages
+          WHERE conversation_id = $1 AND sender_id = $2 AND message_type = 'user'
+        ) AS recipient_has_message,
+        EXISTS (
+          SELECT 1 FROM chat_messages
+          WHERE conversation_id = $1 AND sender_id = $3 AND message_type = 'user'
+        ) AS donor_has_message
+      `,
+      [id, conversation.recipient_id, conversation.donor_id]
+    );
+    const { recipient_has_message: recipientMessaged, donor_has_message: donorReplied } =
+      dialogueCheck.rows[0] ?? {};
+    if (!recipientMessaged || !donorReplied) {
+      return res.status(400).json({
+        error: 'Сначала договоритесь в чате: напишите сообщение и дождитесь ответа дарителя',
+      });
+    }
+
     const pickupStatus = await getPickupStatus(db, user.id);
     if (!pickupStatus.can_reserve) {
       return res.status(402).json(buildPickupLimitResponse(pickupStatus));
@@ -492,6 +539,17 @@ router.post('/:id/reserve', async (req, res) => {
       [conversation.listing_id, user.id]
     );
 
+    const systemMessageResult = await db.query(
+      `
+      INSERT INTO chat_messages (conversation_id, sender_id, body, message_type)
+      VALUES ($1, NULL, $2, 'system')
+      RETURNING id, conversation_id, sender_id, body, message_type, created_at
+      `,
+      [id, RESERVE_SYSTEM_MESSAGE]
+    );
+
+    await db.query('UPDATE conversations SET updated_at = NOW() WHERE id = $1', [id]);
+
     const updatedListing = await fetchListingById(db, conversation.listing_id);
     const updatedConversation = await getConversationForUser(id, user.id);
 
@@ -505,6 +563,7 @@ router.post('/:id/reserve', async (req, res) => {
     res.json({
       item: mapListingRow(updatedListing),
       conversation: mapConversationRow(updatedConversation, user.id),
+      system_message: systemMessageResult.rows[0],
       message: 'Забронировано на 24 часа',
     });
   } catch (error) {
