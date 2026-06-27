@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import '../data/profile_achievements.dart';
 import '../models/user.dart';
+import '../services/auth_api.dart';
 import '../services/session_service.dart';
 import '../services/users_api.dart';
 import '../widgets/avatar_image.dart';
@@ -32,6 +33,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final UsersApi _usersApi = UsersApi();
+  final AuthApi _authApi = AuthApi();
   final ImagePicker _imagePicker = ImagePicker();
   bool _isEditPressed = false;
   bool _uploadingAvatar = false;
@@ -46,6 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _usersApi.dispose();
+    _authApi.dispose();
     super.dispose();
   }
 
@@ -105,6 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout() async {
+    await _authApi.logout();
     await SessionService.clear();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(

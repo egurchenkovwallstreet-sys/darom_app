@@ -7,11 +7,12 @@ const {
   normalizePartnerCode,
 } = require('../utils/partner_helpers');
 const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
+const { partnerCodeValidateLimiter } = require('../middleware/rate_limit');
 
 const router = express.Router();
 
 // POST /api/partners/validate-activation-code { code }
-router.post('/validate-activation-code', async (req, res) => {
+router.post('/validate-activation-code', partnerCodeValidateLimiter, async (req, res) => {
   const { code } = req.body;
 
   if (!code) {

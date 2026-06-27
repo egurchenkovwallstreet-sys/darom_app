@@ -31,6 +31,7 @@ MIGRATIONS=(
   migrate_fix_photo_urls.sql
   migrate_fix_founders.sql
   migrate_user_sessions.sql
+  migrate_pin_lockout.sql
 )
 
 for file in "${MIGRATIONS[@]}"; do

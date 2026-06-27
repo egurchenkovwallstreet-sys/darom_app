@@ -273,7 +273,9 @@
 | 🔴 P0 | `GET /api/payments/status` — чужой inv_id | ✅ **J-B** (27.06) |
 | 🔴 P0 | `active-verify/*` без Bearer — захват аккаунта | ✅ **J-B** (27.06) |
 | 🔴 P1 | Webhook Mobile ID без секрета | ✅ **I-B** |
-| 🔴 P1 | PIN без rate limit | ✅ **I-B** |
+| 🔴 P1 | PIN без rate limit | ✅ **I-B** + **J-C** (IP + аккаунт) |
+| 🟠 P1 | check-phone enumeration (user_name) | ✅ **J-C** |
+| 🟠 P2 | verify-code / partner-code brute force | ✅ **J-C** (rate limit) |
 | 🔴 P1 | Блок пользователя не на всех API | ✅ **I-A** (middleware) |
 | 🟠 P2 | CORS `*` | ✅ **I-B** |
 | 🟠 P2 | `PAYMENT_MOCK`, mock админ-почты | ✅ **I-C** (26.06) |
@@ -311,7 +313,7 @@ DDoS **не останавливается** только кодом Node.js. Р
 Повторять **после каждого** крупного деплоя безопасности:
 
 ```powershell
-# 0) security.stage:"J-B" (или новее), apiRateLimit:true
+# 0) security.stage:"J-C" (или новее), pinAccountLockout:true
 curl.exe "https://darom-app.online/api/health"
 
 # DNS — должен быть IP Timeweb, не Cloudflare 104.21.x.x

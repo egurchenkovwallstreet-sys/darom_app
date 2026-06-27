@@ -19,8 +19,15 @@ const {
   formatSessionDbError,
   requireUserSession,
   rejectMismatchedPhone,
+  revokeUserSession,
+  revokeAllUserSessions,
 } = require('../middleware/user_auth');
-const { loginPinLimiter, smsSendLimiter } = require('../middleware/rate_limit');
+const {
+  loginPinLimiter,
+  smsSendLimiter,
+  checkPhoneLimiter,
+  verifyCodeLimiter,
+} = require('../middleware/rate_limit');
 const { requireMobileIdWebhookSecret } = require('../middleware/mobile_id_webhook');
 const config = require('../config');
 
@@ -36,11 +43,15 @@ function smsModeForPurpose(purpose) {
   return 'mock';
 }
 
+const PIN_LOCKOUT_ATTEMPTS = 5;
+const PIN_LOCKOUT_MINUTES = 15;
+
 async function fetchAuthUser(normalizedPhone) {
   const result = await db.query(
     `
     SELECT id, phone, name, pin_hash, phone_verified_at, pin_set_at,
-           real_phone_verified_at, is_blocked_permanent, blocked_until
+           real_phone_verified_at, is_blocked_permanent, blocked_until,
+           pin_failed_attempts, pin_locked_until
     FROM users
     WHERE phone = $1
     `,
@@ -240,8 +251,8 @@ async function fetchMobileIdSession(sessionToken, accountPhone, purpose = 'activ
   return result.rows[0] ?? null;
 }
 
-// POST /api/auth/check-phone { phone }
-router.post('/check-phone', async (req, res) => {
+// POST /api/auth/check-phone { phone } — без user_name (J-C: не светить имя посторонним)
+router.post('/check-phone', checkPhoneLimiter, async (req, res) => {
   const { phone } = req.body;
 
   if (!phone) {
@@ -275,7 +286,6 @@ router.post('/check-phone', async (req, res) => {
         has_pin: false,
         needs_sms: false,
         auth_method: 'register',
-        user_name: user.name,
       });
     }
 
@@ -285,8 +295,6 @@ router.post('/check-phone', async (req, res) => {
       has_pin: true,
       needs_sms: false,
       auth_method: 'pin',
-      user_name: user.name,
-      real_phone_verified: Boolean(user.real_phone_verified_at),
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -342,7 +350,7 @@ router.post('/send-code', smsSendLimiter, async (req, res) => {
 });
 
 // POST /api/auth/verify-code { phone, code, purpose?: register|reset_pin|partner }
-router.post('/verify-code', async (req, res) => {
+router.post('/verify-code', verifyCodeLimiter, async (req, res) => {
   const { phone, code, purpose = 'register' } = req.body;
 
   if (!phone || !code) {
@@ -474,9 +482,41 @@ router.post('/login-pin', loginPinLimiter, async (req, res) => {
       });
     }
 
+    if (user.pin_locked_until && new Date(user.pin_locked_until) > new Date()) {
+      const waitMin = Math.max(
+        1,
+        Math.ceil((new Date(user.pin_locked_until).getTime() - Date.now()) / 60000)
+      );
+      return res.status(429).json({
+        error: `Слишком много неверных попыток. Подождите ${waitMin} мин.`,
+      });
+    }
+
     if (!verifyPin(trimmedPin, user.pin_hash)) {
+      const nextAttempts = Number(user.pin_failed_attempts ?? 0) + 1;
+      if (nextAttempts >= PIN_LOCKOUT_ATTEMPTS) {
+        await db.query(
+          `
+          UPDATE users
+          SET pin_failed_attempts = 0,
+              pin_locked_until = NOW() + ($2 || ' minutes')::interval
+          WHERE id = $1
+          `,
+          [user.id, String(PIN_LOCKOUT_MINUTES)]
+        );
+      } else {
+        await db.query('UPDATE users SET pin_failed_attempts = $2 WHERE id = $1', [
+          user.id,
+          nextAttempts,
+        ]);
+      }
       return res.status(401).json({ error: 'Неверный пароль' });
     }
+
+    await db.query(
+      'UPDATE users SET pin_failed_attempts = 0, pin_locked_until = NULL WHERE id = $1',
+      [user.id]
+    );
 
     const sessionInfo = await createUserSession(user.id);
 
@@ -493,6 +533,26 @@ router.post('/login-pin', loginPinLimiter, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: formatSessionDbError(error) });
+  }
+});
+
+// POST /api/auth/logout — отозвать текущую сессию (J-C)
+router.post('/logout', requireUserSession, async (req, res) => {
+  try {
+    await revokeUserSession(req.userSession.token);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/auth/logout-all — выйти на всех устройствах, кроме текущего (J-C)
+router.post('/logout-all', requireUserSession, async (req, res) => {
+  try {
+    await revokeAllUserSessions(req.userSession.userId, req.userSession.token);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

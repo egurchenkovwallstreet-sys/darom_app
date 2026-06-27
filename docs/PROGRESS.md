@@ -22,7 +22,7 @@
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
 | **GitHub** | `egurchenkovwallstreet-sys/darom_app` — после изменений **сразу commit + push** |
 
-**Health:** `security.stage:"J-B"` (после деплоя), `apiRateLimit:true`, `sms.mock:false`, `adminEmail.mock:false`.  
+**Health:** `security.stage:"J-C"` (после деплоя + миграции), `apiRateLimit:true`, `sms.mock:false`, `adminEmail.mock:false`.  
 **DNS:** Cloudflare **DNS only** (серое ☁️) → `5.129.243.246`; сайт **без VPN** в РФ ✅.  
 **DDoS:** Timeweb «Защита от DDoS» ✅ + rate limit backend + nginx HSTS.
 
@@ -167,15 +167,37 @@
 
 **curl без токена (Терминал 2):** users/chats/mine/favorites → **401** ✅ (проверено 27.06)
 
-### J-C … J-G — в работе
+### J-C — Auth и сессии ✅ 27.06.2026
+
+| Шаг | Что сделано |
+|-----|-------------|
+| J-C1 | `check-phone`: rate limit **30 / 15 мин** / IP |
+| J-C2 | `check-phone`: **убрано `user_name`** — имя только после login-pin |
+| J-C3 | PIN: **5 неверных → блок 15 мин** на аккаунт (`migrate_pin_lockout.sql`) + IP limit 5/15 |
+| J-C4 | `POST /api/auth/logout` и `/logout-all` — отзыв токена на сервере |
+| J-C5 | Flutter: выход из профиля вызывает `/api/auth/logout` |
+| J-C6 | `verify-code` rate limit 15/15 мин; partner validate-code 30/15 мин |
+| J-C7 | CSRF: Bearer + CORS whitelist — достаточно для Web (документировано) |
+
+**Один раз на сервере (VNC, Терминал 1):**
+
+```bash
+cd /opt/darom_app
+cat backend/db/migrate_pin_lockout.sql | docker exec -i darom_db psql -U darom -d darom
+git fetch origin && git reset --hard origin/main
+cd backend && npm install && pm2 restart darom-api --update-env
+```
+
+**Успех:** `curl -s https://darom-app.online/api/health` → `"stage":"J-C"`, `"pinAccountLockout":true`
+
+### J-D … J-G — в работе
 
 | Подэтап | Статус | Заметки |
 |---------|--------|---------|
-| **J-C** Auth/сессии | ⏳ | PIN 4 цифры + 5/15 min; нет revoke all sessions |
 | **J-D** Webhook/оплата | ⏳ | Robokassa подпись ✅; повтор callback ✅ idempotent |
 | **J-E** Клиент/XSS | 🟡 | Observatory **B+** ✅; CSP inline — ограничение Flutter Web |
 | **J-F** Утрата контроля | 🟡 черновик | `deploy/DISASTER_RECOVERY.md` — проверить панели |
-| **J-G** Фиксация | ⏳ | PROGRESS + TZ §13; stage J-B |
+| **J-G** Фиксация | ⏳ | PROGRESS + TZ §13 |
 
 ### Приоритет находок (27.06)
 
@@ -184,8 +206,8 @@
 | 🔴 P0 | Payment status IDOR | ✅ J-B |
 | 🔴 P0 | active-verify без сессии | ✅ J-B |
 | 🟠 P1 | Регистрация без SMS → squatting номера | ⚠️ по ТЗ; сброс PIN через SMS |
-| 🟠 P1 | check-phone → user_name (enumeration) | ⏳ J-C |
-| 🟠 P2 | validate-activation-code перебор | ⏳ |
+| 🟠 P1 | check-phone → user_name (enumeration) | ✅ J-C |
+| 🟠 P2 | validate-activation-code перебор | ✅ J-C (rate limit) |
 | 🟡 P3 | health → bucket name | ⏳ |
 | 🔵 Infra | Бэкап pg_dump еженедельно | ⏳ J-F (инструкция готова) |
 

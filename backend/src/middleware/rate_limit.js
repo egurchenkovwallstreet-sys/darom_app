@@ -55,10 +55,40 @@ const adminAuthStartLimiter = rateLimit({
   message: { error: 'Слишком много попыток входа в админку. Подождите 15 минут.' },
 });
 
+/** Перебор номеров через check-phone (J-C). */
+const checkPhoneLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Слишком много проверок номера. Подождите 15 минут.' },
+});
+
+/** Brute-force SMS-кода (J-C). */
+const verifyCodeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Слишком много попыток ввода кода. Подождите 15 минут.' },
+});
+
+/** Перебор кодов партнёра (J-C). */
+const partnerCodeValidateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Слишком много проверок кода. Подождите 15 минут.' },
+});
+
 module.exports = {
   apiGeneralLimiter,
   authGeneralLimiter,
   loginPinLimiter,
   smsSendLimiter,
   adminAuthStartLimiter,
+  checkPhoneLimiter,
+  verifyCodeLimiter,
+  partnerCodeValidateLimiter,
 };

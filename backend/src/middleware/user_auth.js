@@ -37,6 +37,19 @@ async function createUserSession(userId) {
   };
 }
 
+async function revokeUserSession(token) {
+  if (!token) return;
+  await db.query('DELETE FROM user_sessions WHERE token = $1', [token]);
+}
+
+async function revokeAllUserSessions(userId, exceptToken = null) {
+  if (exceptToken) {
+    await db.query('DELETE FROM user_sessions WHERE user_id = $1 AND token != $2', [userId, exceptToken]);
+  } else {
+    await db.query('DELETE FROM user_sessions WHERE user_id = $1', [userId]);
+  }
+}
+
 async function getUserSession(token) {
   if (!token) return null;
 
@@ -122,6 +135,8 @@ module.exports = {
   SESSION_TTL_DAYS,
   getBearerToken,
   createUserSession,
+  revokeUserSession,
+  revokeAllUserSessions,
   getUserSession,
   requireUserSession,
   isBlockedUser,

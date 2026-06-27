@@ -39,7 +39,9 @@
 
 | Метод | Путь | Auth | Данные | IDOR | Статус |
 |-------|------|------|--------|------|--------|
-| POST | `/api/auth/check-phone` | Нет | registered, has_pin, **user_name** | ⚠️ перечисление номеров | P2 |
+| POST | `/api/auth/check-phone` | Нет + rate 30/15m | registered, has_pin (**без user_name**) | phone | ✅ J-C |
+| POST | `/api/auth/logout` | Bearer | отзыв текущей сессии | — | ✅ J-C |
+| POST | `/api/auth/logout-all` | Bearer | все сессии кроме текущей | — | ✅ J-C |
 | POST | `/api/auth/send-code` | Нет + rate | SMS-код | phone в body | ✅ rate 10/15 мин |
 | POST | `/api/auth/verify-code` | Нет | verification_token | phone | ✅ TTL token |
 | POST | `/api/auth/set-pin` | Нет | session_token | verification_token | ⚠️ P1 squatting* |

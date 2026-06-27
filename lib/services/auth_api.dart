@@ -375,6 +375,17 @@ class AuthApi {
     return _parseLoginResponse(body);
   }
 
+  /// Отзывает токен на сервере (J-C). Ошибку игнорируем — localStorage всё равно чистим.
+  Future<void> logout({bool allDevices = false}) async {
+    final path = allDevices ? '/api/auth/logout-all' : '/api/auth/logout';
+    final uri = Uri.parse('${ApiConfig.baseUrl}$path');
+    try {
+      await _client
+          .post(uri, headers: await jsonAuthHeaders())
+          .timeout(const Duration(seconds: 10));
+    } catch (_) {}
+  }
+
   void dispose() => _client.close();
 }
 
