@@ -10,7 +10,6 @@ import 'profile_screen.dart';
 import '../services/chats_api.dart';
 import '../services/push_service.dart';
 import '../services/refresh_intervals.dart';
-import '../widgets/keyboard_inset_padding.dart';
 import '../widgets/midnight_glow_screen.dart';
 
 /// Главная оболочка приложения с нижним меню на всех вкладках.
@@ -81,52 +80,50 @@ class _MainShellState extends State<MainShell> {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return MidnightGlowScreen(
-      bottomNavigationBar: KeyboardInsetPadding(
-        child: Container(
-          clipBehavior: Clip.none,
-          decoration: BoxDecoration(
-            color: const Color(0xFF001F3F).withOpacity(0.95),
-            border: Border(
-              top: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.25)),
-            ),
+      bottomNavigationBar: Container(
+        clipBehavior: Clip.none,
+        decoration: BoxDecoration(
+          color: const Color(0xFF001F3F).withOpacity(0.95),
+          border: Border(
+            top: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.25)),
           ),
-          padding: EdgeInsets.only(top: 8, bottom: bottomInset > 0 ? bottomInset : 8),
-          child: SizedBox(
-            height: 62,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _NavItem(
-                  icon: Icons.home_rounded,
-                  label: 'Главная',
-                  selected: _currentIndex == 0,
-                  onTap: () => _onTabTap(0),
-                ),
-                _NavItem(
-                  icon: Icons.favorite_rounded,
-                  label: 'Избранное',
-                  selected: _currentIndex == 1,
-                  onTap: () => _onTabTap(1),
-                ),
-                _NavAddItem(
-                  selected: _currentIndex == 2,
-                  onTap: () => _onTabTap(2),
-                ),
-                _NavItem(
-                  icon: Icons.chat_bubble_rounded,
-                  label: 'Чаты',
-                  selected: _currentIndex == 3,
-                  badgeCount: _unreadChatCount,
-                  onTap: () => _onTabTap(3),
-                ),
-                _NavItem(
-                  icon: Icons.person_rounded,
-                  label: 'Профиль',
-                  selected: _currentIndex == 4,
-                  onTap: () => _onTabTap(4),
-                ),
-              ],
-            ),
+        ),
+        padding: EdgeInsets.only(top: 8, bottom: bottomInset > 0 ? bottomInset : 8),
+        child: SizedBox(
+          height: 62,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _NavItem(
+                icon: Icons.home_rounded,
+                label: 'Главная',
+                selected: _currentIndex == 0,
+                onTap: () => _onTabTap(0),
+              ),
+              _NavItem(
+                icon: Icons.favorite_rounded,
+                label: 'Избранное',
+                selected: _currentIndex == 1,
+                onTap: () => _onTabTap(1),
+              ),
+              _NavAddItem(
+                selected: _currentIndex == 2,
+                onTap: () => _onTabTap(2),
+              ),
+              _NavItem(
+                icon: Icons.chat_bubble_rounded,
+                label: 'Чаты',
+                selected: _currentIndex == 3,
+                badgeCount: _unreadChatCount,
+                onTap: () => _onTabTap(3),
+              ),
+              _NavItem(
+                icon: Icons.person_rounded,
+                label: 'Профиль',
+                selected: _currentIndex == 4,
+                onTap: () => _onTabTap(4),
+              ),
+            ],
           ),
         ),
       ),
