@@ -173,7 +173,7 @@
 |---------|--------|---------|
 | **J-C** Auth/сессии | ⏳ | PIN 4 цифры + 5/15 min; нет revoke all sessions |
 | **J-D** Webhook/оплата | ⏳ | Robokassa подпись ✅; повтор callback ✅ idempotent |
-| **J-E** Клиент/XSS | ⏳ | Чаты — plain text Flutter; ссылки блокируются |
+| **J-E** Клиент/XSS | 🟡 | Observatory **B+** ✅; CSP inline — ограничение Flutter Web |
 | **J-F** Утрата контроля | 🟡 черновик | `deploy/DISASTER_RECOVERY.md` — проверить панели |
 | **J-G** Фиксация | ⏳ | PROGRESS + TZ §13; stage J-B |
 
@@ -430,7 +430,7 @@ pm2 logs darom-api --lines 15
 ### Инфраструктура
 - [x] I-D2/I-D3: nginx HSTS + заголовки (`Strict-Transport-Security` проверен curl) ✅ (26.06)
 - [x] I-D4: сайт в браузере — вход, лента, карта ✅ (26.06)
-- [ ] I-D5: Observatory B+ или лучше
+- [x] I-D5: Observatory **B+** (80/100, 27.06) — CSP −20 из‑за Flutter Web `unsafe-inline` ✅
 - [x] I-E1–I-E4: Cloudflare Active, DNS only (серое облако), NS Reg.ru, SSL Full (strict) ✅
 - [x] I-E5: Timeweb DDoS включена ✅ (26.06)
 - [x] I-E6: сайт **без VPN** в РФ ✅ (26.06)
