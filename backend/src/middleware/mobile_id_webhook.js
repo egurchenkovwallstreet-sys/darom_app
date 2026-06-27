@@ -1,16 +1,16 @@
 const config = require('../config');
-const { canUseMobileId } = require('../services/mobile_id_service');
 
 function requireMobileIdWebhookSecret(req, res, next) {
   const secret = config.mobileIdWebhookSecret;
 
+  // Без секрета — только явный dev-режим SMS_MOCK (J-D)
   if (!secret) {
-    if (!config.smsMock && canUseMobileId()) {
-      return res.status(503).json({
-        error: 'Webhook Mobile ID не настроен: задайте MOBILE_ID_WEBHOOK_SECRET в backend/.env',
-      });
+    if (config.smsMock) {
+      return next();
     }
-    return next();
+    return res.status(503).json({
+      error: 'Webhook Mobile ID не настроен: задайте MOBILE_ID_WEBHOOK_SECRET в backend/.env',
+    });
   }
 
   const provided = String(

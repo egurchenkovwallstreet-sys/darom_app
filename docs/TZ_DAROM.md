@@ -272,7 +272,8 @@
 | 🔴 P0 | `GET /api/partners/next-code` публично | ✅ **I-B** |
 | 🔴 P0 | `GET /api/payments/status` — чужой inv_id | ✅ **J-B** (27.06) |
 | 🔴 P0 | `active-verify/*` без Bearer — захват аккаунта | ✅ **J-B** (27.06) |
-| 🔴 P1 | Webhook Mobile ID без секрета | ✅ **I-B** |
+| 🔴 P0 | Robokassa повторный callback — двойное начисление | ✅ **J-D** (27.06) |
+| 🔴 P1 | Webhook Mobile ID без секрета | ✅ **I-B** + **J-D** (strict) |
 | 🔴 P1 | PIN без rate limit | ✅ **I-B** + **J-C** (IP + аккаунт) |
 | 🟠 P1 | check-phone enumeration (user_name) | ✅ **J-C** |
 | 🟠 P2 | verify-code / partner-code brute force | ✅ **J-C** (rate limit) |

@@ -69,17 +69,6 @@ async function resolvePaymentQuote(db, user, productType) {
   throw new Error('Неизвестный product_type. Допустимо: super_donor, pickup_pack');
 }
 
-async function markPaymentPaid(db, paymentId) {
-  await db.query(
-    `
-    UPDATE payments
-    SET status = 'paid', paid_at = NOW()
-    WHERE id = $1 AND status = 'pending'
-    `,
-    [paymentId],
-  );
-}
-
 // POST /api/payments/create { phone, product_type }
 router.post('/create', requireUserSession, async (req, res) => {
   const { phone, product_type: productType } = req.body;
@@ -210,28 +199,56 @@ router.post('/robokassa/result', express.urlencoded({ extended: false }), async 
     const invId = Number(params.InvId);
     const outSum = formatOutSum(params.OutSum);
 
-    const paymentResult = await db.query('SELECT * FROM payments WHERE inv_id = $1', [invId]);
-    const payment = paymentResult.rows[0];
-    if (!payment) {
-      return res.status(404).send('payment not found');
+    const claim = await db.query(
+      `
+      UPDATE payments
+      SET status = 'paid', paid_at = NOW()
+      WHERE inv_id = $1 AND status = 'pending'
+      RETURNING *
+      `,
+      [invId],
+    );
+
+    if (claim.rowCount === 0) {
+      const existing = await db.query('SELECT status FROM payments WHERE inv_id = $1', [invId]);
+      if (!existing.rows[0]) {
+        return res.status(404).send('payment not found');
+      }
+      if (existing.rows[0].status === 'paid') {
+        return res.send(`OK${invId}`);
+      }
+      return res.status(409).send('not pending');
+    }
+
+    const payment = claim.rows[0];
+
+    if (formatOutSum(payment.amount_rub) !== outSum) {
+      await db.query(
+        `UPDATE payments SET status = 'pending', paid_at = NULL WHERE id = $1`,
+        [payment.id],
+      );
+      return res.status(400).send('bad amount');
     }
 
     const userResult = await db.query('SELECT * FROM users WHERE id = $1', [payment.user_id]);
     const user = userResult.rows[0];
     if (!user) {
+      await db.query(
+        `UPDATE payments SET status = 'pending', paid_at = NULL WHERE id = $1`,
+        [payment.id],
+      );
       return res.status(404).send('user not found');
     }
 
-    if (formatOutSum(payment.amount_rub) !== outSum) {
-      return res.status(400).send('bad amount');
+    try {
+      await fulfillPayment(db, payment, user);
+    } catch (fulfillError) {
+      await db.query(
+        `UPDATE payments SET status = 'pending', paid_at = NULL WHERE id = $1`,
+        [payment.id],
+      );
+      throw fulfillError;
     }
-
-    if (payment.status === 'paid') {
-      return res.send(`OK${invId}`);
-    }
-
-    await fulfillPayment(db, payment, user);
-    await markPaymentPaid(db, payment.id);
 
     res.send(`OK${invId}`);
   } catch (error) {

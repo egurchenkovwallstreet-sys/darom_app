@@ -22,7 +22,7 @@
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
 | **GitHub** | `egurchenkovwallstreet-sys/darom_app` — после изменений **сразу commit + push** |
 
-**Health:** `security.stage:"J-C"` (после деплоя + миграции), `apiRateLimit:true`, `sms.mock:false`, `adminEmail.mock:false`.  
+**Health:** `security.stage:"J-D"` (после деплоя), `robokassaCallbackIdempotent:true`.  
 **DNS:** Cloudflare **DNS only** (серое ☁️) → `5.129.243.246`; сайт **без VPN** в РФ ✅.  
 **DDoS:** Timeweb «Защита от DDoS» ✅ + rate limit backend + nginx HSTS.
 
@@ -190,11 +190,20 @@ cd backend && npm install && pm2 restart darom-api --update-env
 
 **Успех:** `curl -s https://darom-app.online/api/health` → `"stage":"J-C"`, `"pinAccountLockout":true`
 
-### J-D … J-G — в работе
+### J-D — Webhook, оплата, интеграции ✅ 27.06.2026
+
+| Шаг | Результат |
+|-----|-----------|
+| J-D1 | Mobile ID webhook: без секрета → **403**; без `.env` secret на бою → **503** |
+| J-D2 | Робokassa: подпись + сумма + **idempotent claim** (повторный callback без двойного начисления) |
+| J-D3 | Секреты только в `backend/.env` / GitHub Secrets — не в Flutter, не в git |
+| J-D4 | Документ: `docs/security/J-D_INTEGRATIONS.md` |
+
+### J-E … J-G — в работе
 
 | Подэтап | Статус | Заметки |
 |---------|--------|---------|
-| **J-D** Webhook/оплата | ⏳ | Robokassa подпись ✅; повтор callback ✅ idempotent |
+| **J-D** Webhook/оплата | ✅ 27.06 | см. `docs/security/J-D_INTEGRATIONS.md` |
 | **J-E** Клиент/XSS | 🟡 | Observatory **B+** ✅; CSP inline — ограничение Flutter Web |
 | **J-F** Утрата контроля | 🟡 черновик | `deploy/DISASTER_RECOVERY.md` — проверить панели |
 | **J-G** Фиксация | ⏳ | PROGRESS + TZ §13 |
@@ -205,6 +214,7 @@ cd backend && npm install && pm2 restart darom-api --update-env
 |-----------|---------|--------|
 | 🔴 P0 | Payment status IDOR | ✅ J-B |
 | 🔴 P0 | active-verify без сессии | ✅ J-B |
+| 🔴 P0 | Robokassa double-callback | ✅ J-D |
 | 🟠 P1 | Регистрация без SMS → squatting номера | ⚠️ по ТЗ; сброс PIN через SMS |
 | 🟠 P1 | check-phone → user_name (enumeration) | ✅ J-C |
 | 🟠 P2 | validate-activation-code перебор | ✅ J-C (rate limit) |
@@ -756,8 +766,7 @@ backend/
 - [x] Приоритет основателя в ленте + подсветка ✅ (23.06.2026)
 - [x] Новые лимиты монетизации (30 объявлений, заборы 5/7→3/5→2) ✅ (23.06.2026)
 - [x] **I-A … I-F — Безопасность (токены, nginx, rate limit, Cloudflare DNS only, Timeweb DDoS)** ✅ (26.06.2026)
-- [ ] **J — Глубокий аудит** (J-A ✅, J-B ✅, J-C…G ⏳) ← **текущий**
-- [ ] **100% чеклист** + Робокасса ← перед запуском для всех
+| **J — Глубокий аудит** | J-A…D ✅; J-E…G ⏳ | 🟡 **в работе** |- [ ] **100% чеклист** + Робокасса ← перед запуском для всех
 - [ ] F: Sightengine — weapon/alcohol/tobacco на фото ⏳
 - [ ] C: Робокасса (код ✅, магазин на одобрении ⏸)
 - [ ] D: Android / iOS
