@@ -1,6 +1,8 @@
 /** Метка версии безопасности — видна в GET /api/health (для проверки деплоя). */
 module.exports = {
-  stage: 'I-F',
+  stage: 'J-B',
+  activeVerifySessionRequired: true,
+  paymentStatusOwnerCheck: true,
   partnersNextCodeClosed: true,
   corsRestricted: true,
   userSessionAuth: true,

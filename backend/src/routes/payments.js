@@ -178,6 +178,10 @@ router.get('/status', requireUserSession, async (req, res) => {
       return res.status(404).json({ error: 'Заказ не найден' });
     }
 
+    if (payment.user_id !== req.userSession.userId) {
+      return res.status(403).json({ error: 'Заказ принадлежит другому пользователю' });
+    }
+
     if (phone && normalizePhone(phone) !== payment.phone) {
       return res.status(403).json({ error: 'Заказ принадлежит другому пользователю' });
     }

@@ -228,6 +228,7 @@
 | Этап | Задачи | Статус |
 |------|--------|--------|
 | **I — Безопасность** | I-A…I-F + Cloudflare DNS only + Timeweb DDoS ✅ (26.06) | ✅ **закрыт** |
+| **J — Глубокий аудит** | J-A карта API ✅; J-B P0 утечки ✅; J-C…G ⏳ | 🟡 **в работе** |
 | **C — Монетизация** | Робокасса ⏸ (одобрение); SMS Aero ✅; Mobile ID ✅; SMTP ✅; Firebase push ✅ | ⏸ ждём магазин |
 | **D — Магазины** | Android APK / iOS | ⏳ |
 | **E — Уведомления** | Firebase push | ✅ **протестировано** |
@@ -269,6 +270,8 @@
 | 🔴 P0 | API без токена после PIN | ✅ **I-A** (26.06) |
 | 🔴 P0 | `GET /api/users?phone=` без авторизации | ✅ **I-A** |
 | 🔴 P0 | `GET /api/partners/next-code` публично | ✅ **I-B** |
+| 🔴 P0 | `GET /api/payments/status` — чужой inv_id | ✅ **J-B** (27.06) |
+| 🔴 P0 | `active-verify/*` без Bearer — захват аккаунта | ✅ **J-B** (27.06) |
 | 🔴 P1 | Webhook Mobile ID без секрета | ✅ **I-B** |
 | 🔴 P1 | PIN без rate limit | ✅ **I-B** |
 | 🔴 P1 | Блок пользователя не на всех API | ✅ **I-A** (middleware) |
@@ -308,7 +311,7 @@ DDoS **не останавливается** только кодом Node.js. Р
 Повторять **после каждого** крупного деплоя безопасности:
 
 ```powershell
-# 0) security.stage:"I-F", apiRateLimit:true
+# 0) security.stage:"J-B" (или новее), apiRateLimit:true
 curl.exe "https://darom-app.online/api/health"
 
 # DNS — должен быть IP Timeweb, не Cloudflare 104.21.x.x

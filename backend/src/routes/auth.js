@@ -14,7 +14,12 @@ const {
 const { hashPin, verifyPin } = require('../utils/pin_hash');
 const { storeVerifyToken, consumeVerifyToken } = require('../utils/phone_verify_token');
 const { validateActivationCode } = require('../utils/partner_helpers');
-const { createUserSession, formatSessionDbError } = require('../middleware/user_auth');
+const {
+  createUserSession,
+  formatSessionDbError,
+  requireUserSession,
+  rejectMismatchedPhone,
+} = require('../middleware/user_auth');
 const { loginPinLimiter, smsSendLimiter } = require('../middleware/rate_limit');
 const { requireMobileIdWebhookSecret } = require('../middleware/mobile_id_webhook');
 const config = require('../config');
@@ -491,12 +496,15 @@ router.post('/login-pin', loginPinLimiter, async (req, res) => {
   }
 });
 
-// POST /api/auth/active-verify/send { phone, verify_phone }
-router.post('/active-verify/send', async (req, res) => {
+// POST /api/auth/active-verify/send { phone, verify_phone } — только владелец сессии (J-B)
+router.post('/active-verify/send', requireUserSession, async (req, res) => {
   const { phone, verify_phone: verifyPhoneRaw } = req.body;
 
   if (!phone || !verifyPhoneRaw) {
     return res.status(400).json({ error: 'Нужны phone и verify_phone' });
+  }
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {
@@ -541,11 +549,14 @@ router.post('/active-verify/send', async (req, res) => {
 });
 
 // GET /api/auth/active-verify/poll?phone=&session_token=
-router.get('/active-verify/poll', async (req, res) => {
+router.get('/active-verify/poll', requireUserSession, async (req, res) => {
   const { phone, session_token: sessionToken } = req.query;
 
   if (!phone || !sessionToken) {
     return res.status(400).json({ error: 'Нужны phone и session_token' });
+  }
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {
@@ -571,11 +582,14 @@ router.get('/active-verify/poll', async (req, res) => {
 });
 
 // POST /api/auth/active-verify/complete { phone, session_token }
-router.post('/active-verify/complete', async (req, res) => {
+router.post('/active-verify/complete', requireUserSession, async (req, res) => {
   const { phone, session_token: sessionToken } = req.body;
 
   if (!phone || !sessionToken) {
     return res.status(400).json({ error: 'Нужны phone и session_token' });
+  }
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {
@@ -772,11 +786,14 @@ router.post('/mobile-id/webhook', requireMobileIdWebhookSecret, async (req, res)
 });
 
 // POST /api/auth/active-verify/confirm { phone, verify_phone, code, session_token? }
-router.post('/active-verify/confirm', async (req, res) => {
+router.post('/active-verify/confirm', requireUserSession, async (req, res) => {
   const { phone, verify_phone: verifyPhoneRaw, code, session_token: sessionToken } = req.body;
 
   if (!phone || !verifyPhoneRaw) {
     return res.status(400).json({ error: 'Нужны phone и verify_phone' });
+  }
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
   }
 
   try {

@@ -6,11 +6,11 @@
 
 ---
 
-## Снимок на 26.06.2026
+## Снимок на 27.06.2026
 
 | | |
 |---|---|
-| **Текущий этап** | **I — безопасность ✅** (26.06, I-A…I-F); **чеклист** + **C — Робокасса** ⏸ |
+| **Текущий этап** | **J — глубокий аудит безопасности** (J-A ✅, J-B ✅ частично); I ✅; чеклист + Робокасса ⏸ |
 | **Публичный запуск** | ⏳ до **100% чеклиста** (осталось: Робокасса, Observatory, оферта) |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
@@ -22,7 +22,7 @@
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
 | **GitHub** | `egurchenkovwallstreet-sys/darom_app` — после изменений **сразу commit + push** |
 
-**Health:** `security.stage:"I-F"`, `apiRateLimit:true`, `sms.mock:false`, `adminEmail.mock:false`.  
+**Health:** `security.stage:"J-B"` (после деплоя), `apiRateLimit:true`, `sms.mock:false`, `adminEmail.mock:false`.  
 **DNS:** Cloudflare **DNS only** (серое ☁️) → `5.129.243.246`; сайт **без VPN** в РФ ✅.  
 **DDoS:** Timeweb «Защита от DDoS» ✅ + rate limit backend + nginx HSTS.
 
@@ -139,7 +139,55 @@
 
 **Flutter dev (ПК :8080):** `api_config.dart` — API через `https://darom-app.online`, не `http://IP:3000` (коммит `7738432`).
 
-**Коммиты:** `d76aa88` I-C … `37e6405` I-F … `103df94` Cloudflare docs … `7738432` api_config.
+**Коммиты:** `d76aa88` I-C … `7738432` api_config … **J-B** payment IDOR + active-verify session.
+
+---
+
+## 🔒 Этап J — глубокий аудит безопасности (27.06.2026)
+
+> Полная карта API: `docs/security/J-A_ENDPOINTS.md`  
+> Восстановление после сбоев: `deploy/DISASTER_RECOVERY.md`
+
+### J-A — Инвентаризация и карта атаки ✅
+
+| Шаг | Результат |
+|-----|-----------|
+| J-A1 | Пройдены все routes в `backend/src/routes/*.js` |
+| J-A2 | Таблица endpoint / auth / IDOR — `docs/security/J-A_ENDPOINTS.md` |
+| J-A3 | Deploy: только `X-Deploy-Secret`; Flutter token в localStorage |
+| J-A4 | Секреты: `.env` не в git; Firebase web — публичные ключи через `/api/config` |
+
+### J-B — Утечки данных (P0) ✅ 27.06.2026
+
+| Находка | Было | Исправление |
+|---------|------|-------------|
+| `GET /api/payments/status?inv_id=` | Любой Bearer мог читать чужой заказ | Проверка `payment.user_id === session.userId` |
+| `POST /api/auth/active-verify/*` | Без Bearer — захват аккаунта до verify | `requireUserSession` + `rejectMismatchedPhone` |
+| Flutter `auth_api.dart` | active-verify без Bearer | `jsonAuthHeaders()` / `authHeaders()` |
+
+**curl без токена (Терминал 2):** users/chats/mine/favorites → **401** ✅ (проверено 27.06)
+
+### J-C … J-G — в работе
+
+| Подэтап | Статус | Заметки |
+|---------|--------|---------|
+| **J-C** Auth/сессии | ⏳ | PIN 4 цифры + 5/15 min; нет revoke all sessions |
+| **J-D** Webhook/оплата | ⏳ | Robokassa подпись ✅; повтор callback ✅ idempotent |
+| **J-E** Клиент/XSS | ⏳ | Чаты — plain text Flutter; ссылки блокируются |
+| **J-F** Утрата контроля | 🟡 черновик | `deploy/DISASTER_RECOVERY.md` — проверить панели |
+| **J-G** Фиксация | ⏳ | PROGRESS + TZ §13; stage J-B |
+
+### Приоритет находок (27.06)
+
+| Приоритет | Находка | Статус |
+|-----------|---------|--------|
+| 🔴 P0 | Payment status IDOR | ✅ J-B |
+| 🔴 P0 | active-verify без сессии | ✅ J-B |
+| 🟠 P1 | Регистрация без SMS → squatting номера | ⚠️ по ТЗ; сброс PIN через SMS |
+| 🟠 P1 | check-phone → user_name (enumeration) | ⏳ J-C |
+| 🟠 P2 | validate-activation-code перебор | ⏳ |
+| 🟡 P3 | health → bucket name | ⏳ |
+| 🔵 Infra | Бэкап pg_dump еженедельно | ⏳ J-F (инструкция готова) |
 
 ---
 
@@ -147,7 +195,8 @@
 
 | № | Этап | Задача | Зачем |
 |---|------|--------|-------|
-| **0** | **Чеклист + Робокасса** | 100% чеклист; тест оплаты после одобрения | Перед запуском для всех |
+| **0** | **J — аудит** | J-C…J-G + 100% чеклист | Перед запуском для всех |
+| **1** | **Чеклист + Робокасса** | 100% чеклист; тест оплаты после одобрения | Перед запуском для всех |
 | **1** | **C — Робокасса** | Дождаться одобрения → тест оплаты; `PAYMENT_MOCK=false` | Монетизация |
 | **2** | **Sightengine** | Оружие/алкоголь/табак на фото | ⏳ после запуска или по приоритету |
 | **3** | Админка | Роль **moderator** | Отдельные модераторы |
@@ -685,6 +734,7 @@ backend/
 - [x] Приоритет основателя в ленте + подсветка ✅ (23.06.2026)
 - [x] Новые лимиты монетизации (30 объявлений, заборы 5/7→3/5→2) ✅ (23.06.2026)
 - [x] **I-A … I-F — Безопасность (токены, nginx, rate limit, Cloudflare DNS only, Timeweb DDoS)** ✅ (26.06.2026)
+- [ ] **J — Глубокий аудит** (J-A ✅, J-B ✅, J-C…G ⏳) ← **текущий**
 - [ ] **100% чеклист** + Робокасса ← перед запуском для всех
 - [ ] F: Sightengine — weapon/alcohol/tobacco на фото ⏳
 - [ ] C: Робокасса (код ✅, магазин на одобрении ⏸)
