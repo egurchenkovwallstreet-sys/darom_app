@@ -10,7 +10,10 @@ const {
 } = require('../utils/pickup_limits');
 const {
   isRobokassaConfigured,
-  buildPaymentUrl,
+  buildPaymentForm,
+  buildPaymentRedirectToken,
+  verifyPaymentRedirectToken,
+  buildPaymentRedirectHtml,
   verifyResultSignature,
   formatOutSum,
 } = require('../utils/robokassa');
@@ -34,7 +37,7 @@ async function resolvePaymentQuote(db, user, productType) {
     return {
       amountRub: SUPER_DONOR_PRICE_RUB,
       tierAtPurchase: null,
-      description: 'Супер даритель 10 объявлений 30 дней',
+      description: 'Super daritel 10 objavlenij',
     };
   }
 
@@ -62,11 +65,19 @@ async function resolvePaymentQuote(db, user, productType) {
     return {
       amountRub,
       tierAtPurchase: status.pickup_paid_tiers_bought,
-      description: `Пакет заборов ${tierNumber} плюс 10 шт`,
+      description: `Paket zaborov ${tierNumber} plus 10`,
     };
   }
 
   throw new Error('Неизвестный product_type. Допустимо: super_donor, pickup_pack');
+}
+
+function paymentDescriptionForRow(payment) {
+  if (payment.product_type === 'super_donor') {
+    return 'Super daritel 10 objavlenij';
+  }
+  const tierNumber = (payment.tier_at_purchase ?? 0) + 1;
+  return `Paket zaborov ${tierNumber} plus 10`;
 }
 
 // POST /api/payments/create { phone, product_type }
@@ -121,17 +132,21 @@ router.post('/create', requireUserSession, async (req, res) => {
       [invId, user.id, productType, quote.amountRub, quote.tierAtPurchase],
     );
 
-    const paymentUrl = buildPaymentUrl({
+    const paymentForm = buildPaymentForm({
       invId,
       amountRub: quote.amountRub,
       description: quote.description,
     });
+    const redirectToken = buildPaymentRedirectToken(invId, user.id);
+    const paymentUrl =
+      `${config.publicBaseUrl}/api/payments/robokassa/go?inv_id=${invId}&token=${redirectToken}`;
 
     res.json({
       ok: true,
       mock: false,
       inv_id: invId,
       amount_rub: quote.amountRub,
+      payment_form: paymentForm,
       payment_url: paymentUrl,
     });
   } catch (error) {
@@ -184,6 +199,51 @@ router.get('/status', requireUserSession, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/payments/robokassa/go — HTML-форма POST на Robokassa (Receipt не через GET!)
+router.get('/robokassa/go', async (req, res) => {
+  const invId = Number(req.query.inv_id);
+  const token = req.query.token;
+
+  if (!invId || !token) {
+    return res.status(400).send('Нужны inv_id и token');
+  }
+
+  try {
+    const result = await db.query(
+      `
+      SELECT p.*, u.id AS user_id
+      FROM payments p
+      JOIN users u ON u.id = p.user_id
+      WHERE p.inv_id = $1
+      `,
+      [invId],
+    );
+
+    const payment = result.rows[0];
+    if (!payment) {
+      return res.status(404).send('Заказ не найден');
+    }
+    if (payment.status !== 'pending') {
+      return res.status(409).send('Заказ уже обработан');
+    }
+    if (!verifyPaymentRedirectToken(invId, payment.user_id, token)) {
+      return res.status(403).send('Неверная ссылка оплаты');
+    }
+
+    const paymentForm = buildPaymentForm({
+      invId,
+      amountRub: payment.amount_rub,
+      description: paymentDescriptionForRow(payment),
+    });
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(buildPaymentRedirectHtml(paymentForm));
+  } catch (error) {
+    console.error('Robokassa go error:', error.message);
+    res.status(500).send('Ошибка сервера');
   }
 });
 

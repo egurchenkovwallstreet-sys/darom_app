@@ -144,7 +144,7 @@ curl.exe -s "https://darom-app.online/api/health"
 |---------|---------|
 | Сразу «активирован» без Робокассы | `PAYMENT_MOCK=true` или пустые ключи в `.env` |
 | Оплата прошла, лимит не вырос | Result URL = POST; проверьте Пароль #2; `pm2 logs darom-api --lines 50` |
-| Ошибка **23** «Оплата недоступна» | Часто **нет Receipt (чек 54-ФЗ)** — обновите backend (фискализация). Или тест без `IsTest`/тестовых паролей. Иначе — поддержка Robokassa |
+| Ошибка **23** «Оплата недоступна» | **Receipt** обязателен — оплата только **POST** (не GET-ссылка на auth.robokassa.ru). Обновите backend: `/api/payments/robokassa/go` → POST-форма. Проверка: `node scripts/check_robokassa.js` |
 | Ошибка **25** | Магазин **не активирован** для боевых платежей — в кабинете статус «Активен», идентификатор **Darom-app** (регистр!) |
 | Ошибка **26** | Неверный **MerchantLogin** — в `.env` должно быть `Darom-app` как в кабинете |
 | Ошибка **29** | Неверная подпись — проверьте Пароль #1 и алгоритм **MD5** |
@@ -157,7 +157,8 @@ curl.exe -s "https://darom-app.online/api/health"
 
 | Метод | Путь | Назначение |
 |-------|------|------------|
-| POST | `/api/payments/create` | Создать оплату `{ phone, product_type }` |
+| POST | `/api/payments/create` | Создать оплату `{ phone, product_type }` → `payment_url` (наш redirect) + `payment_form` |
+| GET | `/api/payments/robokassa/go?inv_id=&token=` | HTML POST-форма на Robokassa (Receipt) |
 | GET | `/api/payments/status?inv_id=` | Статус заказа |
 | POST | `/api/payments/robokassa/result` | Callback Робокассы |
 

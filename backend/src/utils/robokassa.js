@@ -7,6 +7,14 @@ function md5(value) {
   return crypto.createHash('md5').update(String(value)).digest('hex');
 }
 
+function hashSignature(baseString) {
+  const algo = (config.robokassa.hashAlgorithm || 'md5').toLowerCase();
+  if (algo === 'sha256') {
+    return crypto.createHash('sha256').update(String(baseString)).digest('hex');
+  }
+  return md5(baseString);
+}
+
 function isRobokassaConfigured() {
   const { merchantLogin, password1, password2 } = config.robokassa;
   return Boolean(merchantLogin && password1 && password2);
@@ -31,32 +39,44 @@ function formatOutSum(amountRub) {
   return Number(amountRub).toFixed(2);
 }
 
-/** Чек 54-ФЗ для облачной кассы Robokassa (docs.robokassa.ru/ru/fiscalization). */
-function buildReceiptEncoded(name, amountRub) {
-  const sum = Number(amountRub);
+/**
+ * Чек 54-ФЗ — формат как в docs.robokassa.ru/ru/pay-interface (пример Receipt).
+ * sum в чеке = OutSum (с копейками).
+ */
+function buildReceiptPayload(description, outSum) {
   const receipt = {
     items: [
       {
-        name: String(name).slice(0, 128),
+        name: String(description).slice(0, 128),
         quantity: 1,
-        sum,
+        sum: Number(outSum),
         tax: config.robokassa.receiptTax || 'none',
-        payment_method: 'full_payment',
-        payment_object: 'service',
       },
     ],
   };
   if (config.robokassa.sno) {
     receipt.sno = config.robokassa.sno;
   }
-  return encodeURIComponent(JSON.stringify(receipt));
+  return receipt;
 }
 
+/** URL-кодированный JSON для подписи и поля Receipt (один раз). */
+function encodeReceipt(receiptPayload) {
+  const json = JSON.stringify(receiptPayload);
+  return encodeURIComponent(json);
+}
+
+/**
+ * Подпись: MerchantLogin:OutSum:InvId:Receipt:Пароль#1
+ * (docs.robokassa.ru/ru/pay-interface — «Только чек»)
+ */
 function buildPaymentSignature({ merchantLogin, outSum, invId, password1, receiptEncoded }) {
+  let base = `${merchantLogin}:${outSum}:${invId}`;
   if (receiptEncoded) {
-    return md5(`${merchantLogin}:${outSum}:${invId}:${receiptEncoded}:${password1}`);
+    base += `:${receiptEncoded}`;
   }
-  return md5(`${merchantLogin}:${outSum}:${invId}:${password1}`);
+  base += `:${password1}`;
+  return hashSignature(base);
 }
 
 function buildResultSignature({ outSum, invId, password2, extraParams = {} }) {
@@ -68,15 +88,23 @@ function buildResultSignature({ outSum, invId, password2, extraParams = {} }) {
   for (const key of shpKeys) {
     base += `:${key}=${extraParams[key]}`;
   }
-  return md5(base);
+  return hashSignature(base);
 }
 
-function buildPaymentUrl({ invId, amountRub, description }) {
+/**
+ * Поля для POST-формы Robokassa (рекомендуется с Receipt).
+ * @returns {{ action: string, method: 'POST', fields: Record<string, string> }}
+ */
+function buildPaymentForm({ invId, amountRub, description }) {
   const merchantLogin = config.robokassa.merchantLogin;
   const { password1, isTest } = getActivePasswords();
   const outSum = formatOutSum(amountRub);
   const useReceipt = config.robokassa.fiscalReceipt !== false;
-  const receiptEncoded = useReceipt ? buildReceiptEncoded(description, amountRub) : null;
+
+  const receiptPayload = useReceipt
+    ? buildReceiptPayload(description, outSum)
+    : null;
+  const receiptEncoded = receiptPayload ? encodeReceipt(receiptPayload) : null;
 
   const signatureValue = buildPaymentSignature({
     merchantLogin,
@@ -86,7 +114,7 @@ function buildPaymentUrl({ invId, amountRub, description }) {
     receiptEncoded,
   });
 
-  const params = new URLSearchParams({
+  const fields = {
     MerchantLogin: merchantLogin,
     OutSum: outSum,
     InvId: String(invId),
@@ -94,17 +122,27 @@ function buildPaymentUrl({ invId, amountRub, description }) {
     SignatureValue: signatureValue,
     Culture: 'ru',
     Encoding: 'utf-8',
-  });
+  };
 
-  if (isTest) {
-    params.set('IsTest', '1');
-  }
-
-  let url = `${ROBOKASSA_PAYMENT_URL}?${params.toString()}`;
   if (receiptEncoded) {
-    url += `&Receipt=${receiptEncoded}`;
+    fields.Receipt = receiptEncoded;
   }
-  return url;
+  if (isTest) {
+    fields.IsTest = '1';
+  }
+
+  return {
+    action: ROBOKASSA_PAYMENT_URL,
+    method: 'POST',
+    fields,
+  };
+}
+
+/** GET-ссылка (запасной вариант; с Receipt лучше POST). */
+function buildPaymentUrl(params) {
+  const form = buildPaymentForm(params);
+  const search = new URLSearchParams(form.fields);
+  return `${ROBOKASSA_PAYMENT_URL}?${search.toString()}`;
 }
 
 function verifyResultSignature(params) {
@@ -134,11 +172,72 @@ function verifyResultSignature(params) {
   return expected === signatureValue;
 }
 
+function buildPaymentRedirectToken(invId, userId) {
+  const secret = config.robokassa.password2 || 'darom-pay-redirect';
+  return crypto
+    .createHmac('sha256', secret)
+    .update(`go:${invId}:${userId}`)
+    .digest('hex')
+    .slice(0, 32);
+}
+
+function verifyPaymentRedirectToken(invId, userId, token) {
+  if (!token || String(token).length !== 32) {
+    return false;
+  }
+  const expected = buildPaymentRedirectToken(invId, userId);
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(expected, 'utf8'),
+      Buffer.from(String(token), 'utf8'),
+    );
+  } catch {
+    return false;
+  }
+}
+
+function escapeHtmlAttr(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;');
+}
+
+function buildPaymentRedirectHtml(form) {
+  const inputs = Object.entries(form.fields)
+    .map(
+      ([name, value]) =>
+        `<input type="hidden" name="${escapeHtmlAttr(name)}" value="${escapeHtmlAttr(value)}">`,
+    )
+    .join('\n');
+
+  return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Переход к оплате…</title>
+</head>
+<body>
+  <p style="font-family:sans-serif;text-align:center;margin-top:2rem;">Переход на страницу оплаты Robokassa…</p>
+  <form id="pay" method="${form.method}" action="${escapeHtmlAttr(form.action)}">
+${inputs}
+  </form>
+  <script>document.getElementById('pay').submit();</script>
+</body>
+</html>`;
+}
+
 module.exports = {
   ROBOKASSA_PAYMENT_URL,
   isRobokassaConfigured,
   formatOutSum,
-  buildReceiptEncoded,
+  buildReceiptPayload,
+  encodeReceipt,
+  buildPaymentForm,
   buildPaymentUrl,
+  buildPaymentRedirectToken,
+  verifyPaymentRedirectToken,
+  buildPaymentRedirectHtml,
   verifyResultSignature,
 };

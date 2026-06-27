@@ -5,11 +5,39 @@ import 'package:http/http.dart' as http;
 import 'api_config.dart';
 import 'auth_headers.dart';
 
+class RobokassaPaymentForm {
+  final String action;
+  final String method;
+  final Map<String, String> fields;
+
+  const RobokassaPaymentForm({
+    required this.action,
+    required this.method,
+    required this.fields,
+  });
+
+  factory RobokassaPaymentForm.fromJson(Map<String, dynamic> json) {
+    final rawFields = json['fields'];
+    final fields = <String, String>{};
+    if (rawFields is Map) {
+      rawFields.forEach((key, value) {
+        fields['$key'] = '$value';
+      });
+    }
+    return RobokassaPaymentForm(
+      action: json['action'] as String? ?? '',
+      method: (json['method'] as String? ?? 'POST').toUpperCase(),
+      fields: fields,
+    );
+  }
+}
+
 class PaymentCreateResult {
   final bool mock;
   final int? invId;
   final int amountRub;
   final String? paymentUrl;
+  final RobokassaPaymentForm? paymentForm;
   final String? message;
 
   const PaymentCreateResult({
@@ -17,15 +45,20 @@ class PaymentCreateResult {
     required this.amountRub,
     this.invId,
     this.paymentUrl,
+    this.paymentForm,
     this.message,
   });
 
   factory PaymentCreateResult.fromJson(Map<String, dynamic> json) {
+    final formJson = json['payment_form'];
     return PaymentCreateResult(
       mock: json['mock'] as bool? ?? false,
       invId: json['inv_id'] as int?,
       amountRub: json['amount_rub'] as int? ?? 0,
       paymentUrl: json['payment_url'] as String?,
+      paymentForm: formJson is Map<String, dynamic>
+          ? RobokassaPaymentForm.fromJson(formJson)
+          : null,
       message: json['message'] as String?,
     );
   }

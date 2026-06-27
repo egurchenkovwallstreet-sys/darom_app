@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../screens/auth_gate.dart';
 import '../services/payments_api.dart';
+import '../utils/robokassa_post.dart';
 import 'primary_action_button.dart';
 
 Future<bool> startDaromPayment(
@@ -32,16 +33,24 @@ Future<bool> startDaromPayment(
     }
 
     final paymentUrl = result.paymentUrl;
-    if (paymentUrl == null || paymentUrl.isEmpty) {
-      throw PaymentsApiException('Не получена ссылка на оплату');
+    if (paymentUrl != null && paymentUrl.isNotEmpty) {
+      final uri = Uri.parse(paymentUrl);
+      final opened = await launchUrl(uri, webOnlyWindowName: '_self');
+      if (!opened) {
+        throw PaymentsApiException('Не удалось открыть страницу оплаты');
+      }
+      return false;
     }
 
-    final uri = Uri.parse(paymentUrl);
-    final opened = await launchUrl(uri, webOnlyWindowName: '_self');
-    if (!opened) {
-      throw PaymentsApiException('Не удалось открыть страницу оплаты');
+    final paymentForm = result.paymentForm;
+    if (paymentForm != null &&
+        paymentForm.action.isNotEmpty &&
+        paymentForm.fields.isNotEmpty) {
+      submitRobokassaPaymentForm(paymentForm);
+      return false;
     }
-    return false;
+
+    throw PaymentsApiException('Не получена ссылка на оплату');
   } catch (error) {
     if (!context.mounted) return false;
     ScaffoldMessenger.of(context).showSnackBar(
