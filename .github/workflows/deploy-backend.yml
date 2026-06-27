@@ -1,74 +1,99 @@
-# Автодеплой backend на Timeweb после push в main (папка backend/).
-# Секреты: VPS_HOST, DEPLOY_SECRET (те же, что для deploy-web.yml).
-
-name: Deploy Backend
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/deploy-backend.yml'
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Check GitHub secrets
-        run: |
-          test -n "${{ secrets.VPS_HOST }}" || (echo "❌ Нет секрета VPS_HOST" && exit 1)
-          test -n "${{ secrets.DEPLOY_SECRET }}" || (echo "❌ Нет секрета DEPLOY_SECRET" && exit 1)
-          echo "✅ Секреты на месте"
-
-      - name: Deploy backend via API
-        run: |
-          # HTTPS через nginx (надёжнее, чем :3000 снаружи)
-          DEPLOY_URL="https://darom-app.online/api/deploy-backend"
-          FALLBACK_URL="http://${{ secrets.VPS_HOST }}:3000/api/deploy-backend"
-          HTTP_CODE=$(curl -sS -w "%{http_code}" -o /tmp/deploy-backend-response.txt \
-            --connect-timeout 30 --max-time 300 \
-            -X POST \
-            -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" \
-            "$DEPLOY_URL" || echo "000")
-          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
-            echo "HTTPS не удался ($HTTP_CODE), пробуем :3000..."
-            HTTP_CODE=$(curl -sS -w "%{http_code}" -o /tmp/deploy-backend-response.txt \
-              --connect-timeout 30 --max-time 300 \
-              -X POST \
-              -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" \
-              "$FALLBACK_URL")
-          fi
-          echo "HTTP $HTTP_CODE"
-          cat /tmp/deploy-backend-response.txt || true
-          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
-            echo "❌ Деплой backend не удался (код $HTTP_CODE)"
-            exit 1
-          fi
-
-      - name: Verify security version
-        run: |
-          EXPECTED=$(node -p "require('./backend/src/security_version.js').stage")
-          echo "Ожидаем security.stage: $EXPECTED"
-          BODY=$(curl -sS "https://darom-app.online/api/health" || curl -sS "http://${{ secrets.VPS_HOST }}:3000/api/health")
-          echo "$BODY"
-          echo "$BODY" | grep -q "\"stage\":\"$EXPECTED\"" || (
-            echo "❌ security.stage не $EXPECTED (см. /api/health выше)"
-            exit 1
-          )
-          echo "✅ security.stage=$EXPECTED на сервере"
-
-      - name: Verify partners next-code closed
-        run: |
-          HTTP_CODE=$(curl -sS -o /tmp/next-code.txt -w "%{http_code}" \
-            "https://darom-app.online/api/partners/next-code" || \
-            curl -sS -o /tmp/next-code.txt -w "%{http_code}" \
-            "http://${{ secrets.VPS_HOST }}:3000/api/partners/next-code")
-          cat /tmp/next-code.txt || true
-          test "$HTTP_CODE" = "403" || (echo "❌ next-code должен быть 403, получен $HTTP_CODE" && exit 1)
-          echo "✅ next-code закрыт (403)"
+# Автодеплой backend на Timeweb после push в main (папка backend/).
+# Секреты: VPS_HOST, DEPLOY_SECRET (те же, что для deploy-web.yml).
+
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check GitHub secrets
+        run: |
+          test -n "${{ secrets.VPS_HOST }}" || (echo "❌ Нет секрета VPS_HOST" && exit 1)
+          test -n "${{ secrets.DEPLOY_SECRET }}" || (echo "❌ Нет секрета DEPLOY_SECRET" && exit 1)
+          echo "✅ Секреты на месте"
+
+      - name: Deploy backend via API
+        run: |
+          set +e
+          RESPONSE=/tmp/deploy-backend-response.txt
+          DEPLOY_URL="https://darom-app.online/api/deploy-backend"
+          FALLBACK_URL="http://${{ secrets.VPS_HOST }}:3000/api/deploy-backend"
+
+          post_deploy() {
+            curl -sS --connect-timeout 30 --max-time 300 \
+              -w "%{http_code}" -o "$RESPONSE" \
+              -X POST \
+              -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" \
+              "$1"
+          }
+
+          HTTP_CODE=$(post_deploy "$DEPLOY_URL")
+          CURL_EXIT=$?
+          # Fallback только при ошибке связи (не при 403/500 — иначе :3000 снаружи закрыт → curl exit 7)
+          if [ "$CURL_EXIT" -ne 0 ] || [ -z "$HTTP_CODE" ] || [ "$HTTP_CODE" = "000" ]; then
+            echo "HTTPS недоступен (curl=$CURL_EXIT, code=${HTTP_CODE:-пусто}), пробуем :3000 ..."
+            HTTP_CODE=$(post_deploy "$FALLBACK_URL")
+            CURL_EXIT=$?
+          fi
+
+          echo "HTTP ${HTTP_CODE:-нет}"
+          cat "$RESPONSE" 2>/dev/null || true
+
+          if [ "$CURL_EXIT" -ne 0 ] || [ -z "$HTTP_CODE" ] || [ "$HTTP_CODE" = "000" ] || [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo ""
+            if [ "$HTTP_CODE" = "403" ]; then
+              echo "❌ 403 Forbidden — DEPLOY_SECRET в GitHub ≠ DEPLOY_SECRET в /opt/darom_app/backend/.env"
+              echo "   GitHub → Settings → Secrets → Actions → DEPLOY_SECRET"
+            elif [ "$HTTP_CODE" = "503" ]; then
+              echo "❌ 503 — на сервере нет DEPLOY_SECRET в backend/.env"
+            elif [ "$CURL_EXIT" -ne 0 ]; then
+              echo "❌ Нет связи с сервером (curl exit $CURL_EXIT). Проверьте pm2 и nginx."
+            else
+              echo "❌ Деплой backend не удался (HTTP $HTTP_CODE)"
+            fi
+            exit 1
+          fi
+          echo "✅ Деплой backend принят сервером"
+
+      - name: Verify security version
+        run: |
+          EXPECTED=$(node -p "require('./backend/src/security_version.js').stage")
+          echo "Ожидаем security.stage: $EXPECTED"
+          set +e
+          BODY=$(curl -sS "https://darom-app.online/api/health")
+          if [ $? -ne 0 ] || [ -z "$BODY" ]; then
+            BODY=$(curl -sS "http://${{ secrets.VPS_HOST }}:3000/api/health")
+          fi
+          echo "$BODY"
+          echo "$BODY" | grep -q "\"stage\":\"$EXPECTED\"" || (
+            echo "❌ security.stage не $EXPECTED (см. /api/health выше)"
+            exit 1
+          )
+          echo "✅ security.stage=$EXPECTED на сервере"
+
+      - name: Verify partners next-code closed
+        run: |
+          set +e
+          HTTP_CODE=$(curl -sS -o /tmp/next-code.txt -w "%{http_code}" \
+            "https://darom-app.online/api/partners/next-code")
+          if [ $? -ne 0 ] || [ -z "$HTTP_CODE" ] || [ "$HTTP_CODE" = "000" ]; then
+            HTTP_CODE=$(curl -sS -o /tmp/next-code.txt -w "%{http_code}" \
+              "http://${{ secrets.VPS_HOST }}:3000/api/partners/next-code")
+          fi
+          cat /tmp/next-code.txt || true
+          test "$HTTP_CODE" = "403" || (echo "❌ next-code должен быть 403, получен $HTTP_CODE" && exit 1)
+          echo "✅ next-code закрыт (403)"

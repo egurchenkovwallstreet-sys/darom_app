@@ -55,15 +55,35 @@ jobs:
 
       - name: Upload to server via API
         run: |
-          HTTP_CODE=$(curl -sS -w "%{http_code}" -o /tmp/deploy-response.txt \
-            --connect-timeout 30 --max-time 300 \
-            -X POST \
-            -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" \
-            -F "archive=@web-build.tar.gz" \
-            "http://${{ secrets.VPS_HOST }}:3000/api/deploy-web")
-          echo "HTTP $HTTP_CODE"
-          cat /tmp/deploy-response.txt || true
-          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
-            echo "❌ Загрузка на сервер не удалась (код $HTTP_CODE). Проверьте: pm2 status, pm2 logs darom-api"
+          set +e
+          RESPONSE=/tmp/deploy-response.txt
+          DEPLOY_URL="https://darom-app.online/api/deploy-web"
+          FALLBACK_URL="http://${{ secrets.VPS_HOST }}:3000/api/deploy-web"
+
+          post_deploy() {
+            curl -sS --connect-timeout 30 --max-time 300 \
+              -w "%{http_code}" -o "$RESPONSE" \
+              -X POST \
+              -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" \
+              -F "archive=@web-build.tar.gz" \
+              "$1"
+          }
+
+          HTTP_CODE=$(post_deploy "$DEPLOY_URL")
+          CURL_EXIT=$?
+          if [ "$CURL_EXIT" -ne 0 ] || [ -z "$HTTP_CODE" ] || [ "$HTTP_CODE" = "000" ]; then
+            echo "HTTPS недоступен, пробуем :3000 ..."
+            HTTP_CODE=$(post_deploy "$FALLBACK_URL")
+            CURL_EXIT=$?
+          fi
+
+          echo "HTTP ${HTTP_CODE:-нет}"
+          cat "$RESPONSE" 2>/dev/null || true
+          if [ "$CURL_EXIT" -ne 0 ] || [ -z "$HTTP_CODE" ] || [ "$HTTP_CODE" = "000" ] || [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            if [ "$HTTP_CODE" = "403" ]; then
+              echo "❌ 403 — DEPLOY_SECRET в GitHub не совпадает с backend/.env на сервере"
+            else
+              echo "❌ Загрузка на сервер не удалась (HTTP ${HTTP_CODE:-нет}, curl=$CURL_EXIT). pm2 logs darom-api"
+            fi
             exit 1
           fi

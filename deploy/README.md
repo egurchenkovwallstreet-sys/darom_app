@@ -60,6 +60,16 @@ cd /opt/darom_app && git pull && cd backend && npm install && pm2 restart darom-
 
 Секреты `VPS_USER` и `VPS_SSH_KEY` **больше не нужны** (можно удалить).
 
+#### E. Если Deploy Backend красный (❌) в GitHub Actions
+
+1. Откройте последний запуск → шаг **Deploy backend via API** → прочитайте текст ошибки.
+2. **403 Forbidden** — пароль `DEPLOY_SECRET` в GitHub **не совпадает** с `/opt/darom_app/backend/.env` на сервере.  
+   На VNC: `grep DEPLOY_SECRET /opt/darom_app/backend/.env` — скопируйте значение **без пробелов** в GitHub Secret.
+3. **503** — на сервере нет строки `DEPLOY_SECRET=` в `.env` (добавьте по шагу B выше).
+4. **curl exit 7** (старые запуски) — workflow ошибочно пробовал порт `:3000` снаружи; после обновления workflow должна быть понятная ошибка 403 или успех.
+
+После исправления секрета: Actions → **Deploy Backend** → **Run workflow** → Run workflow.
+
 #### D. Отправить код на GitHub
 
 **Терминал 1** (PowerShell):
