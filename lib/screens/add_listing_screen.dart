@@ -47,6 +47,11 @@ class AddListingScreen extends StatefulWidget {
 class _AddListingScreenState extends State<AddListingScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final FocusNode _titleFocus = FocusNode();
+  final FocusNode _descriptionFocus = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _titleFieldKey = GlobalKey();
+  final GlobalKey _descriptionFieldKey = GlobalKey();
   final ListingsApi _listingsApi = ListingsApi();
   final LocationService _locationService = LocationService();
 
@@ -90,10 +95,34 @@ class _AddListingScreenState extends State<AddListingScreen> {
       _selectedSubcategory = normalized.subcategory;
       _existingPhotoUrls = List<String>.from(existing.photoUrls);
     }
+    _titleFocus.addListener(() => _scrollFieldIntoView(_titleFieldKey, _titleFocus));
+    _descriptionFocus.addListener(
+      () => _scrollFieldIntoView(_descriptionFieldKey, _descriptionFocus),
+    );
+  }
+
+  void _scrollFieldIntoView(GlobalKey key, FocusNode focus) {
+    if (!focus.hasFocus) return;
+    for (final delay in [120, 320, 520]) {
+      Future<void>.delayed(Duration(milliseconds: delay), () {
+        if (!mounted || !focus.hasFocus) return;
+        final target = key.currentContext;
+        if (target == null) return;
+        Scrollable.ensureVisible(
+          target,
+          alignment: 0.25,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+        );
+      });
+    }
   }
 
   @override
   void dispose() {
+    _titleFocus.dispose();
+    _descriptionFocus.dispose();
+    _scrollController.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
     _listingsApi.dispose();
@@ -294,21 +323,21 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final content = KeyboardInsetPadding(
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.only(bottom: 16),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: _buildContent(),
-              ),
-            );
-          },
-        ),
-      ),
+    final content = KeyboardOverlapBuilder(
+      builder: (context, keyboardOverlap) {
+        // Отступ снизу внутри прокрутки — поля не «стираются» над клавиатурой.
+        final navPad = widget.inShell && keyboardOverlap < 1 ? 72.0 : 0.0;
+        final bottomPad = 16.0 + keyboardOverlap + navPad;
+
+        return SafeArea(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: EdgeInsets.only(bottom: bottomPad),
+            child: _buildContent(),
+          ),
+        );
+      },
     );
     if (widget.inShell) return content;
     return MidnightGlowScreen(child: content);
@@ -372,6 +401,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                     child: Column(
                       children: [
                           Container(
+                            key: _titleFieldKey,
                             padding: EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               color: Color(0xFF001F3F).withOpacity(0.85),
@@ -380,6 +410,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             ),
                             child: TextField(
                               controller: _titleController,
+                              focusNode: _titleFocus,
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Color(0xFFFFFFFF),
@@ -508,6 +539,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                           SizedBox(height: 15),
 
                           Container(
+                            key: _descriptionFieldKey,
                             padding: EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               color: Color(0xFF001F3F).withOpacity(0.85),
@@ -516,6 +548,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             ),
                             child: TextField(
                               controller: _descriptionController,
+                              focusNode: _descriptionFocus,
                               maxLines: 5,
                               style: TextStyle(
                                 fontSize: 16,

@@ -17,3 +17,15 @@ class KeyboardInsetPadding extends StatelessWidget {
     );
   }
 }
+
+/// На ПК — overlap из MediaQuery.
+class KeyboardOverlapBuilder extends StatelessWidget {
+  const KeyboardOverlapBuilder({super.key, required this.builder});
+
+  final Widget Function(BuildContext context, double overlap) builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return builder(context, MediaQuery.viewInsetsOf(context).bottom);
+  }
+}

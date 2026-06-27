@@ -71,3 +71,66 @@ class _KeyboardInsetPaddingState extends State<KeyboardInsetPadding> {
     );
   }
 }
+
+/// Высота перекрытия клавиатурой — для внутреннего padding ScrollView (без сжатия всего экрана).
+class KeyboardOverlapBuilder extends StatefulWidget {
+  const KeyboardOverlapBuilder({super.key, required this.builder});
+
+  final Widget Function(BuildContext context, double overlap) builder;
+
+  @override
+  State<KeyboardOverlapBuilder> createState() => _KeyboardOverlapBuilderState();
+}
+
+class _KeyboardOverlapBuilderState extends State<KeyboardOverlapBuilder> {
+  double _keyboardHeight = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncKeyboardHeight();
+    html.window.visualViewport?.addEventListener('resize', _onViewportEvent);
+    html.window.visualViewport?.addEventListener('scroll', _onViewportEvent);
+    html.window.addEventListener('resize', _onViewportEvent);
+    html.document.addEventListener('focusin', _onViewportEvent);
+    html.document.addEventListener('focusout', _onFocusOut);
+  }
+
+  @override
+  void dispose() {
+    html.window.visualViewport?.removeEventListener('resize', _onViewportEvent);
+    html.window.visualViewport?.removeEventListener('scroll', _onViewportEvent);
+    html.window.removeEventListener('resize', _onViewportEvent);
+    html.document.removeEventListener('focusin', _onViewportEvent);
+    html.document.removeEventListener('focusout', _onFocusOut);
+    super.dispose();
+  }
+
+  void _onViewportEvent(html.Event _) => _syncKeyboardHeight();
+
+  void _onFocusOut(html.Event _) {
+    Future<void>.delayed(const Duration(milliseconds: 150), _syncKeyboardHeight);
+  }
+
+  void _syncKeyboardHeight() {
+    final viewport = html.window.visualViewport;
+    final layoutHeight = html.window.innerHeight?.toDouble();
+    if (viewport == null || layoutHeight == null) return;
+
+    final offsetTop = viewport.offsetTop ?? 0.0;
+    final viewportHeight = viewport.height ?? layoutHeight;
+    final visibleBottom = offsetTop + viewportHeight;
+    final height = math.max(0.0, layoutHeight - visibleBottom);
+
+    if ((height - _keyboardHeight).abs() > 1 && mounted) {
+      setState(() => _keyboardHeight = height);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final viewInset = MediaQuery.viewInsetsOf(context).bottom;
+    final overlap = _keyboardHeight > 0 ? _keyboardHeight : viewInset;
+    return widget.builder(context, overlap);
+  }
+}
