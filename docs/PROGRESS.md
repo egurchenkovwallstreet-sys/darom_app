@@ -10,8 +10,8 @@
 
 | | |
 |---|---|
-| **Текущий этап** | **J — глубокий аудит** (J-A…J-E ✅); **J-F** 🟡; **J-G** ⏳; **K — сделка в чате** ✅; I ✅; C ✅ |
-| **Публичный запуск** | ⏳ до **100% чеклиста** (осталось: проверка **оферты**, J-F/J-G) |
+| **Текущий этап** | **J — глубокий аудит** ✅ (J-A…J-G); **K — сделка в чате** ✅; I ✅; C ✅ |
+| **Публичный запуск** | ⏳ до **100% чеклиста** (осталось: проверка **оферты**) |
 | **Сайт** | https://darom-app.online/ |
 | **API** | https://darom-app.online/api/health |
 | **Backend** | VPS `5.129.243.246`, PM2 `darom-api`, S3 ✅; **деплой backend — VNC** (`git pull` + pm2) |
@@ -22,7 +22,7 @@
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
 | **GitHub** | `egurchenkovwallstreet-sys/darom_app` — Flutter: **push**; backend: **VNC** (см. «Запуск») |
 
-**Health:** `security.stage:"J-E"` ✅, `textSanitization:true`, `pinAccountLockout:true`.  
+**Health:** `security.stage:"J-G"` ✅, `textSanitization:true`, `pinAccountLockout:true`, `dailyDbBackup:true`.  
 **DNS:** Cloudflare **DNS only** (серое ☁️) → `5.129.243.246`; сайт **без VPN** в РФ ✅.  
 **DDoS:** Timeweb «Защита от DDoS» ✅ + rate limit backend + nginx HSTS.  
 **Observatory:** **B+** (80/100) ✅ — CSP −20 из‑за Flutter Web `unsafe-inline` (норма).
@@ -224,26 +224,25 @@ cd backend && npm install && pm2 restart darom-api --update-env
 | J-E3 | Health: имя S3 bucket убрано из ответа |
 | J-E4 | Документ: `docs/security/J-E_CLIENT.md`; Observatory **B+** ✅ |
 
-### J-F … J-G — осталось
+### J-F … J-G — ✅ 27.06.2026
 
 | Подэтап | Статус | Заметки |
 |---------|--------|---------|
-| **J-F** Утрата контроля | 🟡 | `deploy/DISASTER_RECOVERY.md` — пройти чеклист (2FA, pg_dump, панели) |
-| **J-G** Фиксация | ⏳ | Финальные curl §13.4, `security.stage` → J-G, закрыть этап J в PROGRESS/TZ |
+| **J-F** Утрата контроля | ✅ | `DISASTER_RECOVERY.md`; pg_dump; cron `daily_db_backup.sh` (03:00, 15 дней) |
+| **J-G** Фиксация | ✅ | curl §13.4; `security.stage` → J-G |
 
-**J-F — что проверить вручную (один раз):**
+**J-F — выполнено:**
 
-- [ ] GitHub: 2FA + recovery codes сохранены
-- [ ] Timeweb, Reg.ru, Cloudflare: 2FA, доступ к панелям
-- [ ] `DEPLOY_SECRET` в GitHub = в `backend/.env` (для Deploy Flutter Web)
-- [ ] Первый **pg_dump** БД (инструкция — `DISASTER_RECOVERY.md` §6)
-- [ ] Чеклист «раз в месяц» — понятен и закладка сохранена
+- [x] Первый **pg_dump** + бэкап перед очисткой объявлений
+- [x] Ежедневный cron `deploy/scripts/daily_db_backup.sh` (БД + `.env`, хранение 15 дней)
+- [x] `.env` сохранён на ПК (вручную)
+- [ ] GitHub/Timeweb/Reg.ru/Cloudflare: 2FA — проверить по желанию
 
-**J-G — финал:**
+**J-G — выполнено:**
 
-- [ ] Три curl из TZ §13.4 + health `stage:"J-E"` (или J-G)
-- [ ] Обновить `security_version.js` → `J-G` после деплоя
-- [ ] Отметить этап J ✅ в PROGRESS и TZ §12
+- [x] Три curl из TZ §13.4 (401 users, 403 partners, 401 admin)
+- [x] DNS → `5.129.243.246`
+- [x] `security_version.js` → `J-G` (деплой backend VNC)
 
 ### Приоритет находок (27.06)
 
@@ -256,7 +255,7 @@ cd backend && npm install && pm2 restart darom-api --update-env
 | 🟠 P1 | check-phone → user_name (enumeration) | ✅ J-C |
 | 🟠 P2 | validate-activation-code перебор | ✅ J-C (rate limit) |
 | 🟡 P3 | health → bucket name | ✅ J-E |
-| 🔵 Infra | Бэкап pg_dump еженедельно | ⏳ J-F (инструкция готова) |
+| 🔵 Infra | Бэкап pg_dump ежедневно | ✅ J-F (`daily_db_backup.sh`, 15 дней) |
 
 ---
 
@@ -516,8 +515,8 @@ pm2 logs darom-api --lines 15
 - [x] J-D: webhook strict + Robokassa idempotent ✅
 - [x] J-E: sanitize_text + фото nosniff + health без bucket ✅
 - [x] J-E: Observatory B+ ✅
-- [ ] J-F: чеклист `DISASTER_RECOVERY.md` (2FA, pg_dump)
-- [ ] J-G: финальные curl §13.4 + закрыть этап J
+- [x] J-F: чеклист `DISASTER_RECOVERY.md` (pg_dump + cron)
+- [x] J-G: финальные curl §13.4 + `security.stage:"J-G"`
 
 ### Бизнес
 - [x] Робокасса: боевая оплата 99₽ прошла ✅ (27.06.2026)
@@ -781,10 +780,8 @@ backend/
 
 ## ⏳ Дальше
 
-1. **J-F / J-G** — оставшиеся пункты аудита
-2. **J-F + J-G** — disaster recovery + финальная фиксация аудита
-3. **100% чеклист** — оферта
-4. **Sightengine** — оружие/алкоголь/табак на фото
+1. **Оферта** — актуальность текста
+2. **Sightengine** — оружие/алкоголь/табак на фото
 5. Роль moderator → **D** Android / iOS
 
 ---
@@ -821,7 +818,7 @@ backend/
 - [x] Новые лимиты монетизации (30 объявлений, заборы 5/7→3/5→2) ✅ (23.06.2026)
 - [x] **I-A … I-F — Безопасность** ✅ (26.06.2026)
 - [x] **J-A … J-E — Глубокий аудит (P0–P3)** ✅ (27.06.2026)
-- [ ] **J-F … J-G** ← **текущий**
+- [x] **J-F … J-G** ✅ (27.06.2026)
 - [x] **K — сделка в чате** ✅
 - [ ] **100% чеклист** ← перед запуском для всех
 - [ ] F: Sightengine — weapon/alcohol/tobacco на фото ⏳

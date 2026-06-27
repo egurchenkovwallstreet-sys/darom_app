@@ -1,6 +1,6 @@
 /** Метка версии безопасности — видна в GET /api/health (для проверки деплоя). */
 module.exports = {
-  stage: 'J-E',
+  stage: 'J-G',
   textSanitization: true,
   photoMimeStrict: true,
   healthNoBucketName: true,
@@ -20,4 +20,5 @@ module.exports = {
   apiRateLimit: true,
   apiRateLimitMax: 400,
   authRateLimitMax: 60,
+  dailyDbBackup: true,
 };

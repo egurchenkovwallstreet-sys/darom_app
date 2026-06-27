@@ -252,9 +252,9 @@
 | Этап | Задачи | Статус |
 |------|--------|--------|
 | **I — Безопасность** | I-A…I-F + Cloudflare DNS only + Timeweb DDoS ✅ (26.06) | ✅ **закрыт** |
-| **J — Глубокий аудит** | J-A…J-E ✅ (27.06); J-F disaster recovery 🟡; J-G фиксация ⏳ | 🟡 **почти закрыт** |
+| **J — Глубокий аудит** | J-A…J-G ✅ (27.06); daily backup cron ✅ | ✅ **закрыт** |
 | **C — Монетизация** | Робокасса ✅ (27.06); SMS Aero ✅; Mobile ID ✅; SMTP ✅; Firebase push ✅ | ✅ |
-| **K — Сделка в чате** | Условия брони, подсказка дарителю, «Отдал» / «Активировать» в чате | ⏳ |
+| **K — Сделка в чате** | Условия брони, подсказка дарителю, «Отдал» / «Активировать» в чате | ✅ |
 | **D — Магазины** | Android APK / iOS | ⏳ |
 | **E — Уведомления** | Firebase push | ✅ **протестировано** |
 | **F — Модерация** | Vision ✅; **Sightengine** (оружие на фото) ⏳ | 🟡 |
@@ -316,7 +316,7 @@
 | 🟡 P3 | health → имя S3 bucket | ✅ **J-E** (27.06) |
 | 🟡 P3 | XSS в чатах/объявлениях | ✅ **J-E** (`sanitize_text.js`) |
 | 🔵 Infra | DDoS / Cloudflare | ✅ **I-E** — DNS only + Timeweb DDoS (26.06) |
-| 🔵 Infra | Бэкап БД pg_dump | ⏳ **J-F** (инструкция готова) |
+| 🔵 Infra | Бэкап БД pg_dump | ✅ **J-F** (`daily_db_backup.sh`, cron 03:00, 15 дней) |
 
 ### 13.2.1 Детали уязвимостей (справочно, аудит 24.06)
 
@@ -347,7 +347,7 @@ DDoS **не останавливается** только кодом Node.js. Р
 Повторять **после каждого** крупного деплоя безопасности:
 
 ```powershell
-# 0) security.stage:"J-E" (или новее), textSanitization:true, pinAccountLockout:true
+# 0) security.stage:"J-G" (или новее), textSanitization:true, pinAccountLockout:true, dailyDbBackup:true
 curl.exe "https://darom-app.online/api/health"
 
 # DNS — должен быть IP Timeweb, не Cloudflare 104.21.x.x
