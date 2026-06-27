@@ -30,6 +30,7 @@ console.log('PAYMENT_MOCK:', config.paymentMock);
 console.log('fiscalReceipt:', config.robokassa.fiscalReceipt);
 console.log('IsTest в форме:', form.fields.IsTest === '1' ? 'ДА' : 'нет');
 console.log('Receipt в форме:', form.fields.Receipt ? 'ДА' : 'нет');
+console.log('Email в форме:', form.fields.Email || '(не задан — добавьте ROBOKASSA_PAYMENT_EMAIL в .env)');
 console.log('OutSum:', form.fields.OutSum);
 console.log('Receipt JSON:', JSON.stringify(receiptPayload));
 console.log('Receipt encoded (первые 80 символов):', receiptEncoded.slice(0, 80) + '...');

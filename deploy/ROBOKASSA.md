@@ -90,6 +90,7 @@ PAYMENT_MOCK=false
 | `ROBOKASSA_TEST_MODE=false` | Боевые платежи (реальные деньги) |
 | `ROBOKASSA_FISCAL=true` | Чек 54-ФЗ (`Receipt`) — **обязателен** для облачной кассы Robokassa |
 | `ROBOKASSA_RECEIPT_TAX=none` | НДС в чеке: `none`, `vat0`, `vat20` и т.д. (см. docs.robokassa.ru) |
+| `ROBOKASSA_PAYMENT_EMAIL=...` | E-mail в форме Robokassa (автоподстановка, покупатель может изменить) |
 
 Сохраните: `Ctrl+O`, Enter, `Ctrl+X`.
 

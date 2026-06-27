@@ -78,6 +78,8 @@ const config = {
     receiptTax: (process.env.ROBOKASSA_RECEIPT_TAX || 'none').trim(),
     sno: (process.env.ROBOKASSA_SNO || '').trim(),
     hashAlgorithm: (process.env.ROBOKASSA_HASH || 'md5').trim().toLowerCase(),
+    /** E-mail в форме Robokassa (чек / уведомления) */
+    paymentEmail: (process.env.ROBOKASSA_PAYMENT_EMAIL || '').trim(),
   },
   paymentMock: process.env.PAYMENT_MOCK !== 'false',
   mobileIdWebhookSecret: process.env.MOBILE_ID_WEBHOOK_SECRET || '',

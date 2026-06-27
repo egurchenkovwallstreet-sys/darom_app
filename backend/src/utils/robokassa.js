@@ -127,6 +127,9 @@ function buildPaymentForm({ invId, amountRub, description }) {
   if (receiptEncoded) {
     fields.Receipt = receiptEncoded;
   }
+  if (config.robokassa.paymentEmail) {
+    fields.Email = config.robokassa.paymentEmail;
+  }
   if (isTest) {
     fields.IsTest = '1';
   }
