@@ -32,6 +32,14 @@ Future<bool> startDaromPayment(
       return true;
     }
 
+    final paymentForm = result.paymentForm;
+    if (paymentForm != null &&
+        paymentForm.action.isNotEmpty &&
+        paymentForm.fields.isNotEmpty) {
+      submitRobokassaPaymentForm(paymentForm);
+      return false;
+    }
+
     final paymentUrl = result.paymentUrl;
     if (paymentUrl != null && paymentUrl.isNotEmpty) {
       final uri = Uri.parse(paymentUrl);
@@ -39,14 +47,6 @@ Future<bool> startDaromPayment(
       if (!opened) {
         throw PaymentsApiException('Не удалось открыть страницу оплаты');
       }
-      return false;
-    }
-
-    final paymentForm = result.paymentForm;
-    if (paymentForm != null &&
-        paymentForm.action.isNotEmpty &&
-        paymentForm.fields.isNotEmpty) {
-      submitRobokassaPaymentForm(paymentForm);
       return false;
     }
 
