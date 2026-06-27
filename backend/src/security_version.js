@@ -1,6 +1,9 @@
 /** Метка версии безопасности — видна в GET /api/health (для проверки деплоя). */
 module.exports = {
-  stage: 'J-D',
+  stage: 'J-E',
+  textSanitization: true,
+  photoMimeStrict: true,
+  healthNoBucketName: true,
   activeVerifySessionRequired: true,
   paymentStatusOwnerCheck: true,
   robokassaCallbackIdempotent: true,

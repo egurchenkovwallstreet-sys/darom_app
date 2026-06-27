@@ -44,7 +44,6 @@ router.get('/', async (_req, res) => {
       photos: {
         mode: config.photoStorage,
         s3Ready,
-        bucket: config.s3.bucket || null,
       },
       vision: {
         mock: visionMock,

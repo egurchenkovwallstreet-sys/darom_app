@@ -34,6 +34,10 @@ function validateBasicPhoto(buffer, mimeType, fileName = '') {
   const resolved = resolveMimeType(buffer, mimeType, fileName);
 
   if (!ALLOWED_MIME.has(resolved)) {
+    const lowerMime = String(mimeType || '').toLowerCase();
+    if (lowerMime.includes('svg') || lowerMime.startsWith('text/') || lowerMime.startsWith('application/')) {
+      return { ok: false, error: 'Допустимы только JPG, PNG или WEBP' };
+    }
     return { ok: false, error: 'Допустимы только JPG, PNG или WEBP' };
   }
 

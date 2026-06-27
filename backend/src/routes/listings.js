@@ -28,6 +28,7 @@ const {
   buildRealPhoneRequiredResponse,
 } = require('../utils/real_phone_verify');
 const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
+const { sanitizeUserText, containsDangerousMarkup } = require('../utils/sanitize_text');
 
 const router = express.Router();
 
@@ -333,8 +334,12 @@ router.post('/', requireUserSession, async (req, res) => {
   }
   if (!ensureSessionPhone(req, res, phone)) return;
 
-  const trimmedTitle = String(title).trim();
-  const trimmedDescription = String(description).trim();
+  const trimmedTitle = sanitizeUserText(title);
+  const trimmedDescription = sanitizeUserText(description);
+
+  if (containsDangerousMarkup(String(title ?? '')) || containsDangerousMarkup(String(description ?? ''))) {
+    return res.status(400).json({ error: 'HTML и скрипты в объявлении запрещены' });
+  }
 
   if (trimmedTitle.length < 2) {
     return res.status(400).json({ error: 'Название слишком короткое' });
@@ -711,8 +716,12 @@ router.patch('/:id', requireUserSession, async (req, res) => {
   }
   if (!ensureSessionPhone(req, res, phone)) return;
 
-  const trimmedTitle = String(title).trim();
-  const trimmedDescription = String(description).trim();
+  const trimmedTitle = sanitizeUserText(title);
+  const trimmedDescription = sanitizeUserText(description);
+
+  if (containsDangerousMarkup(String(title ?? '')) || containsDangerousMarkup(String(description ?? ''))) {
+    return res.status(400).json({ error: 'HTML и скрипты в объявлении запрещены' });
+  }
 
   if (trimmedTitle.length < 2) {
     return res.status(400).json({ error: 'Название слишком короткое' });

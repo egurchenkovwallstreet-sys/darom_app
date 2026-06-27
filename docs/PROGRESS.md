@@ -22,7 +22,7 @@
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
 | **GitHub** | `egurchenkovwallstreet-sys/darom_app` — после изменений **сразу commit + push** |
 
-**Health:** `security.stage:"J-D"` (после деплоя), `robokassaCallbackIdempotent:true`.  
+**Health:** `security.stage:"J-E"` (после деплоя), `textSanitization:true`.  
 **DNS:** Cloudflare **DNS only** (серое ☁️) → `5.129.243.246`; сайт **без VPN** в РФ ✅.  
 **DDoS:** Timeweb «Защита от DDoS» ✅ + rate limit backend + nginx HSTS.
 
@@ -204,7 +204,20 @@ cd backend && npm install && pm2 restart darom-api --update-env
 | Подэтап | Статус | Заметки |
 |---------|--------|---------|
 | **J-D** Webhook/оплата | ✅ 27.06 | см. `docs/security/J-D_INTEGRATIONS.md` |
-| **J-E** Клиент/XSS | 🟡 | Observatory **B+** ✅; CSP inline — ограничение Flutter Web |
+### J-E — Клиент и контент ✅ 27.06.2026
+
+| Шаг | Результат |
+|-----|-----------|
+| J-E1 | XSS: Flutter `Text()`; backend `sanitize_text.js` — чаты + объявления |
+| J-E2 | Фото: JPG/PNG/WEBP, magic bytes, nosniff на `/api/photos/` |
+| J-E3 | Health: имя S3 bucket убрано из ответа |
+| J-E4 | Документ: `docs/security/J-E_CLIENT.md`; Observatory **B+** ✅ |
+
+### J-F … J-G — в работе
+
+| Подэтап | Статус | Заметки |
+|---------|--------|---------|
+| **J-E** Клиент/XSS | ✅ 27.06 | см. `docs/security/J-E_CLIENT.md` |
 | **J-F** Утрата контроля | 🟡 черновик | `deploy/DISASTER_RECOVERY.md` — проверить панели |
 | **J-G** Фиксация | ⏳ | PROGRESS + TZ §13 |
 
@@ -218,7 +231,7 @@ cd backend && npm install && pm2 restart darom-api --update-env
 | 🟠 P1 | Регистрация без SMS → squatting номера | ⚠️ по ТЗ; сброс PIN через SMS |
 | 🟠 P1 | check-phone → user_name (enumeration) | ✅ J-C |
 | 🟠 P2 | validate-activation-code перебор | ✅ J-C (rate limit) |
-| 🟡 P3 | health → bucket name | ⏳ |
+| 🟡 P3 | health → bucket name | ✅ J-E |
 | 🔵 Infra | Бэкап pg_dump еженедельно | ⏳ J-F (инструкция готова) |
 
 ---

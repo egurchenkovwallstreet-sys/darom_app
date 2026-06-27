@@ -9,6 +9,7 @@ const {
 } = require('../db/listing_helpers');
 const { getPickupStatus, buildPickupLimitResponse } = require('../utils/pickup_limits');
 const { containsPhoneNumber } = require('../utils/phone_detect');
+const { sanitizeUserText, containsDangerousMarkup } = require('../utils/sanitize_text');
 const { checkAdminAccessByPhone } = require('../utils/admin_auth');
 const {
   isRealPhoneVerified,
@@ -39,9 +40,12 @@ function ensureSessionPhone(req, res, phoneRaw) {
 const URL_RE = /https?:\/\/|www\./i;
 
 function validateMessageBody(body) {
-  const text = String(body ?? '').trim();
+  const text = sanitizeUserText(body);
   if (text.length < 1) {
     return { ok: false, error: 'Сообщение не может быть пустым' };
+  }
+  if (containsDangerousMarkup(String(body ?? ''))) {
+    return { ok: false, error: 'HTML и скрипты в сообщениях запрещены' };
   }
   if (text.length > 2000) {
     return { ok: false, error: 'Сообщение слишком длинное (макс. 2000 символов)' };

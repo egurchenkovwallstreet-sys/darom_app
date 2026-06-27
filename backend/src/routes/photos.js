@@ -13,6 +13,8 @@ async function sendListingPhoto(fileName, res) {
       const { buffer, contentType } = await readFromS3(`listings/${fileName}`);
       res.set('Content-Type', contentType);
       res.set('Cache-Control', 'public, max-age=86400');
+      res.set('X-Content-Type-Options', 'nosniff');
+      res.set('Content-Disposition', `inline; filename="${fileName.replace(/"/g, '')}"`);
       return res.send(buffer);
     } catch (error) {
       const code = error?.name || error?.Code;
@@ -37,6 +39,8 @@ async function sendAvatarPhoto(fileName, res) {
       const { buffer, contentType } = await readFromS3(`avatars/${fileName}`);
       res.set('Content-Type', contentType);
       res.set('Cache-Control', 'public, max-age=86400');
+      res.set('X-Content-Type-Options', 'nosniff');
+      res.set('Content-Disposition', `inline; filename="${fileName.replace(/"/g, '')}"`);
       return res.send(buffer);
     } catch (error) {
       const code = error?.name || error?.Code;
