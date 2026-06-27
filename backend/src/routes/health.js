@@ -39,6 +39,9 @@ router.get('/', async (_req, res) => {
       payment: {
         mock: paymentMock,
         robokassaConfigured,
+        robokassaTestMode: config.robokassa.testMode,
+        robokassaMerchantLogin: config.robokassa.merchantLogin || null,
+        robokassaFiscalReceipt: config.robokassa.fiscalReceipt,
         ready: paymentMock || robokassaConfigured,
       },
       photos: {

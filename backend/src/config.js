@@ -63,12 +63,16 @@ const config = {
       'noreply@darom-app.online',
   },
   robokassa: {
-    merchantLogin: process.env.ROBOKASSA_MERCHANT_LOGIN || '',
+    merchantLogin: (process.env.ROBOKASSA_MERCHANT_LOGIN || '').trim(),
     password1: process.env.ROBOKASSA_PASSWORD1 || '',
     password2: process.env.ROBOKASSA_PASSWORD2 || '',
     testPassword1: process.env.ROBOKASSA_TEST_PASSWORD1 || '',
     testPassword2: process.env.ROBOKASSA_TEST_PASSWORD2 || '',
-    testMode: process.env.ROBOKASSA_TEST_MODE === 'true',
+    testMode: (process.env.ROBOKASSA_TEST_MODE || '').trim().toLowerCase() === 'true',
+    /** Чек 54-ФЗ (Receipt) — обязателен для облачной кассы Robokassa. */
+    fiscalReceipt: process.env.ROBOKASSA_FISCAL !== 'false',
+    receiptTax: (process.env.ROBOKASSA_RECEIPT_TAX || 'none').trim(),
+    sno: (process.env.ROBOKASSA_SNO || '').trim(),
   },
   paymentMock: process.env.PAYMENT_MOCK !== 'false',
   mobileIdWebhookSecret: process.env.MOBILE_ID_WEBHOOK_SECRET || '',
@@ -139,7 +143,10 @@ const robokassaReady = Boolean(
 if (config.paymentMock) {
   console.log('Payments: тестовый режим (PAYMENT_MOCK=true)');
 } else if (robokassaReady) {
-  console.log('✓ Payments: Робокасса настроена (боевой режим)');
+  const modeLabel = config.robokassa.testMode
+    ? 'тест (IsTest=1 — нужны тестовые пароли в кабинете)'
+    : 'боевой';
+  console.log(`✓ Payments: Робокасса ${modeLabel}, merchant=${config.robokassa.merchantLogin}, receipt=${config.robokassa.fiscalReceipt}`);
 } else {
   console.warn('⚠ Payments: PAYMENT_MOCK=false, но ключи Робокассы пустые — оплата останется тестовой');
 }

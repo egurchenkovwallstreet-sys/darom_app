@@ -1,6 +1,15 @@
 # Робокасса — подключение «Даром»
 
-> Пошагово для новичка. Сначала GitHub, потом сервер.
+> Пошагово для новичка. Код оплаты **уже в проекте** — нужны настройки в кабинете Робокассы и строки в `backend/.env` на сервере.
+
+## ⚡ Магазин одобрен — быстрый старт
+
+1. **Кабинет Робокассы** → ваш магазин → технические настройки (см. таблицу ниже).
+2. **VNC (сервер)** → `nano /opt/darom_app/backend/.env` → пароли + `PAYMENT_MOCK=false`.
+3. **Миграция** (если ещё не делали): `migrate_payments.sql`.
+4. `pm2 restart darom-api --update-env`
+5. **Проверка:** health → `"payment":{"mock":false,"robokassaConfigured":true}`
+6. **Тест:** оплата 99₽ с `ROBOKASSA_TEST_MODE=true`, потом `false` для боевых денег.
 
 ## Что оплачивается
 
@@ -64,7 +73,7 @@ nano /opt/darom_app/backend/.env
 ```env
 PUBLIC_BASE_URL=https://darom-app.online
 
-ROBOKASSA_MERCHANT_LOGIN=darom-app
+ROBOKASSA_MERCHANT_LOGIN=Darom-app
 ROBOKASSA_PASSWORD1=ваш_боевой_пароль_1
 ROBOKASSA_PASSWORD2=ваш_боевой_пароль_2
 ROBOKASSA_TEST_PASSWORD1=ваш_тестовый_пароль_1
@@ -79,14 +88,19 @@ PAYMENT_MOCK=false
 | `PAYMENT_MOCK=true` | Тест без списания (как раньше) |
 | `ROBOKASSA_TEST_MODE=true` | Тестовые платежи Робокассы |
 | `ROBOKASSA_TEST_MODE=false` | Боевые платежи (реальные деньги) |
+| `ROBOKASSA_FISCAL=true` | Чек 54-ФЗ (`Receipt`) — **обязателен** для облачной кассы Robokassa |
+| `ROBOKASSA_RECEIPT_TAX=none` | НДС в чеке: `none`, `vat0`, `vat20` и т.д. (см. docs.robokassa.ru) |
 
 Сохраните: `Ctrl+O`, Enter, `Ctrl+X`.
 
 ```bash
 cd /opt/darom_app/backend
 npm install
-pm2 restart darom-api
+pm2 restart darom-api --update-env
+pm2 logs darom-api --lines 10
 ```
+
+**Успех в логах:** `✓ Payments: Робокасса настроена (боевой режим)`.
 
 **Успех:** `darom-api` — **online**.
 
@@ -110,7 +124,17 @@ pm2 restart darom-api
 ROBOKASSA_TEST_MODE=false
 ```
 
-`pm2 restart darom-api` → повторите оплату **99₽** реальной картой или СБП.
+`pm2 restart darom-api --update-env` → повторите оплату **99₽** реальной картой или СБП.
+
+### Проверка health после настройки
+
+**Терминал 2 (PowerShell на ПК):**
+
+```powershell
+curl.exe -s "https://darom-app.online/api/health"
+```
+
+Ищите блок `"payment"`: `"mock":false`, `"robokassaConfigured":true`, `"ready":true`.
 
 ---
 
@@ -120,8 +144,12 @@ ROBOKASSA_TEST_MODE=false
 |---------|---------|
 | Сразу «активирован» без Робокассы | `PAYMENT_MOCK=true` или пустые ключи в `.env` |
 | Оплата прошла, лимит не вырос | Result URL = POST; проверьте Пароль #2; `pm2 logs darom-api --lines 50` |
-| Ошибка подписи | Алгоритм **MD5** в кабинете и в коде |
+| Ошибка **23** «Оплата недоступна» | Часто **нет Receipt (чек 54-ФЗ)** — обновите backend (фискализация). Или тест без `IsTest`/тестовых паролей. Иначе — поддержка Robokassa |
+| Ошибка **25** | Магазин **не активирован** для боевых платежей — в кабинете статус «Активен», идентификатор **Darom-app** (регистр!) |
+| Ошибка **26** | Неверный **MerchantLogin** — в `.env` должно быть `Darom-app` как в кабинете |
+| Ошибка **29** | Неверная подпись — проверьте Пароль #1 и алгоритм **MD5** |
 | `relation "payments" does not exist` | Прогнать `migrate_payments.sql` |
+| `integer and uuid` при миграции payments | `git pull` и снова `migrate_payments.sql` (`user_id` = UUID) |
 
 ---
 

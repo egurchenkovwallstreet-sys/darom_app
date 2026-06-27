@@ -34,7 +34,7 @@ async function resolvePaymentQuote(db, user, productType) {
     return {
       amountRub: SUPER_DONOR_PRICE_RUB,
       tierAtPurchase: null,
-      description: 'Даром — Супер даритель (+10 объявлений, 30 дней)',
+      description: 'Супер даритель 10 объявлений 30 дней',
     };
   }
 
@@ -62,7 +62,7 @@ async function resolvePaymentQuote(db, user, productType) {
     return {
       amountRub,
       tierAtPurchase: status.pickup_paid_tiers_bought,
-      description: `Даром — пакет заборов ${tierNumber}/${MAX_PICKUP_PAID_TIERS} (+10 шт.)`,
+      description: `Пакет заборов ${tierNumber} плюс 10 шт`,
     };
   }
 

@@ -31,7 +31,31 @@ function formatOutSum(amountRub) {
   return Number(amountRub).toFixed(2);
 }
 
-function buildPaymentSignature({ merchantLogin, outSum, invId, password1 }) {
+/** Чек 54-ФЗ для облачной кассы Robokassa (docs.robokassa.ru/ru/fiscalization). */
+function buildReceiptEncoded(name, amountRub) {
+  const sum = Number(amountRub);
+  const receipt = {
+    items: [
+      {
+        name: String(name).slice(0, 128),
+        quantity: 1,
+        sum,
+        tax: config.robokassa.receiptTax || 'none',
+        payment_method: 'full_payment',
+        payment_object: 'service',
+      },
+    ],
+  };
+  if (config.robokassa.sno) {
+    receipt.sno = config.robokassa.sno;
+  }
+  return encodeURIComponent(JSON.stringify(receipt));
+}
+
+function buildPaymentSignature({ merchantLogin, outSum, invId, password1, receiptEncoded }) {
+  if (receiptEncoded) {
+    return md5(`${merchantLogin}:${outSum}:${invId}:${receiptEncoded}:${password1}`);
+  }
   return md5(`${merchantLogin}:${outSum}:${invId}:${password1}`);
 }
 
@@ -51,11 +75,15 @@ function buildPaymentUrl({ invId, amountRub, description }) {
   const merchantLogin = config.robokassa.merchantLogin;
   const { password1, isTest } = getActivePasswords();
   const outSum = formatOutSum(amountRub);
+  const useReceipt = config.robokassa.fiscalReceipt !== false;
+  const receiptEncoded = useReceipt ? buildReceiptEncoded(description, amountRub) : null;
+
   const signatureValue = buildPaymentSignature({
     merchantLogin,
     outSum,
     invId,
     password1,
+    receiptEncoded,
   });
 
   const params = new URLSearchParams({
@@ -72,7 +100,11 @@ function buildPaymentUrl({ invId, amountRub, description }) {
     params.set('IsTest', '1');
   }
 
-  return `${ROBOKASSA_PAYMENT_URL}?${params.toString()}`;
+  let url = `${ROBOKASSA_PAYMENT_URL}?${params.toString()}`;
+  if (receiptEncoded) {
+    url += `&Receipt=${receiptEncoded}`;
+  }
+  return url;
 }
 
 function verifyResultSignature(params) {
@@ -106,6 +138,7 @@ module.exports = {
   ROBOKASSA_PAYMENT_URL,
   isRobokassaConfigured,
   formatOutSum,
+  buildReceiptEncoded,
   buildPaymentUrl,
   verifyResultSignature,
 };
