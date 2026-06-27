@@ -134,7 +134,7 @@ ROBOKASSA_TEST_MODE=false
 curl.exe -s "https://darom-app.online/api/health"
 ```
 
-Ищите блок `"payment"`: `"mock":false`, `"robokassaConfigured":true`, `"ready":true`.
+| `robokassaTestMode`: **false** | Боевой режим. Если **true** при `false` в `.env` — PM2 держит старый кэш: `pm2 restart darom-api --update-env` или обновите backend (`override: true` в dotenv) |
 
 ---
 
@@ -144,7 +144,7 @@ curl.exe -s "https://darom-app.online/api/health"
 |---------|---------|
 | Сразу «активирован» без Робокассы | `PAYMENT_MOCK=true` или пустые ключи в `.env` |
 | Оплата прошла, лимит не вырос | Result URL = POST; проверьте Пароль #2; `pm2 logs darom-api --lines 50` |
-| Ошибка **23** «Оплата недоступна» | **Receipt** обязателен — оплата только **POST** (не GET-ссылка на auth.robokassa.ru). Обновите backend: `/api/payments/robokassa/go` → POST-форма. Проверка: `node scripts/check_robokassa.js` |
+| Ошибка **23** + поддержка про «тестовую среду» | На сервере всё ещё `IsTest=1`: проверьте `curl …/api/health` → `"robokassaTestMode":true`. В `.env` уже `false`? → `grep ROBOKASSA_TEST_MODE backend/.env` (нет ли **двух** строк), затем `pm2 restart darom-api --update-env` |
 | Ошибка **25** | Магазин **не активирован** для боевых платежей — в кабинете статус «Активен», идентификатор **Darom-app** (регистр!) |
 | Ошибка **26** | Неверный **MerchantLogin** — в `.env` должно быть `Darom-app` как в кабинете |
 | Ошибка **29** | Неверная подпись — проверьте Пароль #1 и алгоритм **MD5** |

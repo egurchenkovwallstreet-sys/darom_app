@@ -210,20 +210,33 @@ function buildPaymentRedirectHtml(form) {
         `<input type="hidden" name="${escapeHtmlAttr(name)}" value="${escapeHtmlAttr(value)}">`,
     )
     .join('\n');
+  const isTest = form.fields.IsTest === '1';
 
   return `<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Переход к оплате…</title>
+  <title>Оплата Robokassa</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #001F3F; color: #fff; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; }
+    .box { max-width: 360px; text-align: center; }
+    h1 { font-size: 22px; margin: 0 0 12px; }
+    p { opacity: 0.85; line-height: 1.5; margin: 0 0 24px; }
+    button { width: 100%; border: 0; border-radius: 25px; padding: 16px 20px; font-size: 17px; font-weight: 600; color: #fff; background: linear-gradient(90deg, #00BFFF, #0077FF); cursor: pointer; }
+    .warn { background: rgba(255,87,34,0.2); border: 1px solid #FF5722; border-radius: 12px; padding: 12px; margin-bottom: 20px; font-size: 14px; text-align: left; }
+  </style>
 </head>
 <body>
-  <p style="font-family:sans-serif;text-align:center;margin-top:2rem;">Переход на страницу оплаты Robokassa…</p>
-  <form id="pay" method="${form.method}" action="${escapeHtmlAttr(form.action)}">
+  <div class="box">
+    <h1>Оплата ${escapeHtmlAttr(form.fields.OutSum || '')} ₽</h1>
+    ${isTest ? '<div class="warn">⚠ Тестовый режим (IsTest). Для боевой оплаты на сервере нужно ROBOKASSA_TEST_MODE=false</div>' : ''}
+    <p>Нажмите кнопку — откроется защищённая страница Robokassa.</p>
+    <form id="pay" method="${form.method}" action="${escapeHtmlAttr(form.action)}">
 ${inputs}
-  </form>
-  <script>document.getElementById('pay').submit();</script>
+      <button type="submit">Перейти к оплате</button>
+    </form>
+  </div>
 </body>
 </html>`;
 }

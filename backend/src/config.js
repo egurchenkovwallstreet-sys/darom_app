@@ -1,4 +1,8 @@
-require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+require('dotenv').config({
+  path: require('path').join(__dirname, '..', '.env'),
+  /** .env важнее кэша PM2 — иначе ROBOKASSA_TEST_MODE=false в файле не применяется */
+  override: true,
+});
 const path = require('path');
 
 const port = Number(process.env.PORT) || 3000;
@@ -148,6 +152,14 @@ if (config.paymentMock) {
     ? 'тест (IsTest=1 — нужны тестовые пароли в кабинете)'
     : 'боевой';
   console.log(`✓ Payments: Робокасса ${modeLabel}, merchant=${config.robokassa.merchantLogin}, receipt=${config.robokassa.fiscalReceipt}`);
+  if (
+    config.robokassa.testMode &&
+    config.publicBaseUrl.includes('darom-app.online')
+  ) {
+    console.warn(
+      '⚠ Payments: ROBOKASSA_TEST_MODE=true на боевом домене — Robokassa шлёт IsTest=1 (ошибка 23). Поставьте ROBOKASSA_TEST_MODE=false и pm2 restart darom-api --update-env',
+    );
+  }
 } else {
   console.warn('⚠ Payments: PAYMENT_MOCK=false, но ключи Робокассы пустые — оплата останется тестовой');
 }
