@@ -1,9 +1,20 @@
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:web/web.dart' as web;
 
 @JS('daromFetchFcmToken')
-external JSPromise<JSString> _daromFetchFcmTokenExternal(JSString vapidKey);
+external JSPromise<JSAny?> _daromFetchFcmTokenExternal(JSString vapidKey);
+
+String? _readJsString(JSAny? value) {
+  if (value == null) return null;
+  if (value.isA<JSString>()) {
+    return (value as JSString).toDart;
+  }
+  final dartValue = value.dartify();
+  if (dartValue is String) return dartValue;
+  return dartValue?.toString();
+}
 
 /// Регистрирует SW Firebase до getToken — иначе push на Web часто молча не работает.
 Future<void> ensureMessagingServiceWorker() async {
@@ -21,11 +32,8 @@ Future<void> ensureMessagingServiceWorker() async {
 Future<String?> getWebFcmToken(String vapidKey) async {
   if (vapidKey.isEmpty) return null;
 
-  try {
-    final token = await _daromFetchFcmTokenExternal(vapidKey.toJS).toDart;
-    final value = token.toDart;
-    return value.isEmpty ? null : value;
-  } catch (error) {
-    rethrow;
-  }
+  final result = await _daromFetchFcmTokenExternal(vapidKey.toJS).toDart;
+  final value = _readJsString(result);
+  if (value == null || value.isEmpty) return null;
+  return value;
 }

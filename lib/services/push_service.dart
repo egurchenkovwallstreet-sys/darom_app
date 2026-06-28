@@ -182,6 +182,12 @@ class PushService {
     if (lower.contains('firebase_not_configured')) {
       return 'Firebase не настроен на сервере';
     }
+    if (lower.contains('unsupported-browser') || lower.contains('unsupported_browser')) {
+      return 'Этот браузер не поддерживает push. На iPhone добавьте «Даром» на экран «Домой»';
+    }
+    if (lower.contains('not a subtype') || lower.contains('typeerror')) {
+      return 'Ошибка связи с Firebase. Обновите страницу и попробуйте снова';
+    }
     return raw;
   }
 
