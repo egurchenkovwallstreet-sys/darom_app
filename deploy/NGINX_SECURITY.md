@@ -150,6 +150,14 @@ sudo nginx -t && sudo systemctl reload nginx
 
 **Проверка:** откройте сайт на телефоне → экран онбординга или вход, не только планета.
 
+### «Блоки есть, но нет текста» (кнопки пустые)
+
+**Причина:** CanvasKit подгружает шрифты с `fonts.gstatic.com` (кириллица). В `connect-src` не было этого домена — буквы не рисуются, иконки (MaterialIcons) при этом видны.
+
+**Исправление:** в CSP `connect-src` добавить `https://fonts.gstatic.com`; в приложении — шрифт **NotoSans** в `assets/fonts/` (запасной вариант без Google).
+
+**На сервере:** `git pull` → `sudo nginx -t && sudo systemctl reload nginx` → дождаться деплоя Flutter (GitHub Actions) → Ctrl+F5 на телефоне.
+
 ---
 
 ## Откат (если сайт не открывается)

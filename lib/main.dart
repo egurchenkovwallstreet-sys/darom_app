@@ -51,6 +51,7 @@ class DaromApp extends StatelessWidget {
       title: 'Даром',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        fontFamily: 'NotoSans',
         primaryColor: AppColors.cyan,
         scaffoldBackgroundColor: AppColors.darkBlue,
         colorScheme: ColorScheme.fromSeed(
