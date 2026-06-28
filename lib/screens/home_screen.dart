@@ -11,6 +11,7 @@ import '../services/refresh_intervals.dart';
 import '../data/app_categories.dart';
 import '../data/map_radius_options.dart';
 import '../services/users_api.dart';
+import '../utils/instant_on_web.dart';
 import '../utils/map_marker_spread.dart';
 import '../widgets/avatar_image.dart';
 import '../widgets/listing_tile_card.dart';
@@ -385,61 +386,70 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Привет, ${widget.userName}!',
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFFFFFF),
+                              animateUnlessWeb(
+                                Text(
+                                  'Привет, ${widget.userName}!',
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFFFFFFF),
+                                  ),
                                 ),
-                              )
-                                  .animate(
-                                    delay: Duration(milliseconds: 200),
-                                  )
-                                  .fadeIn(duration: Duration(milliseconds: 800))
-                                  .slideX(begin: -0.3, end: 0),
-                              Text(
-                                'Что ищешь?',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFFFFFFFF).withOpacity(0.7),
+                                (child) => child
+                                    .animate(
+                                      delay: Duration(milliseconds: 200),
+                                    )
+                                    .fadeIn(duration: Duration(milliseconds: 800))
+                                    .slideX(begin: -0.3, end: 0),
+                              ),
+                              animateUnlessWeb(
+                                Text(
+                                  'Что ищешь?',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFFFFFFFF).withOpacity(0.7),
+                                  ),
                                 ),
-                              )
-                                  .animate(
-                                    delay: Duration(milliseconds: 400),
-                                  )
-                                  .fadeIn(duration: Duration(milliseconds: 800))
-                                  .slideX(begin: -0.3, end: 0),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Color(0xFF00BFFF),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.favorite, color: Colors.white, size: 14),
-                              SizedBox(width: 4),
-                              Text(
-                                'Новичок',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                ),
+                                (child) => child
+                                    .animate(
+                                      delay: Duration(milliseconds: 400),
+                                    )
+                                    .fadeIn(duration: Duration(milliseconds: 800))
+                                    .slideX(begin: -0.3, end: 0),
                               ),
                             ],
                           ),
-                        )
-                            .animate(
-                              delay: Duration(milliseconds: 600),
-                            )
-                            .fadeIn(duration: Duration(milliseconds: 800))
-                            .scale(begin: Offset(0.8, 0.8), end: Offset(1.0, 1.0)),
+                        ),
+                        animateUnlessWeb(
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Color(0xFF00BFFF),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.favorite, color: Colors.white, size: 14),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Новичок',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          (child) => child
+                              .animate(
+                                delay: Duration(milliseconds: 600),
+                              )
+                              .fadeIn(duration: Duration(milliseconds: 800))
+                              .scale(begin: Offset(0.8, 0.8), end: Offset(1.0, 1.0)),
+                        ),
                       ],
                     ),
                   ),
@@ -518,87 +528,90 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(child: _buildSearchResults()),
                   ] else ...[
 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: Color(0xFF001F3F).withOpacity(0.85),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: Color(0xFF00BFFF), width: 1.5),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTapDown: (_) => setState(() => _pressedMapButton = true),
-                              onTapUp: (_) => setState(() => _pressedMapButton = false),
-                              onTapCancel: () => setState(() => _pressedMapButton = false),
-                              onTap: () => setState(() => _showListView = false),
-                              child: AnimatedScale(
-                                scale: _pressedMapButton ? 1.08 : 1.0,
-                                duration: Duration(milliseconds: 150),
-                                curve: Curves.easeOut,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: !_showListView
-                                        ? Color(0xFF00BFFF)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '🗺️ Карта',
-                                      style: TextStyle(
-                                        color: !_showListView
-                                            ? Colors.white
-                                            : Color(0xFFFFFFFF).withOpacity(0.7),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
+                  animateUnlessWeb(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Container(
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Color(0xFF001F3F).withOpacity(0.85),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: Color(0xFF00BFFF), width: 1.5),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTapDown: (_) => setState(() => _pressedMapButton = true),
+                                onTapUp: (_) => setState(() => _pressedMapButton = false),
+                                onTapCancel: () => setState(() => _pressedMapButton = false),
+                                onTap: () => setState(() => _showListView = false),
+                                child: AnimatedScale(
+                                  scale: _pressedMapButton ? 1.08 : 1.0,
+                                  duration: Duration(milliseconds: 150),
+                                  curve: Curves.easeOut,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: !_showListView
+                                          ? Color(0xFF00BFFF)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '🗺️ Карта',
+                                        style: TextStyle(
+                                          color: !_showListView
+                                              ? Colors.white
+                                              : Color(0xFFFFFFFF).withOpacity(0.7),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          SizedBox(width: 4),
-                          Expanded(
-                            child: GestureDetector(
-                              onTapDown: (_) => setState(() => _pressedListButton = true),
-                              onTapUp: (_) => setState(() => _pressedListButton = false),
-                              onTapCancel: () => setState(() => _pressedListButton = false),
-                              onTap: () => setState(() => _showListView = true),
-                              child: AnimatedScale(
-                                scale: _pressedListButton ? 1.08 : 1.0,
-                                duration: Duration(milliseconds: 150),
-                                curve: Curves.easeOut,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: _showListView
-                                        ? Color(0xFF00BFFF)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '📋 Список',
-                                      style: TextStyle(
-                                        color: _showListView
-                                            ? Colors.white
-                                            : Color(0xFFFFFFFF).withOpacity(0.7),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
+                            SizedBox(width: 4),
+                            Expanded(
+                              child: GestureDetector(
+                                onTapDown: (_) => setState(() => _pressedListButton = true),
+                                onTapUp: (_) => setState(() => _pressedListButton = false),
+                                onTapCancel: () => setState(() => _pressedListButton = false),
+                                onTap: () => setState(() => _showListView = true),
+                                child: AnimatedScale(
+                                  scale: _pressedListButton ? 1.08 : 1.0,
+                                  duration: Duration(milliseconds: 150),
+                                  curve: Curves.easeOut,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: _showListView
+                                          ? Color(0xFF00BFFF)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '📋 Список',
+                                        style: TextStyle(
+                                          color: _showListView
+                                              ? Colors.white
+                                              : Color(0xFFFFFFFF).withOpacity(0.7),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    )
+                    ),
+                    (child) => child
                         .animate(
                           delay: Duration(milliseconds: 300),
                         )

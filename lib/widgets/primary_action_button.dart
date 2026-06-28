@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -119,70 +120,78 @@ class _PrimaryActionButtonState extends State<PrimaryActionButton> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(widget.borderRadius),
-                child: Container(
-                  height: widget.height,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(widget.borderRadius),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: colors,
-                    ),
-                    border: Border.all(
-                      color: const Color(0xFF000000).withOpacity(0.15),
-                      width: 2,
-                    ),
-                  ),
-                  child: Center(
-                    child: widget.loading
-                        ? SizedBox(
-                            width: widget.height * 0.45,
-                            height: widget.height * 0.45,
-                            child: const CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (widget.icon != null) ...[
-                                Icon(widget.icon, color: Colors.white, size: widget.fontSize),
-                                const SizedBox(width: 8),
-                              ],
-                              Flexible(
-                                child: Text(
-                                  widget.label,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: widget.fontSize,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFFFFFFFF),
-                                    shadows: const [
-                                      Shadow(
-                                        color: Color(0x4D000000),
-                                        blurRadius: 5,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                  ),
-                )
-                    .animate(onPlay: (controller) => controller.repeat())
-                    .shimmer(
-                      duration: 2.seconds,
-                      color: const Color(0xFFFFFFFF).withOpacity(0.3),
-                    ),
+                child: _gradientButtonFace(colors),
               ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _gradientButtonFace(List<Color> colors) {
+    final face = Container(
+      height: widget.height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: colors,
+        ),
+        border: Border.all(
+          color: const Color(0xFF000000).withOpacity(0.15),
+          width: 2,
+        ),
+      ),
+      child: Center(
+        child: widget.loading
+            ? SizedBox(
+                width: widget.height * 0.45,
+                height: widget.height * 0.45,
+                child: const CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (widget.icon != null) ...[
+                    Icon(widget.icon, color: Colors.white, size: widget.fontSize),
+                    const SizedBox(width: 8),
+                  ],
+                  Flexible(
+                    child: Text(
+                      widget.label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: widget.fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFFFFFFF),
+                        shadows: const [
+                          Shadow(
+                            color: Color(0x4D000000),
+                            blurRadius: 5,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+
+    if (kIsWeb) return face;
+
+    return face
+        .animate(onPlay: (controller) => controller.repeat())
+        .shimmer(
+          duration: 2.seconds,
+          color: const Color(0xFFFFFFFF).withOpacity(0.3),
+        );
   }
 }

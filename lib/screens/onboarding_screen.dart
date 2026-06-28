@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../utils/instant_on_web.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import 'phone_screen.dart';
@@ -225,61 +226,67 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 curve: Curves.easeInOut,
               ),
           SizedBox(height: 40),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFFFFFFF),
-              shadows: [
-                Shadow(
-                  color: Color(0xFF00BFFF).withOpacity(0.6),
-                  offset: Offset(0, 4),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-          )
-              .animate(
-                delay: Duration(milliseconds: 300),
-              )
-              .fadeIn(duration: Duration(milliseconds: 800))
-              .slideY(begin: 0.3, end: 0),
-          SizedBox(height: 30),
-          Container(
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Color(0xFF001F3F).withOpacity(0.85),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: borderColor,
-                width: 3,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0xFF00BFFF).withOpacity(0.2),
-                  blurRadius: 25,
-                  offset: Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Text(
-              description,
+          animateUnlessWeb(
+            Text(
+              title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
                 color: Color(0xFFFFFFFF),
-                height: 1.6,
-                fontWeight: FontWeight.w600,
+                shadows: [
+                  Shadow(
+                    color: Color(0xFF00BFFF).withOpacity(0.6),
+                    offset: Offset(0, 4),
+                    blurRadius: 8,
+                  ),
+                ],
               ),
             ),
-          )
-              .animate(
-                delay: Duration(milliseconds: 500),
-              )
-              .fadeIn(duration: Duration(milliseconds: 800))
-              .slideY(begin: 0.3, end: 0),
+            (child) => child
+                .animate(
+                  delay: Duration(milliseconds: 300),
+                )
+                .fadeIn(duration: Duration(milliseconds: 800))
+                .slideY(begin: 0.3, end: 0),
+          ),
+          SizedBox(height: 30),
+          animateUnlessWeb(
+            Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Color(0xFF001F3F).withOpacity(0.85),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: borderColor,
+                  width: 3,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0xFF00BFFF).withOpacity(0.2),
+                    blurRadius: 25,
+                    offset: Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Text(
+                description,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFFFFFFFF),
+                  height: 1.6,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            (child) => child
+                .animate(
+                  delay: Duration(milliseconds: 500),
+                )
+                .fadeIn(duration: Duration(milliseconds: 800))
+                .slideY(begin: 0.3, end: 0),
+          ),
         ],
       ),
     );

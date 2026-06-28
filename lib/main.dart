@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:darom_app/screens/admin_gate.dart';
@@ -10,7 +12,7 @@ import 'package:darom_app/widgets/payment_flow.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await PlanetAssets.preload();
+  unawaited(PlanetAssets.preload());
   await SessionService.migrateToRemoteServerIfNeeded();
   await SessionService.migrateToTokenSessionIfNeeded();
   runApp(const DaromApp());
