@@ -28,11 +28,16 @@ class PushService {
   static bool _firebaseInitialized = false;
   static bool _listenersAttached = false;
   static String? _registeredPhone;
+  static String? lastErrorMessage;
 
   /// Только после нажатия «Включить» — иначе браузер не показывает запрос.
   Future<PushRegisterResult> requestPermissionAndRegister({required String phone}) async {
+    lastErrorMessage = null;
     final normalizedPhone = phone.trim();
-    if (normalizedPhone.isEmpty) return PushRegisterResult.failed;
+    if (normalizedPhone.isEmpty) {
+      lastErrorMessage = 'empty_phone';
+      return PushRegisterResult.failed;
+    }
 
     try {
       final config = await _ensureFirebaseReady();
@@ -60,6 +65,7 @@ class PushService {
         settings: settings,
       );
     } catch (error) {
+      lastErrorMessage = '$error';
       if (kDebugMode) debugPrint('Push register failed: $error');
       return PushRegisterResult.failed;
     }
@@ -67,8 +73,12 @@ class PushService {
 
   /// Без запроса разрешения — если пользователь уже разрешил раньше.
   Future<PushRegisterResult> registerIfAlreadyAuthorized({required String phone}) async {
+    lastErrorMessage = null;
     final normalizedPhone = phone.trim();
-    if (normalizedPhone.isEmpty) return PushRegisterResult.failed;
+    if (normalizedPhone.isEmpty) {
+      lastErrorMessage = 'empty_phone';
+      return PushRegisterResult.failed;
+    }
 
     try {
       final config = await _ensureFirebaseReady();
@@ -93,6 +103,7 @@ class PushService {
         settings: settings,
       );
     } catch (error) {
+      lastErrorMessage = '$error';
       if (kDebugMode) debugPrint('Push silent register failed: $error');
       return PushRegisterResult.failed;
     }
@@ -117,16 +128,22 @@ class PushService {
       return PushRegisterResult.denied;
     }
 
-    final token = await messaging.getToken(
-      vapidKey: kIsWeb ? config.vapidKey : null,
-    );
-    if (token == null || token.isEmpty) return PushRegisterResult.failed;
+    final token = await _fetchDeviceToken(messaging: messaging, config: config);
+    if (token == null || token.isEmpty) {
+      lastErrorMessage ??= 'empty_fcm_token';
+      return PushRegisterResult.failed;
+    }
 
-    await UsersApi().registerPushToken(
-      phone: phone,
-      token: token,
-      platform: kIsWeb ? 'web' : defaultTargetPlatform.name,
-    );
+    try {
+      await UsersApi().registerPushToken(
+        phone: phone,
+        token: token,
+        platform: kIsWeb ? 'web' : defaultTargetPlatform.name,
+      );
+    } catch (error) {
+      lastErrorMessage = error is UsersApiException ? error.message : '$error';
+      return PushRegisterResult.failed;
+    }
 
     _registeredPhone = phone;
     _attachListeners();
@@ -134,16 +151,53 @@ class PushService {
     return PushRegisterResult.success;
   }
 
+  Future<String?> _fetchDeviceToken({
+    required FirebaseMessaging messaging,
+    required _FirebaseWebConfig config,
+  }) async {
+    if (kIsWeb) {
+      try {
+        return await getWebFcmToken(config.vapidKey);
+      } catch (error) {
+        lastErrorMessage = _humanizeWebTokenError('$error');
+        if (kDebugMode) debugPrint('Push web token failed: $error');
+        return null;
+      }
+    }
+
+    return messaging.getToken();
+  }
+
+  String _humanizeWebTokenError(String raw) {
+    final lower = raw.toLowerCase();
+    if (lower.contains('service_worker_unsupported')) {
+      return 'Браузер не поддерживает push-уведомления';
+    }
+    if (lower.contains('push service not available')) {
+      return 'Push-сервис браузера недоступен (попробуйте Chrome или добавьте сайт на экран «Домой» на iPhone)';
+    }
+    if (lower.contains('vapid')) {
+      return 'Ошибка VAPID-ключа Firebase на сервере';
+    }
+    if (lower.contains('firebase_not_configured')) {
+      return 'Firebase не настроен на сервере';
+    }
+    return raw;
+  }
+
   void _attachListeners() {
     if (_listenersAttached) return;
     _listenersAttached = true;
+
+    // На Web токен и фоновые push идут через push_helper.js + firebase-messaging-sw.js.
+    if (kIsWeb) return;
 
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
       if (_registeredPhone == null) return;
       await UsersApi().registerPushToken(
         phone: _registeredPhone!,
         token: newToken,
-        platform: kIsWeb ? 'web' : defaultTargetPlatform.name,
+        platform: defaultTargetPlatform.name,
       );
     });
 
@@ -162,10 +216,17 @@ class PushService {
   Future<_FirebaseWebConfig?> _ensureFirebaseReady() async {
     final config = await _loadFirebaseConfig();
     if (config == null) {
+      lastErrorMessage = 'firebase_config_missing';
       if (kDebugMode) {
         debugPrint('Push: Firebase не настроен на сервере — пропуск');
       }
       return null;
+    }
+
+    // На Web токен берём через push_helper.js (compat + serviceWorkerRegistration).
+    // Modular Firebase.initializeApp здесь не нужен и может конфликтовать с compat.
+    if (kIsWeb) {
+      return config;
     }
 
     if (!_firebaseInitialized) {

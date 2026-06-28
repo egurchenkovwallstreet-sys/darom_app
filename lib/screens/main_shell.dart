@@ -112,10 +112,16 @@ class _MainShellState extends State<MainShell> {
         );
       case PushRegisterResult.notConfigured:
       case PushRegisterResult.failed:
+        final detail = PushService.lastErrorMessage;
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Не удалось включить уведомления. Попробуйте позже в профиле'),
+          SnackBar(
+            content: Text(
+              detail != null && detail.isNotEmpty
+                  ? 'Не удалось включить уведомления: $detail'
+                  : 'Не удалось включить уведомления. Попробуйте позже в профиле',
+            ),
             backgroundColor: Color(0xFFFF5722),
+            duration: Duration(seconds: 7),
           ),
         );
     }

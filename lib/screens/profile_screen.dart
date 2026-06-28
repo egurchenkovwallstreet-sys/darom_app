@@ -183,10 +183,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       case PushRegisterResult.notConfigured:
       case PushRegisterResult.failed:
+        final detail = PushService.lastErrorMessage;
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Не удалось включить уведомления'),
+          SnackBar(
+            content: Text(
+              detail != null && detail.isNotEmpty
+                  ? 'Не удалось включить уведомления: $detail'
+                  : 'Не удалось включить уведомления',
+            ),
             backgroundColor: Color(0xFFFF5722),
+            duration: Duration(seconds: 7),
           ),
         );
     }
