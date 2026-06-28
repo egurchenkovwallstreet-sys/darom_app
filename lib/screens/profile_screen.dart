@@ -1,9 +1,11 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import '../data/profile_achievements.dart';
 import '../models/user.dart';
 import '../services/auth_api.dart';
+import '../services/push_service.dart';
 import '../services/session_service.dart';
 import '../services/users_api.dart';
 import '../widgets/avatar_image.dart';
@@ -138,6 +140,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _openPushSettings(String phoneNumber) async {
+    final status = await PushService.instance.getPermissionStatus();
+    if (!mounted) return;
+
+    if (status == AuthorizationStatus.denied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Уведомления заблокированы. Откройте настройки браузера → Сайты → '
+            'darom-app.online → Уведомления → Разрешить',
+          ),
+          backgroundColor: Color(0xFFFF5722),
+          duration: Duration(seconds: 8),
+        ),
+      );
+      return;
+    }
+
+    final result = await PushService.instance.requestPermissionAndRegister(phone: phoneNumber);
+    if (!mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    switch (result) {
+      case PushRegisterResult.success:
+      case PushRegisterResult.alreadyRegistered:
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Уведомления включены'),
+            backgroundColor: Color(0xFF00BFFF),
+          ),
+        );
+      case PushRegisterResult.denied:
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Разрешите уведомления в настройках браузера'),
+            backgroundColor: Color(0xFFFF5722),
+            duration: Duration(seconds: 6),
+          ),
+        );
+      case PushRegisterResult.notConfigured:
+      case PushRegisterResult.failed:
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Не удалось включить уведомления'),
+            backgroundColor: Color(0xFFFF5722),
+          ),
+        );
+    }
   }
 
   Widget _buildAchievementTile(ProfileAchievement achievement, User user) {
@@ -636,7 +688,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ],
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
-                                _buildSettingsItem(Icons.notifications, 'Уведомления'),
+                                _buildSettingsItem(
+                                  Icons.notifications,
+                                  'Уведомления',
+                                  onTap: () => _openPushSettings(user.phoneNumber),
+                                ),
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(Icons.language, 'Язык'),
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),

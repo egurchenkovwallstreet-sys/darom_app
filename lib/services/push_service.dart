@@ -6,7 +6,18 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
+import 'push_service_platform.dart'
+    if (dart.library.html) 'push_service_web.dart'
+    if (dart.library.io) 'push_service_io.dart';
 import 'users_api.dart';
+
+enum PushRegisterResult {
+  success,
+  notConfigured,
+  denied,
+  failed,
+  alreadyRegistered,
+}
 
 class PushService {
   PushService._();
@@ -14,35 +25,25 @@ class PushService {
   static final PushService instance = PushService._();
   static final http.Client _client = http.Client();
 
-  static bool _initialized = false;
+  static bool _firebaseInitialized = false;
+  static bool _listenersAttached = false;
   static String? _registeredPhone;
 
-  Future<void> registerForUser({required String phone}) async {
+  /// Только после нажатия «Включить» — иначе браузер не показывает запрос.
+  Future<PushRegisterResult> requestPermissionAndRegister({required String phone}) async {
     final normalizedPhone = phone.trim();
-    if (normalizedPhone.isEmpty) return;
-    if (_registeredPhone == normalizedPhone && _initialized) return;
+    if (normalizedPhone.isEmpty) return PushRegisterResult.failed;
 
     try {
-      final config = await _loadFirebaseConfig();
-      if (config == null) {
-        if (kDebugMode) {
-          debugPrint('Push: Firebase не настроен на сервере — пропуск');
-        }
-        return;
+      final config = await _ensureFirebaseReady();
+      if (config == null) return PushRegisterResult.notConfigured;
+
+      if (_registeredPhone == normalizedPhone) {
+        return PushRegisterResult.alreadyRegistered;
       }
 
-      if (!_initialized) {
-        await Firebase.initializeApp(
-          options: FirebaseOptions(
-            apiKey: config.apiKey,
-            appId: config.appId,
-            messagingSenderId: config.messagingSenderId,
-            projectId: config.projectId,
-            authDomain: '${config.projectId}.firebaseapp.com',
-            storageBucket: '${config.projectId}.appspot.com',
-          ),
-        );
-        _initialized = true;
+      if (kIsWeb) {
+        await ensureMessagingServiceWorker();
       }
 
       final messaging = FirebaseMessaging.instance;
@@ -52,43 +53,136 @@ class PushService {
         sound: true,
       );
 
-      final allowed = settings.authorizationStatus == AuthorizationStatus.authorized ||
-          settings.authorizationStatus == AuthorizationStatus.provisional;
-      if (!allowed) {
-        if (kDebugMode) debugPrint('Push: пользователь не разрешил уведомления');
-        return;
-      }
-
-      final token = await messaging.getToken(
-        vapidKey: kIsWeb ? config.vapidKey : null,
-      );
-      if (token == null || token.isEmpty) return;
-
-      await UsersApi().registerPushToken(
+      return _registerTokenIfAllowed(
         phone: normalizedPhone,
-        token: token,
-        platform: kIsWeb ? 'web' : defaultTargetPlatform.name,
+        messaging: messaging,
+        config: config,
+        settings: settings,
       );
-
-      _registeredPhone = normalizedPhone;
-
-      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-        if (_registeredPhone == null) return;
-        await UsersApi().registerPushToken(
-          phone: _registeredPhone!,
-          token: newToken,
-          platform: kIsWeb ? 'web' : defaultTargetPlatform.name,
-        );
-      });
-
-      FirebaseMessaging.onMessage.listen((message) {
-        if (kDebugMode) {
-          debugPrint('Push foreground: ${message.notification?.title}');
-        }
-      });
     } catch (error) {
       if (kDebugMode) debugPrint('Push register failed: $error');
+      return PushRegisterResult.failed;
     }
+  }
+
+  /// Без запроса разрешения — если пользователь уже разрешил раньше.
+  Future<PushRegisterResult> registerIfAlreadyAuthorized({required String phone}) async {
+    final normalizedPhone = phone.trim();
+    if (normalizedPhone.isEmpty) return PushRegisterResult.failed;
+
+    try {
+      final config = await _ensureFirebaseReady();
+      if (config == null) return PushRegisterResult.notConfigured;
+
+      if (_registeredPhone == normalizedPhone) {
+        return PushRegisterResult.alreadyRegistered;
+      }
+
+      final messaging = FirebaseMessaging.instance;
+      final settings = await messaging.getNotificationSettings();
+      if (!_isAllowed(settings)) return PushRegisterResult.denied;
+
+      if (kIsWeb) {
+        await ensureMessagingServiceWorker();
+      }
+
+      return _registerTokenIfAllowed(
+        phone: normalizedPhone,
+        messaging: messaging,
+        config: config,
+        settings: settings,
+      );
+    } catch (error) {
+      if (kDebugMode) debugPrint('Push silent register failed: $error');
+      return PushRegisterResult.failed;
+    }
+  }
+
+  Future<AuthorizationStatus?> getPermissionStatus() async {
+    try {
+      final settings = await FirebaseMessaging.instance.getNotificationSettings();
+      return settings.authorizationStatus;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<PushRegisterResult> _registerTokenIfAllowed({
+    required String phone,
+    required FirebaseMessaging messaging,
+    required _FirebaseWebConfig config,
+    required NotificationSettings settings,
+  }) async {
+    if (!_isAllowed(settings)) {
+      return PushRegisterResult.denied;
+    }
+
+    final token = await messaging.getToken(
+      vapidKey: kIsWeb ? config.vapidKey : null,
+    );
+    if (token == null || token.isEmpty) return PushRegisterResult.failed;
+
+    await UsersApi().registerPushToken(
+      phone: phone,
+      token: token,
+      platform: kIsWeb ? 'web' : defaultTargetPlatform.name,
+    );
+
+    _registeredPhone = phone;
+    _attachListeners();
+
+    return PushRegisterResult.success;
+  }
+
+  void _attachListeners() {
+    if (_listenersAttached) return;
+    _listenersAttached = true;
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      if (_registeredPhone == null) return;
+      await UsersApi().registerPushToken(
+        phone: _registeredPhone!,
+        token: newToken,
+        platform: kIsWeb ? 'web' : defaultTargetPlatform.name,
+      );
+    });
+
+    FirebaseMessaging.onMessage.listen((message) {
+      if (kDebugMode) {
+        debugPrint('Push foreground: ${message.notification?.title}');
+      }
+    });
+  }
+
+  bool _isAllowed(NotificationSettings settings) {
+    return settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
+  }
+
+  Future<_FirebaseWebConfig?> _ensureFirebaseReady() async {
+    final config = await _loadFirebaseConfig();
+    if (config == null) {
+      if (kDebugMode) {
+        debugPrint('Push: Firebase не настроен на сервере — пропуск');
+      }
+      return null;
+    }
+
+    if (!_firebaseInitialized) {
+      await Firebase.initializeApp(
+        options: FirebaseOptions(
+          apiKey: config.apiKey,
+          appId: config.appId,
+          messagingSenderId: config.messagingSenderId,
+          projectId: config.projectId,
+          authDomain: '${config.projectId}.firebaseapp.com',
+          storageBucket: '${config.projectId}.appspot.com',
+        ),
+      );
+      _firebaseInitialized = true;
+    }
+
+    return config;
   }
 
   Future<_FirebaseWebConfig?> _loadFirebaseConfig() async {
