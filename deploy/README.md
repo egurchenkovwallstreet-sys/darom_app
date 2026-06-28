@@ -111,7 +111,7 @@ cd /opt/darom_app && git pull && cd backend && npm install && pm2 restart darom-
 
 ```powershell
 cd C:\Users\User\Desktop\darom_app
-flutter build web --release
+flutter build web --release --no-web-resources-cdn
 ```
 
 **Успех:** папка `build\web` с файлами `index.html`, `main.dart.js` и т.д.
@@ -162,7 +162,7 @@ nginx -t && systemctl reload nginx
 
 ```powershell
 cd C:\Users\User\Desktop\darom_app
-flutter build web --release
+flutter build web --release --no-web-resources-cdn
 ```
 
 Загрузить новые файлы в `/var/www/darom/` (WinSCP или `scp`).

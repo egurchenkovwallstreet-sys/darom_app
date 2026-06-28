@@ -134,6 +134,22 @@ curl.exe -sI "https://darom-app.online/"
 3. Цель: оценка **B+** или лучше (было около −65 без заголовков).
 4. **27.06.2026:** получено **B+ (80/100)** — 9/10 тестов. Единственный минус: CSP «unsafe-inline» (нужен Flutter Web; без него приложение не стартует). Оценку **A** для Flutter Web без inline-патча сборки — practically недостижима.
 
+### «Только фон, без кнопок» на Android (и иногда на ПК)
+
+**Причина:** в `connect-src` не было `https://www.gstatic.com` — браузер **блокирует** загрузку `canvaskit.wasm` (движок Flutter Web). HTML-фон (`#darom-splash`) виден, а приложение не рисуется.
+
+**Исправление на сервере (VNC):**
+
+```bash
+cd /opt/darom_app
+git pull
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+В `deploy/nginx-security-headers.conf` в `connect-src` должно быть `https://www.gstatic.com`.
+
+**Проверка:** откройте сайт на телефоне → экран онбординга или вход, не только планета.
+
 ---
 
 ## Откат (если сайт не открывается)
