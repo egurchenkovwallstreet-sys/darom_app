@@ -49,6 +49,7 @@ class PushService {
 
       if (kIsWeb) {
         await ensureMessagingServiceWorker();
+        return _registerWebPush(phone: normalizedPhone, config: config);
       }
 
       final messaging = FirebaseMessaging.instance;
@@ -88,13 +89,19 @@ class PushService {
         return PushRegisterResult.alreadyRegistered;
       }
 
+      if (kIsWeb) {
+        final status = await getPermissionStatus();
+        if (status != AuthorizationStatus.authorized &&
+            status != AuthorizationStatus.provisional) {
+          return PushRegisterResult.denied;
+        }
+        await ensureMessagingServiceWorker();
+        return _registerWebPush(phone: normalizedPhone, config: config, skipPermissionRequest: true);
+      }
+
       final messaging = FirebaseMessaging.instance;
       final settings = await messaging.getNotificationSettings();
       if (!_isAllowed(settings)) return PushRegisterResult.denied;
-
-      if (kIsWeb) {
-        await ensureMessagingServiceWorker();
-      }
 
       return _registerTokenIfAllowed(
         phone: normalizedPhone,
@@ -110,12 +117,41 @@ class PushService {
   }
 
   Future<AuthorizationStatus?> getPermissionStatus() async {
+    if (kIsWeb) {
+      return getWebPermissionStatus();
+    }
+
     try {
       final settings = await FirebaseMessaging.instance.getNotificationSettings();
       return settings.authorizationStatus;
     } catch (_) {
       return null;
     }
+  }
+
+  Future<PushRegisterResult> _registerWebPush({
+    required String phone,
+    required _FirebaseWebConfig config,
+    bool skipPermissionRequest = false,
+  }) async {
+    if (skipPermissionRequest) {
+      final status = await getPermissionStatus();
+      if (status != AuthorizationStatus.authorized &&
+          status != AuthorizationStatus.provisional) {
+        return PushRegisterResult.denied;
+      }
+    }
+
+    final result = await registerWebPush(config.vapidKey);
+    if (!result.ok) {
+      if (result.error == 'permission_denied') {
+        return PushRegisterResult.denied;
+      }
+      lastErrorMessage = _humanizeWebTokenError(result.error ?? 'fcm_failed');
+      return PushRegisterResult.failed;
+    }
+
+    return _saveToken(phone: phone, token: result.token!);
   }
 
   Future<PushRegisterResult> _registerTokenIfAllowed({
@@ -128,12 +164,19 @@ class PushService {
       return PushRegisterResult.denied;
     }
 
-    final token = await _fetchDeviceToken(messaging: messaging, config: config);
+    final token = await messaging.getToken();
     if (token == null || token.isEmpty) {
-      lastErrorMessage ??= 'empty_fcm_token';
+      lastErrorMessage = 'empty_fcm_token';
       return PushRegisterResult.failed;
     }
 
+    return _saveToken(phone: phone, token: token);
+  }
+
+  Future<PushRegisterResult> _saveToken({
+    required String phone,
+    required String token,
+  }) async {
     try {
       await UsersApi().registerPushToken(
         phone: phone,
@@ -151,30 +194,17 @@ class PushService {
     return PushRegisterResult.success;
   }
 
-  Future<String?> _fetchDeviceToken({
-    required FirebaseMessaging messaging,
-    required _FirebaseWebConfig config,
-  }) async {
-    if (kIsWeb) {
-      try {
-        return await getWebFcmToken(config.vapidKey);
-      } catch (error) {
-        lastErrorMessage = _humanizeWebTokenError('$error');
-        if (kDebugMode) debugPrint('Push web token failed: $error');
-        return null;
-      }
-    }
-
-    return messaging.getToken();
-  }
-
-  String _humanizeWebTokenError(String raw) {
-    final lower = raw.toLowerCase();
-    if (lower.contains('service_worker_unsupported')) {
+  String _humanizeWebTokenError(String? raw) {
+    final text = raw ?? 'fcm_failed';
+    final lower = text.toLowerCase();
+    if (lower.contains('service_worker_unsupported') || lower.contains('notifications_unsupported')) {
       return 'Браузер не поддерживает push-уведомления';
     }
     if (lower.contains('push service not available')) {
-      return 'Push-сервис браузера недоступен (попробуйте Chrome или добавьте сайт на экран «Домой» на iPhone)';
+      return 'Push-сервис браузера недоступен. На iPhone добавьте «Даром» на экран «Домой» (Safari → Поделиться)';
+    }
+    if (lower.contains('unsupported-browser') || lower.contains('unsupported_browser')) {
+      return 'Этот браузер не поддерживает push. На iPhone — только через иконку «На экран Домой»';
     }
     if (lower.contains('vapid')) {
       return 'Ошибка VAPID-ключа Firebase на сервере';
@@ -182,20 +212,15 @@ class PushService {
     if (lower.contains('firebase_not_configured')) {
       return 'Firebase не настроен на сервере';
     }
-    if (lower.contains('unsupported-browser') || lower.contains('unsupported_browser')) {
-      return 'Этот браузер не поддерживает push. На iPhone добавьте «Даром» на экран «Домой»';
+    if (lower.contains('empty_fcm_token')) {
+      return 'Firebase не выдал токен. На iPhone добавьте сайт на экран «Домой»';
     }
-    if (lower.contains('not a subtype') || lower.contains('typeerror')) {
-      return 'Ошибка связи с Firebase. Обновите страницу и попробуйте снова';
-    }
-    return raw;
+    return text;
   }
 
   void _attachListeners() {
     if (_listenersAttached) return;
     _listenersAttached = true;
-
-    // На Web токен и фоновые push идут через push_helper.js + firebase-messaging-sw.js.
     if (kIsWeb) return;
 
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
@@ -229,8 +254,6 @@ class PushService {
       return null;
     }
 
-    // На Web токен берём через push_helper.js (compat + serviceWorkerRegistration).
-    // Modular Firebase.initializeApp здесь не нужен и может конфликтовать с compat.
     if (kIsWeb) {
       return config;
     }

@@ -184,15 +184,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       case PushRegisterResult.notConfigured:
       case PushRegisterResult.failed:
         final detail = PushService.lastErrorMessage;
+        final lower = (detail ?? '').toLowerCase();
+        final text = (detail == null || detail.isEmpty)
+            ? 'Не удалось включить уведомления'
+            : (lower.contains('minified') || lower.contains('subtype'))
+                ? 'На iPhone добавьте «Даром» на экран «Домой» (Safari → Поделиться), затем Профиль → Уведомления'
+                : 'Не удалось включить уведомления: $detail';
         messenger.showSnackBar(
           SnackBar(
-            content: Text(
-              detail != null && detail.isNotEmpty
-                  ? 'Не удалось включить уведомления: $detail'
-                  : 'Не удалось включить уведомления',
-            ),
+            content: Text(text),
             backgroundColor: Color(0xFFFF5722),
-            duration: Duration(seconds: 7),
+            duration: Duration(seconds: 8),
           ),
         );
     }

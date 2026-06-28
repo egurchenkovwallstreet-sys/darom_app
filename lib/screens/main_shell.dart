@@ -112,16 +112,12 @@ class _MainShellState extends State<MainShell> {
         );
       case PushRegisterResult.notConfigured:
       case PushRegisterResult.failed:
-        final detail = PushService.lastErrorMessage;
+        final detail = _friendlyPushError(PushService.lastErrorMessage);
         messenger.showSnackBar(
           SnackBar(
-            content: Text(
-              detail != null && detail.isNotEmpty
-                  ? 'Не удалось включить уведомления: $detail'
-                  : 'Не удалось включить уведомления. Попробуйте позже в профиле',
-            ),
+            content: Text(detail),
             backgroundColor: Color(0xFFFF5722),
-            duration: Duration(seconds: 7),
+            duration: Duration(seconds: 8),
           ),
         );
     }
@@ -146,6 +142,19 @@ class _MainShellState extends State<MainShell> {
     } finally {
       _unreadLoadInFlight = false;
     }
+  }
+
+  String _friendlyPushError(String? raw) {
+    final text = raw ?? '';
+    final lower = text.toLowerCase();
+    if (text.isEmpty) {
+      return 'Не удалось включить уведомления. Попробуйте в профиле → Уведомления';
+    }
+    if (lower.contains('minified') || lower.contains('subtype') || lower.contains('typeerror')) {
+      return 'Ошибка push на этом браузере. На iPhone: Safari → Поделиться → «На экран Домой», '
+          'запускайте с иконки и снова Профиль → Уведомления';
+    }
+    return 'Не удалось включить уведомления: $text';
   }
 
   void _onTabTap(int index) {

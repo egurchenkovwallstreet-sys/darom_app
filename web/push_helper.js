@@ -1,33 +1,68 @@
-// Получение FCM-токена на Web с явной привязкой к firebase-messaging-sw.js
-window.daromFetchFcmToken = async function daromFetchFcmToken(vapidKey) {
+// Push на Web — весь поток в JS, Dart получает только JSON-строку (без JS-interop TypeError).
+
+window.daromGetNotificationPermission = function daromGetNotificationPermission() {
   try {
+    if (typeof Notification === 'undefined') return 'unsupported';
+    return String(Notification.permission || 'default');
+  } catch (e) {
+    return 'unsupported';
+  }
+};
+
+window.daromRegisterWebPush = async function daromRegisterWebPush(vapidKey) {
+  function reply(ok, fields) {
+    var payload = { ok: ok };
+    if (fields) {
+      for (var key in fields) {
+        if (Object.prototype.hasOwnProperty.call(fields, key)) {
+          payload[key] = fields[key];
+        }
+      }
+    }
+    return JSON.stringify(payload);
+  }
+
+  try {
+    if (typeof Notification === 'undefined') {
+      return reply(false, { error: 'notifications_unsupported' });
+    }
     if (!('serviceWorker' in navigator)) {
-      throw new Error('service_worker_unsupported');
+      return reply(false, { error: 'service_worker_unsupported' });
     }
     if (!vapidKey) {
-      throw new Error('vapid_key_missing');
+      return reply(false, { error: 'vapid_key_missing' });
     }
 
-    const loadScript = (src) =>
-      new Promise((resolve, reject) => {
+    var permission = Notification.permission;
+    if (permission === 'default') {
+      permission = await Notification.requestPermission();
+    }
+    permission = String(permission);
+    if (permission !== 'granted') {
+      return reply(false, { error: 'permission_denied', permission: permission });
+    }
+
+    var loadScript = function (src) {
+      return new Promise(function (resolve, reject) {
         if (document.querySelector('script[src="' + src + '"]')) {
           resolve();
           return;
         }
-        const script = document.createElement('script');
+        var script = document.createElement('script');
         script.src = src;
         script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('script_load_failed:' + src));
+        script.onload = function () { resolve(); };
+        script.onerror = function () { reject(new Error('script_load_failed:' + src)); };
         document.head.appendChild(script);
       });
+    };
 
     await loadScript('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
     await loadScript('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
-    const cfg = await fetch('/api/config/firebase').then((r) => r.json());
+    var cfg = await fetch('/api/config/firebase').then(function (r) { return r.json(); });
     if (!cfg || !cfg.configured) {
-      throw new Error('firebase_not_configured');
+      return reply(false, { error: 'firebase_not_configured' });
     }
 
     if (!firebase.apps.length) {
@@ -39,31 +74,42 @@ window.daromFetchFcmToken = async function daromFetchFcmToken(vapidKey) {
       });
     }
 
-    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    var registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
     await navigator.serviceWorker.ready;
 
-    for (let i = 0; i < 20; i += 1) {
+    for (var i = 0; i < 20; i += 1) {
       if (registration.active) break;
-      await new Promise((r) => setTimeout(r, 150));
+      await new Promise(function (r) { setTimeout(r, 150); });
     }
 
-    const messaging = firebase.messaging();
-    const token = await messaging.getToken({
+    var messaging = firebase.messaging();
+    var token = await messaging.getToken({
       vapidKey: vapidKey,
       serviceWorkerRegistration: registration,
     });
 
     if (typeof token !== 'string' || !token) {
-      throw new Error('empty_fcm_token');
+      return reply(false, { error: 'empty_fcm_token' });
     }
 
-    return token;
+    return reply(true, { token: token });
   } catch (err) {
-    // Важно: только строка в Error — иначе Dart JS-interop падает с TypeError (minified:FK).
-    const msg =
+    var msg =
       (err && err.message) ||
       (err && err.code) ||
       (typeof err === 'string' ? err : 'fcm_unknown_error');
-    throw new Error(String(msg));
+    return reply(false, { error: String(msg) });
+  }
+};
+
+// Старый API — оставлен на случай кэша; всегда JSON-строка.
+window.daromFetchFcmToken = async function daromFetchFcmToken(vapidKey) {
+  var raw = await window.daromRegisterWebPush(vapidKey);
+  try {
+    var parsed = JSON.parse(raw);
+    if (parsed && parsed.ok && parsed.token) return parsed.token;
+    throw new Error((parsed && parsed.error) || 'fcm_token_failed');
+  } catch (e) {
+    throw new Error(e && e.message ? e.message : String(e));
   }
 };
