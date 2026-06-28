@@ -9,6 +9,7 @@ class AuthFormScroll extends StatefulWidget {
     required this.title,
     required this.form,
     this.subtitle,
+    this.subtitleWidget,
     this.compactSubtitle,
     this.leading,
     this.footer,
@@ -18,6 +19,7 @@ class AuthFormScroll extends StatefulWidget {
 
   final String title;
   final String? subtitle;
+  final Widget? subtitleWidget;
   final String? compactSubtitle;
   final Widget? leading;
   final Widget form;
@@ -92,7 +94,7 @@ class _AuthFormScrollState extends State<AuthFormScroll> {
             children: [
               if (!_compact && widget.leading != null) ...[
                 widget.leading!,
-                const SizedBox(height: 32),
+                SizedBox(height: widget.subtitleWidget != null ? 20 : 32),
               ],
               Text(
                 widget.title,
@@ -110,7 +112,10 @@ class _AuthFormScrollState extends State<AuthFormScroll> {
                   ],
                 ),
               ),
-              if (subtitle != null && subtitle.isNotEmpty) ...[
+              if (!_compact && widget.subtitleWidget != null) ...[
+                const SizedBox(height: 10),
+                widget.subtitleWidget!,
+              ] else if (subtitle != null && subtitle.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(
                   subtitle,
@@ -122,13 +127,21 @@ class _AuthFormScrollState extends State<AuthFormScroll> {
                   ),
                 ),
               ],
-              SizedBox(height: _compact ? 20 : 32),
+              SizedBox(
+                height: _compact
+                    ? 20
+                    : (widget.subtitleWidget != null ? 22 : 32),
+              ),
               KeyedSubtree(
                 key: widget.formKey,
                 child: widget.form,
               ),
               if (widget.footer != null) ...[
-                SizedBox(height: _compact ? 20 : 32),
+                SizedBox(
+                  height: _compact
+                      ? 20
+                      : (widget.subtitleWidget != null ? 24 : 32),
+                ),
                 widget.footer!,
               ],
             ],

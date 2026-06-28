@@ -101,16 +101,13 @@ class _PhoneScreenState extends State<PhoneScreen> {
     return MidnightGlowScreen(
       child: AuthFormScroll(
         title: 'Введите номер телефона',
-        subtitle:
-            'Укажите свой настоящий номер — тот, которым вы пользуетесь сейчас.\n\n'
-            'При первом объявлении или сообщении в чате может потребоваться бесплатное подтверждение номера.\n\n'
-            '⚠️ Если указать чужой или неактуальный номер, восстановить доступ к аккаунту может быть невозможно.',
+        subtitleWidget: _PhoneNumberWarning(),
         compactSubtitle: 'Введите реальный номер и нажмите «Продолжить»',
         focusNode: _phoneFocus,
         formKey: _formKey,
         leading: Container(
-          width: 120,
-          height: 120,
+          width: 96,
+          height: 96,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: LinearGradient(
@@ -136,7 +133,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
           ),
           child: const Icon(
             Icons.phone_android,
-            size: 60,
+            size: 48,
             color: Color(0xFF00BFFF),
           ),
         )
@@ -246,13 +243,13 @@ class _PhoneScreenState extends State<PhoneScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             PrimaryActionButton(
               label: 'Продолжить',
               loading: _isLoading,
               onPressed: _continue,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             PrimaryActionButton(
               label: 'Я партнёр / блогер',
               height: 55,
@@ -272,6 +269,68 @@ class _PhoneScreenState extends State<PhoneScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Предупреждение о реальном номере — компактно, контрастно, тот же шрифт приложения.
+class _PhoneNumberWarning extends StatelessWidget {
+  static const _baseStyle = TextStyle(
+    fontSize: 14,
+    height: 1.15,
+    letterSpacing: -0.3,
+    color: Color(0xFFE8F7FF),
+    fontWeight: FontWeight.w500,
+  );
+
+  static const _alertStyle = TextStyle(
+    fontSize: 14,
+    height: 1.15,
+    letterSpacing: -0.3,
+    color: Color(0xFFFFE082),
+    fontWeight: FontWeight.w600,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: const Color(0xFF00152A).withOpacity(0.95),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF00BFFF).withOpacity(0.65),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00BFFF).withOpacity(0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Text.rich(
+        TextSpan(
+          style: _baseStyle,
+          children: const [
+            TextSpan(
+              text:
+                  'Укажите свой настоящий номер — тот, которым вы пользуетесь сейчас.\n',
+            ),
+            TextSpan(
+              text:
+                  'При первом объявлении или сообщении в чате может потребоваться бесплатное подтверждение номера.\n',
+            ),
+            TextSpan(
+              text:
+                  '⚠️ Если указать чужой или неактуальный номер, восстановить доступ к аккаунту может быть невозможно.',
+              style: _alertStyle,
+            ),
+          ],
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }
