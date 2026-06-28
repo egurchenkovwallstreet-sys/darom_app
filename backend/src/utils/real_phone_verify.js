@@ -1,5 +1,5 @@
 const REAL_PHONE_REQUIRED_MESSAGE =
-  'Для размещения объявления или переписки нужно один раз подтвердить реальный номер телефона по SMS.';
+  'Чтобы разместить объявление или написать в чате, один раз бесплатно подтвердите номер телефона.';
 
 function isRealPhoneVerified(user) {
   return Boolean(user?.real_phone_verified_at);

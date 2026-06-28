@@ -8,7 +8,7 @@ import '../widgets/midnight_glow_screen.dart';
 import '../widgets/pin_code_fields.dart';
 import '../widgets/primary_action_button.dart';
 import 'main_shell.dart';
-import 'sms_screen.dart';
+import 'reset_pin_verify_screen.dart';
 
 class PinLoginScreen extends StatefulWidget {
   final String phoneNumber;
@@ -87,35 +87,15 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
     }
   }
 
-  Future<void> _resetPinViaSms() async {
+  Future<void> _resetPinViaMobileId() async {
     if (_isLoading) return;
 
-    setState(() => _isLoading = true);
-
-    try {
-      final result = await _authApi.sendCode(
-        phone: widget.phoneNumber,
-        purpose: 'reset_pin',
-      );
-      if (!mounted) return;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SmsScreen(
-            phoneNumber: result.phone,
-            debugCode: result.debugCode,
-            purpose: SmsPurpose.resetPin,
-            resetPinAfterVerify: true,
-          ),
-        ),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      _showError('$error');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ResetPinVerifyScreen(phoneNumber: widget.phoneNumber),
+      ),
+    );
   }
 
   void _showError(String message) {
@@ -162,9 +142,9 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
             ),
             const SizedBox(height: 12),
             TextButton(
-              onPressed: _isLoading ? null : _resetPinViaSms,
+              onPressed: _isLoading ? null : _resetPinViaMobileId,
               child: const Text(
-                'Забыли пароль? Подтвердить номер по SMS',
+                'Забыли пароль? Подтвердить номер',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
               ),

@@ -302,6 +302,105 @@ class AuthApi {
     return PartnerVerifyCompleteResult.fromJson(body);
   }
 
+  Future<ResetPinVerifyResult> sendResetPinVerify({required String phone}) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/reset-pin/send');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'phone': phone}),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Не удалось начать подтверждение');
+    }
+
+    return ResetPinVerifyResult(
+      phone: body['phone'] as String,
+      sessionToken: body['session_token'] as String,
+      hint: body['hint'] as String?,
+    );
+  }
+
+  Future<ActiveVerifyPollResult> pollResetPinVerifySession({
+    required String phone,
+    required String sessionToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/reset-pin/poll').replace(
+      queryParameters: {
+        'phone': phone,
+        'session_token': sessionToken,
+      },
+    );
+
+    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Не удалось проверить статус');
+    }
+
+    return ActiveVerifyPollResult.fromJson(body);
+  }
+
+  Future<ResetPinVerifyCompleteResult> completeResetPinVerifySession({
+    required String phone,
+    required String sessionToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/reset-pin/complete');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': phone,
+            'session_token': sessionToken,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Не удалось завершить подтверждение');
+    }
+
+    return ResetPinVerifyCompleteResult.fromJson(body);
+  }
+
+  Future<ResetPinVerifyCompleteResult> confirmResetPinVerify({
+    required String phone,
+    required String code,
+    required String sessionToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/reset-pin/confirm');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': phone,
+            'code': code,
+            'session_token': sessionToken,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200) {
+      throw AuthApiException(body['error'] as String? ?? 'Неверный код');
+    }
+
+    return ResetPinVerifyCompleteResult.fromJson(body);
+  }
+
   Future<PinLoginResult> setPin({
     required String phone,
     required String pin,
@@ -561,6 +660,38 @@ class PartnerVerifyCompleteResult {
       phone: json['phone'] as String,
       partnerActivationCode: json['partner_activation_code'] as String? ?? '',
       verificationToken: json['verification_token'] as String? ?? '',
+    );
+  }
+}
+
+class ResetPinVerifyResult {
+  const ResetPinVerifyResult({
+    required this.phone,
+    required this.sessionToken,
+    this.hint,
+  });
+
+  final String phone;
+  final String sessionToken;
+  final String? hint;
+}
+
+class ResetPinVerifyCompleteResult {
+  const ResetPinVerifyCompleteResult({
+    required this.phone,
+    required this.verificationToken,
+    this.message,
+  });
+
+  final String phone;
+  final String verificationToken;
+  final String? message;
+
+  factory ResetPinVerifyCompleteResult.fromJson(Map<String, dynamic> json) {
+    return ResetPinVerifyCompleteResult(
+      phone: json['phone'] as String,
+      verificationToken: json['verification_token'] as String? ?? '',
+      message: json['message'] as String?,
     );
   }
 }

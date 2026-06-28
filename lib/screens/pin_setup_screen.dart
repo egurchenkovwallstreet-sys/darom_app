@@ -8,17 +8,20 @@ import '../widgets/midnight_glow_screen.dart';
 import '../widgets/pin_code_fields.dart';
 import '../widgets/primary_action_button.dart';
 import 'main_shell.dart';
+import 'reset_pin_verify_screen.dart';
 
 class PinSetupScreen extends StatefulWidget {
   final String phoneNumber;
   final String verificationToken;
   final String? userName;
+  final bool isPasswordReset;
 
   const PinSetupScreen({
     super.key,
     required this.phoneNumber,
     required this.verificationToken,
     this.userName,
+    this.isPasswordReset = false,
   });
 
   @override
@@ -111,13 +114,15 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = widget.userName != null
-        ? '${widget.userName}, введите 4 цифры для входа в приложение'
-        : '4 цифры — для входа в приложение';
+    final subtitle = widget.isPasswordReset
+        ? 'Номер подтверждён. Задайте новый пароль из 4 цифр.'
+        : widget.userName != null
+            ? '${widget.userName}, введите 4 цифры для входа в приложение'
+            : '4 цифры — для входа в приложение';
 
     return MidnightGlowScreen(
       child: AuthFormScroll(
-        title: 'Придумайте пароль',
+        title: widget.isPasswordReset ? 'Новый пароль' : 'Придумайте пароль',
         subtitle: subtitle,
         compactSubtitle: 'Введите и повторите 4 цифры',
         focusNode: _pinFocus,

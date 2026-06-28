@@ -218,7 +218,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
     } else if (!_needsOtp) {
       setState(() {
         _statusMessage =
-            'Ожидаем подтверждение на телефоне… Можно нажать «Подтвердить» в уведомлении.';
+            'На телефон может прийти push «Подтвердить» от оператора. Подождите или введите код из SMS.';
       });
     }
   }
@@ -313,8 +313,9 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                   ),
                 ] else ...[
                   const Text(
-                    'Чтобы размещать объявления и писать в чате, один раз подтвердите '
-                    'актуальный номер. Стоимость ~3–6 ₽ (Mobile ID), не обычное SMS.',
+                    'Один раз бесплатно подтвердите номер — так мы проверяем, что вы человек, '
+                    'и защищаем площадку и пользователей от мошенничества. '
+                    'Дальше — подсказки на экране (push «Подтвердить» или SMS-код).',
                     style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.45),
                   ),
                   const SizedBox(height: 16),
