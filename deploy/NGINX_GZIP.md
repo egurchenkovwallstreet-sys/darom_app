@@ -4,10 +4,12 @@
 
 ## Один раз на сервере (VNC, Терминал 1)
 
+На Timeweb в `/etc/nginx/nginx.conf` уже есть `gzip on;`. Копировать `deploy/nginx-gzip.conf` целиком **нельзя** — nginx выдаст ошибку `gzip directive is duplicate`.
+
 ```bash
 cd /opt/darom_app
 git pull
-sudo cp deploy/nginx-gzip.conf /etc/nginx/conf.d/darom-gzip.conf
+sudo sed '/^gzip on;/d' deploy/nginx-gzip.conf | sudo tee /etc/nginx/conf.d/darom-gzip.conf > /dev/null
 sudo nginx -t
 sudo systemctl reload nginx
 ```

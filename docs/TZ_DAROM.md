@@ -107,7 +107,7 @@
 | Backend | Node.js + Express | ✅ PM2 на Timeweb |
 | БД | PostgreSQL + PostGIS | ✅ Docker, порт 5433 |
 | Фото | Yandex Object Storage | ✅ на сервере (`s3Ready: true`) |
-| Чат / Push | Firebase | ✅ боевой; `deploy/FIREBASE.md` |
+| Чат / Push | Firebase FCM (Web: `push_helper.js` + SW) | ✅ боевой; iPhone PWA ✅; `deploy/FIREBASE.md` |
 | Карты | flutter_map + OpenStreetMap | ✅ бесплатно |
 | Модерация | Yandex Vision + стоп-слова + запрещённые товары + **Sightengine** ⏳ | Vision ✅ (`deploy/VISION.md`); Sightengine — оружие на фото, позже |
 | SMS | SMS Aero + Mobile ID | ✅ боевой (`SMS_MOCK=false`, `SMS_AUTH_MODE=mobile_id`) |
@@ -122,6 +122,8 @@
 **Цвета:** `#001F3F`, `#008C8C`, `#00BFFF`, белый, `#FFC107`, `#FF5722`
 
 **Фон:** `MidnightGlowScreen` — планета `earth.png` **первой**, fade 1с + scale 1.0→1.2 за 12с, градиент, размытые пятна, декорации.
+
+**Режим `lightweight` (16.07.2026):** при старте приложения — упрощённый фон без тяжёлой анимации планеты (быстрее первый кадр на Web).
 
 **Кнопки:** scale 1.08 / 150ms, shimmer 2s.
 
@@ -141,7 +143,7 @@
 | Лента объявлений | ✅ API |
 | Карточка объявления | ✅ + бронь, жалоба, рейтинг |
 | Создание объявления | ✅ + API, стоп-слова, запрещённые товары, лимиты |
-| Профиль | ✅ + основатель, партнёр, заборы, **5 уровней дарителя (бейджи)**, **админ-панель** |
+| Профиль | ✅ + основатель, партнёр, заборы, **5 уровней дарителя (бейджи)**, **Уведомления (push)**, **админ-панель** |
 | Полноэкранная карта | ✅ + кнопки радиуса на карте |
 | Мои объявления | ✅ |
 | Бронирование 24 ч (база: API, карточка объявления) | ✅ |
@@ -162,7 +164,8 @@
 - **Клавиатура на Web:** поля ввода не перекрываются (`KeyboardInsetPadding` / `AuthFormScroll`) ✅
 - **Безопасность:** 1 телефон = 1 аккаунт ✅; PIN 4 цифры ✅; подтверждение реального номера один раз (Mobile ID) ✅; предупреждение о номере в чате ✅; блокировка пользователей ✅; админ — 2FA (Mobile ID + **почта** ✅) ✅
 - **Фото:** Yandex S3, отдача через API `/api/photos/listings/`; nginx `location ^~ /api/` ✅
-- **Геолокация Web:** запрос на HTTPS (darom-app.online) ✅; подсказки и «Повторить» при отказе ✅
+- **Геолокация Web:** запрос на HTTPS (darom-app.online) ✅; подсказки и «Повторить» при отказе ✅; таймаут 6 с, без блокировки старта ✅ (16.07)
+- **Производительность Web:** ленивые вкладки, отложенные API, splash в `index.html`, gzip nginx ✅ (16.07)
 - **Чаты:** в списке только диалоги с ≥1 сообщением (пустые не показываются) ✅
 - **Забронировано (база):** 24ч, серый статус ✅; push дарителю ✅; «Отдал» / «Активировать повторно» на **карточке объявления** ✅
 - **Сделка через чат (§7.2):** ✅ 27.06.2026 — бронь после переписки; системное сообщение; кнопки дарителя в чате
@@ -188,6 +191,41 @@
 - Сделка считается состоявшейся **только** после «Отдал вещь» (не от брони и не от удаления объявления).
 - «Активировать повторно» — если вещь **не** передана (не приехали / отказ); защита от сценария «забронировали → удалили объявление → забор не списался».
 - Push при брони дарителю ✅ (как сейчас).
+
+### 7.3 Push-уведомления (Firebase FCM, Flutter Web) — ✅ 28.06.2026
+
+> **Статус:** боевой проект **darom-6509d**; push при **брони**, **чате**, **«Отдал»**; включение на Web **протестировано** (iPhone, PWA). Инструкция: `deploy/FIREBASE.md`.
+
+**События (backend `push_service.js`):**
+
+| Событие | Кому | Пример текста |
+|---------|------|---------------|
+| Бронь 24 ч | Дарителю | «Иван забронировал(а) „Куртка“ на 24 ч» |
+| Новое сообщение | Собеседнику | «Мария · Куртка: Заберу завтра» |
+| «Отдал» | Получателю | «Даритель отметил „Отдал“ — оцените сделку» |
+
+**Включение push на Web (UX):**
+
+| Шаг | Поведение |
+|-----|-----------|
+| 1 | После входа — диалог **«Уведомления»** с кнопками **«Включить»** / **«Не сейчас»** |
+| 2 | По **«Включить»** — системный запрос браузера «Разрешить уведомления?» (жест пользователя обязателен) |
+| 3 | Повторно: **Профиль → Уведомления** |
+| 4 | FCM-токен сохраняется: `POST /api/users/push-token` (Bearer) → таблица `user_push_tokens` |
+
+**Техническая реализация Web (важно для поддержки):**
+
+- **`web/push_helper.js`** — разрешение + получение FCM-токена в чистом JavaScript; ответ в Dart — **JSON-строка** (избегает TypeError JS-interop).
+- **`web/firebase-messaging-sw.js`** — фоновые push; конфиг с `/api/config/firebase`; init на `install`.
+- **`lib/services/push_service.dart`** — на Web **не** вызывает `FirebaseMessaging.requestPermission` / modular `getToken` (конфликт с compat SW).
+- nginx: `notifications=(self)` в `deploy/nginx-security-headers.conf`.
+
+**iPhone / Safari:**
+
+- Push на iOS Web: **iOS 16.4+**, сайт добавлен **«На экран Домой»** (PWA); в обычной вкладке Safari — часто **не работает** (ограничение Apple).
+- Красный badge на иконке PWA — ⏳ не гарантируется на iOS Web.
+
+**Файлы:** `lib/services/push_service.dart`, `push_service_web.dart`, `lib/widgets/push_permission_dialog.dart`, `lib/screens/main_shell.dart`, `web/push_helper.js`, `web/firebase-messaging-sw.js`.
 
 ### 7.1 Авторизация (актуальная логика, 21.06.2026)
 
@@ -217,10 +255,30 @@
 | API | https://darom-app.online/api/ (nginx proxy, без :3000) |
 | Запасной IP | http://5.129.243.246/ |
 | SSL | Let's Encrypt (certbot, автопродление) |
+| **Gzip (Web)** | JS + WASM: ~10,7 МБ → **~3,9 МБ**; `deploy/nginx-gzip.conf`, `deploy/NGINX_GZIP.md` ✅ 16.07 |
 | Иконка | белая **D** + бирюза, `assets/icon/app_icon.png`, PWA + Android |
 | Название приложения | **Даром** |
 
 Инструкция: `deploy/DOMAIN_HTTPS.md`
+
+### Производительность Flutter Web (16.07.2026) ✅
+
+| Мера | Описание |
+|------|----------|
+| **Gzip nginx** | `main.dart.js`, `canvaskit.wasm` и др. — `Content-Encoding: gzip` |
+| **Ленивые вкладки** | `MainShell` строит вкладку только при первом открытии |
+| **Отложенные API** | Чаты, избранное, профиль — запросы при активации вкладки |
+| **Неблокирующий старт** | Миграции и геолокация не задерживают `runApp()` |
+| **Splash `index.html`** | Спиннер + статус; скрытие после появления `flutter-view` |
+| **Midnight Glow lightweight** | Облегчённый фон при загрузке |
+
+**Проверка gzip с ПК:**
+```powershell
+curl.exe -sSI -H "Accept-Encoding: gzip" "https://darom-app.online/main.dart.js"
+```
+Ожидается строка `Content-Encoding: gzip`.
+
+**На сервере:** в `/etc/nginx/nginx.conf` уже есть `gzip on;` — в `conf.d` копировать конфиг **без** этой строки (см. `deploy/NGINX_GZIP.md`).
 
 ### Публичная оферта
 
@@ -242,10 +300,10 @@
 8. ✅ **Партнёры / блогеры**
 9. ✅ **Админ-панель** (2FA, жалобы, блоки, stats, блогеры, **вход из профиля**)
 10. ✅ **Домен + HTTPS** (darom-app.online)
-11. 🟡 **Flutter Web в продакшене** (GitHub Actions ✅, геолокация HTTPS ✅, иконка ✅)
+11. ✅ **Flutter Web в продакшене** (GitHub Actions ✅, геолокация HTTPS ✅, иконка ✅, **ускорение загрузки + gzip** ✅ 16.07)
 12. ⏳ Публикация в магазины (Android / iOS)
 
-**Оценка прогресса (27.06.2026):** ядро MVP ~**99%** | полное ТЗ ~**82%** | **готов к публичному запуску** 🟢. Подробности: `docs/PROGRESS.md`.
+**Оценка прогресса (16.07.2026):** ядро MVP ~**99%** | полное ТЗ ~**83%** | **готов к публичному запуску** 🟢. Подробности: `docs/PROGRESS.md`.
 
 ## 12. Следующие этапы (приоритет)
 
@@ -257,10 +315,11 @@
 | **K — Сделка в чате** | Переписка → бронь → кнопки в чате | ✅ |
 | **Запуск** | Оферта ✅; бэкапы cron; 2FA панелей — после запуска | 🟢 **готов** |
 | **D — Магазины** | Android APK / iOS | ⏳ |
-| **E — Уведомления** | Firebase push | ✅ **протестировано** |
+| **E — Уведомления** | Firebase push; Web: диалог + `push_helper.js`; iPhone PWA ✅ | ✅ **протестировано** (28.06.2026) |
 | **F — Модерация** | Vision ✅; **Sightengine** (оружие на фото) ⏳ | 🟡 |
 | **G — Админка** | Роль moderator | ⏳ |
 | **H — Лента** | Приоритет основателя | ✅ |
+| **Web perf** | Ленивые вкладки, splash, gzip nginx | ✅ **16.07.2026** |
 
 ### 12.1 Экономическая модель (ориентир для владельца, 27.06.2026)
 
@@ -297,6 +356,7 @@
 - **CORS** — только `darom-app.online` + `localhost:8080` (I-B, 26.06)
 - **Webhook Mobile ID** — секрет в URL (`MOBILE_ID_WEBHOOK_SECRET`, I-B)
 - **nginx:** HSTS, CSP, X-Frame, nosniff (I-D, 26.06) — `deploy/nginx-security-headers.conf`
+- **nginx gzip (Web):** сжатие JS/WASM — ~3× меньше трафика (16.07) — `deploy/nginx-gzip.conf`, `deploy/NGINX_GZIP.md`
 - **Cloudflare:** DNS на NS Cloudflare, записи **DNS only** (серое ☁️) — сайт в РФ **без VPN** (I-E, 26.06); `deploy/CLOUDFLARE.md`
 - **Timeweb DDoS** — «Защита от DDoS» включена на VPS (I-E, 26.06)
 - **Деплой backend** — VNC (`git pull` + pm2) ✅; GitHub Actions — опционально
@@ -394,13 +454,16 @@ lib/
   main.dart
   data/         app_categories.dart, public_offer.dart, profile_achievements.dart, map_radius_options.dart
   models/       user.dart (+ canAccessAdminPanel), listing.dart, ...
-  services/     api_config, auth_api, admin_api, admin_session_service, partners_api, ...
-  widgets/      real_phone_verify_dialog.dart, midnight_glow_screen, auth_form_scroll, ...
+  services/     api_config, auth_api, push_service.dart, push_service_web.dart, ...
+  widgets/      push_permission_dialog.dart, real_phone_verify_dialog.dart, midnight_glow_screen, ...
+web/            push_helper.js, firebase-messaging-sw.js, index.html
 backend/
-  src/routes/   auth.js, users.js, admin.js, deploy_backend.js, …
+  src/routes/   auth.js, users.js, config.js (/api/config/firebase), admin.js, deploy_backend.js, …
+  src/services/ push_service.js (FCM send)
   src/middleware/ user_auth.js, rate_limit.js, mobile_id_webhook.js
   src/security_version.js   — метка J-E в /api/health
   scripts/      deploy_backend.sh
-  db/           migrate_user_sessions.sql, …
+  db/           migrate_push_tokens.sql, migrate_user_sessions.sql, …
 .github/workflows/  deploy-web.yml, deploy-backend.yml
+deploy/         FIREBASE.md, nginx-security-headers.conf
 ```

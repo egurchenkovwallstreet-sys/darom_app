@@ -6,18 +6,18 @@
 
 ---
 
-## Снимок на 27.06.2026
+## Снимок на 16.07.2026
 
 | | |
 |---|---|
-| **Текущий этап** | **J — глубокий аудит** ✅ (J-A…J-G); **K — сделка в чате** ✅; I ✅; C ✅ |
+| **Текущий этап** | **J — глубокий аудит** ✅ (J-A…J-G); **K — сделка в чате** ✅; **E — Push Web** ✅; I ✅; C ✅ |
 | **Публичный запуск** | 🟢 **готов к запуску** (оферта ✅ 27.06; 2FA на панелях — после запуска) |
-| **Сайт** | https://darom-app.online/ |
+| **Сайт** | https://darom-app.online/ — **ускорен** (gzip + ленивая загрузка вкладок) ✅ 16.07 |
 | **API** | https://darom-app.online/api/health |
 | **Backend** | VPS `5.129.243.246`, PM2 `darom-api`, S3 ✅; **деплой backend — VNC** (`git pull` + pm2) |
 | **Flutter** | Web в продакшене (`git push` → GitHub Actions) + ПК `:8080` |
 | **Ядро MVP** | ~**99%** |
-| **Полное ТЗ** | ~**82%** |
+| **Полное ТЗ** | ~**83%** |
 | **Пользователь** | новичок, нужны **пошаговые** инструкции |
 | **Проект** | `C:\Users\User\Desktop\darom_app` |
 | **GitHub** | `egurchenkovwallstreet-sys/darom_app` — Flutter: **push**; backend: **VNC** (см. «Запуск») |
@@ -31,7 +31,92 @@
 
 ---
 
-## 📋 Резюме 27.06.2026 (этот чат — запуск)
+## 📋 Резюме 16.07.2026 — ускорение загрузки Flutter Web + gzip ✅
+
+### Проблема
+- Сайт **долго грузился** и «зависал» на экране с планетой: браузер качал **~10,7 МБ** (`main.dart.js` ~3,5 МБ + `canvaskit.wasm` ~7,2 МБ) **без сжатия**.
+- При старте сразу строились **все 5 вкладок** и шли лишние API-запросы.
+- `main()` **ждал миграции** до `runApp()` — белый/синий экран дольше обычного.
+- Splash в `index.html` скрывался слишком рано (до готовности Flutter).
+- На сервере **не было gzip** для JS/WASM; в `/etc/nginx/nginx.conf` уже был `gzip on;` — прямое копирование `nginx-gzip.conf` давало ошибку **duplicate directive**.
+
+### Решение (коммиты `d5fdb23` → `2b2ebcb`)
+| Шаг | Что сделано |
+|-----|-------------|
+| 1 | **`lib/main.dart`** — миграции в фоне (`unawaited`), не блокируют `runApp()` |
+| 2 | **`lib/screens/auth_gate.dart`** — лёгкий экран загрузки, без дубля миграций |
+| 3 | **`lib/screens/main_shell.dart`** — ленивые вкладки (`_visitedTabs` + `_tabChild()`) |
+| 4 | **`chats_screen` / `favorites_screen` / `profile_screen`** — API только при открытии вкладки |
+| 5 | **`home_screen.dart`** — геолокация не блокирует старт |
+| 6 | **`location_service_web.dart`** — таймаут 6 с, `enableHighAccuracy: false` |
+| 7 | **`midnight_glow_screen.dart`** — режим `lightweight`; фикс nullable `AnimationController` |
+| 8 | **`web/index.html`** — спиннер + текст статуса, `defer` у скриптов, splash скрывается после `flutter-view` + 1,2 с |
+| 9 | **`deploy/nginx-gzip.conf`** + **`deploy/NGINX_GZIP.md`** — gzip для JS/WASM |
+| 10 | **Сервер (VNC):** `sudo sed '/^gzip on;/d' deploy/nginx-gzip.conf \| sudo tee /etc/nginx/conf.d/darom-gzip.conf` → `nginx -t` → `reload` |
+
+### Результат сжатия (проверено curl)
+| Файл | Без gzip | С gzip |
+|------|----------|--------|
+| `main.dart.js` | ~3,5 МБ | **~0,96 МБ** |
+| `canvaskit.wasm` | ~7,2 МБ | **~2,9 МБ** |
+| **Итого** | **~10,7 МБ** | **~3,9 МБ** |
+
+### Проверка ✅
+- `curl -H "Accept-Encoding: gzip" https://darom-app.online/main.dart.js` → `Content-Encoding: gzip` ✅
+- Сайт открывается, онбординг «Добро пожаловать в Даром» — протестировано владельцем ✅ 16.07
+- DNS: `nslookup darom-app.online 8.8.8.8` → `5.129.243.246` ✅
+
+### Частые проблемы этой сессии
+| Симптом | Причина / решение |
+|---------|-------------------|
+| «Сайт не открывается» при рабочем сервере | DNS провайдера глючит → `ipconfig /flushdns`, инкогнито, `nslookup … 8.8.8.8` |
+| `gzip directive is duplicate` | В `nginx.conf` уже `gzip on;` — копировать конфиг **без** этой строки (см. `NGINX_GZIP.md`) |
+| GitHub Actions: Build web failed | Убран `web_splash_web.dart` (`dart:html callMethod`); splash только в `index.html` |
+
+### Ключевые файлы
+- `lib/main.dart`, `lib/screens/auth_gate.dart`, `lib/screens/main_shell.dart`
+- `lib/screens/chats_screen.dart`, `favorites_screen.dart`, `profile_screen.dart`, `home_screen.dart`
+- `lib/services/location_service_web.dart`, `lib/widgets/midnight_glow_screen.dart`
+- `web/index.html`, `deploy/nginx-gzip.conf`, `deploy/NGINX_GZIP.md`
+
+---
+
+## 📋 Резюме 28.06.2026 — Firebase Push на Flutter Web (iPhone) ✅
+
+### Проблема
+- После входа браузер **не спрашивал** разрешение на push — запрос шёл автоматически без нажатия кнопки (Chrome/Safari блокируют).
+- После «Разрешить» — оранжевая ошибка `TypeError: minified:FK…` (сбой Dart↔JavaScript при получении FCM-токена).
+
+### Решение (коммиты `89beb14` → `1e69364`)
+| Шаг | Что сделано |
+|-----|-------------|
+| 1 | Диалог **«Уведомления»** после входа; системный запрос — только по кнопке **«Включить»** (`push_permission_dialog.dart`, `main_shell.dart`) |
+| 2 | Пункт **Профиль → Уведомления** — повторное включение вручную |
+| 3 | **Service Worker** `web/firebase-messaging-sw.js` — инициализация Firebase на `install` через `waitUntil` |
+| 4 | **`web/push_helper.js`** — весь поток push на Web в JS: разрешение + FCM-токен + явная привязка SW; в Dart приходит **JSON-строка** (без Firebase Messaging JS-interop) |
+| 5 | nginx: `notifications=(self)` в Permissions-Policy |
+| 6 | Кэш-bust: `push_helper.js?v=3` в `index.html` |
+| 7 | Понятные сообщения об ошибках (без `minified:FK`); подсказка про **«На экран Домой»** на iPhone |
+
+### Проверка ✅
+- **iPhone (Safari, PWA «На экран Домой»):** разрешение → **«Уведомления включены»** — протестировано владельцем ✅
+- Health: `push.ready:true`, проект **darom-6509d**
+- Инструкция: `deploy/FIREBASE.md`
+
+### iPhone — важно для пользователей
+- Push в Safari работает **только с iOS 16.4+** и если сайт добавлен **«На экран Домой»** (иконка на рабочем столе).
+- В обычной вкладке Safari push часто **не работает** — ограничение Apple, не баг приложения.
+- Красная цифра на иконке PWA — ⏳ ограничение iOS Web.
+
+### Ключевые файлы
+- `lib/services/push_service.dart`, `push_service_web.dart`
+- `web/push_helper.js`, `web/firebase-messaging-sw.js`
+- `lib/widgets/push_permission_dialog.dart`
+- `backend/src/services/push_service.js`, `POST /api/users/push-token`
+
+---
+
+## 📋 Резюме 27.06.2026 (запуск)
 
 ### Этап K — сделка через чат ✅
 - Бронь только после переписки (получатель + ответ дарителя)
@@ -149,7 +234,8 @@
 
 ### SMTP админ-почты + Firebase push (22.06.2026, вечер) ✅
 - **SMTP:** код на **e.gurchenkov@yandex.ru** при входе в админку (порт 587, Yandex); запасной SMS если SMTP недоступен — `deploy/SMTP.md`
-- **Firebase push:** проект **darom-6509d**, FCM на сервере + Flutter Web; push при **брони**, **чате**, **«Отдал»** — **протестировано** (iPhone, ярлык на рабочий стол); `deploy/FIREBASE.md`
+- **Firebase push:** проект **darom-6509d**, FCM на сервере + Flutter Web; push при **брони**, **чате**, **«Отдал»** — `deploy/FIREBASE.md`
+- **28.06.2026:** Web push — диалог «Включить», `push_helper.js`, iPhone PWA ✅ (см. резюме 28.06)
 - **Health:** `push.ready:true`, `adminEmail.ready:true`
 - Миграция: `migrate_push_tokens.sql`
 
@@ -348,6 +434,7 @@ cd backend && npm install && pm2 restart darom-api --update-env
 
 ### UI + Flutter
 - Стиль **Midnight Glow**, онбординг, категории, лента, карточка, профиль
+- **Ускорение Web (16.07):** ленивые вкладки, отложенные API, неблокирующий старт, splash в `index.html`, gzip на nginx ✅
 - Web: **всегда** `flutter run -d chrome --web-port=8080`
 - Сессия: `AuthGate` + localStorage (порт 8080 обязателен)
 - **Избранное**, **чаты** (PostgreSQL), поиск на главной, **аватар**, единая кнопка с **бликом**
@@ -404,6 +491,7 @@ cd backend && npm install && pm2 restart darom-api --update-env
 ### Сервер Timeweb
 - VPS `5.129.243.246`, проект `/opt/darom_app`
 - Docker `darom_db`, backend через **PM2** `darom-api`
+- **Gzip Flutter Web (16.07):** `/etc/nginx/conf.d/darom-gzip.conf` — см. `deploy/NGINX_GZIP.md` (без дубля `gzip on;`)
 - **Деплой backend (основной для вас):** VNC → `git pull` → `npm install` → `pm2 restart darom-api --update-env`
 - **Деплой сайта (Flutter):** `git push` → GitHub Actions → `/api/deploy-web`
 - **GitHub Actions Deploy Backend** — опционально (если `DEPLOY_SECRET` совпадает); иначе только VNC
@@ -430,11 +518,15 @@ cd backend && npm install && pm2 restart darom-api --update-env
 | Регистрация обычного пользователя | ✅ без SMS, только PIN |
 
 ### Push-уведомления (Firebase) ✅
-| Событие | Статус |
-|---------|--------|
+| Событие / функция | Статус |
+|-------------------|--------|
 | Бронь объявления → дарителю | ✅ протестировано |
 | Новое сообщение в чате | ✅ протестировано |
 | «Отдал» → получателю | ✅ код + сервер |
+| **Web: диалог «Включить уведомления?»** после входа | ✅ 28.06.2026 |
+| **Web: Профиль → Уведомления** | ✅ 28.06.2026 |
+| **Web: FCM-токен через `push_helper.js`** (без JS-interop TypeError) | ✅ 28.06.2026 |
+| **iPhone PWA («На экран Домой»):** включение push | ✅ протестировано 28.06.2026 |
 | Ярлык iPhone: красная цифра на иконке | ⏳ ограничение iOS Web (нормально) |
 | Нативное приложение Android/iOS | ⏳ этап D |
 
@@ -773,8 +865,9 @@ cat backend/db/migrate_partner_mobile_id.sql | docker exec -i darom_db psql -U d
 ```
 lib/
   screens/     auth_gate, admin_gate, admin_login, admin_dashboard, phone, pin_*, partner_*, profile, ...
-  services/    auth_api, admin_api, partners_api, listings_api, users_api, chats_api, ...
-  widgets/     midnight_glow_screen, auth_form_scroll, keyboard_inset_padding, ...
+  services/    auth_api, admin_api, partners_api, listings_api, users_api, chats_api, push_service.dart, push_service_web.dart, ...
+  widgets/     midnight_glow_screen, auth_form_scroll, push_permission_dialog.dart, keyboard_inset_padding, ...
+web/           push_helper.js, firebase-messaging-sw.js, index.html (push_helper.js?v=3)
   data/        app_categories.dart, public_offer.dart, profile_achievements.dart, ...
   models/      user, listing, deal_info, ...
 backend/
@@ -825,7 +918,13 @@ backend/
 | SMS | Боевой: SMS Aero + Mobile ID; `SMS_MOCK=false`, `SMS_AUTH_MODE=mobile_id` на сервере |
 | Сайт не открывается **без VPN** (после Cloudflare) | Cloudflare DNS → **DNS only** (серое ☁️), не Proxied; `deploy/CLOUDFLARE.md` |
 | «Сервер не отвечает» на ПК `:8080` | API → `https://darom-app.online` (`api_config.dart`); backend на Timeweb, `npm run dev` не нужен |
-| `nslookup` без 8.8.8.8 падает, сайт открывается | DNS провайдера глючит; проверка: `nslookup darom-app.online 8.8.8.8` → `5.129.243.246` |
+| `nslookup` без 8.8.8.8 падает, сайт открывается | DNS провайдера глючит; проверка: `nslookup darom-app.online 8.8.8.8` → `5.129.243.246`; `ipconfig /flushdns` |
+| Сайт «не открывается», curl с ПК — 200 OK | Не падение сервера: кэш браузера / DNS → **инкогнито**, очистить кэш для darom-app.online |
+| Долгая загрузка / зависание на планете | Исправлено 16.07: gzip + ленивые вкладки; обновить сайт (`git push`) + инкогнито |
+| `gzip directive is duplicate` при `nginx -t` | Удалить `/etc/nginx/conf.d/darom-gzip.conf` или копировать без `gzip on;` — см. `deploy/NGINX_GZIP.md` |
+| Push не спрашивает разрешение | Нужно нажать **«Включить»** в диалоге приложения; или **Профиль → Уведомления** |
+| `TypeError: minified:FK…` после «Разрешить» | Исправлено 28.06 (`push_helper.js`); обновить сайт + очистить данные Safari для darom-app.online |
+| Push на iPhone не работает | **Safari → Поделиться → «На экран Домой»**; запускать с иконки; iOS **16.4+**; см. `deploy/FIREBASE.md` |
 
 ---
 
@@ -892,6 +991,8 @@ backend/
 - [x] **J-A … J-E — Глубокий аудит (P0–P3)** ✅ (27.06.2026)
 - [x] **J-F … J-G** ✅ (27.06.2026)
 - [x] **K — сделка в чате** ✅
+- [x] **Push Web (iPhone PWA):** диалог, push_helper.js, FCM-токен ✅ (28.06.2026)
+- [x] **Ускорение Flutter Web:** ленивые вкладки, splash, gzip nginx ✅ (16.07.2026)
 - [ ] **100% чеклист** ← перед запуском для всех
 - [ ] F: Sightengine — weapon/alcohol/tobacco на фото ⏳
 - [x] C: Робокасса ✅ (27.06.2026)
