@@ -126,6 +126,21 @@
       window.addEventListener('pagehide', function () {
         clearInterval(statusTimer);
       });
+
+      function tryHideAfterFlutter() {
+        if (!document.querySelector('flutter-view')) return false;
+        setTimeout(function () {
+          window.daromHideSplash();
+        }, 1200);
+        return true;
+      }
+
+      if (!tryHideAfterFlutter()) {
+        var observer = new MutationObserver(function () {
+          if (tryHideAfterFlutter()) observer.disconnect();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
     })();
   </script>
   <script src="push_helper.js?v=4" defer></script>

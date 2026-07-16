@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../services/session_service.dart';
 import '../theme/app_colors.dart';
-import '../utils/web_splash.dart';
 import '../widgets/midnight_glow_screen.dart';
 import 'main_shell.dart';
 import 'onboarding_screen.dart';
@@ -17,23 +16,15 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   late final Future<SessionData?> _sessionFuture;
-  bool _splashHidden = false;
 
   @override
   void initState() {
     super.initState();
     _sessionFuture = _loadSession();
-    _sessionFuture.whenComplete(_hideSplashOnce);
   }
 
   Future<SessionData?> _loadSession() {
     return SessionService.load().catchError((_) => null);
-  }
-
-  void _hideSplashOnce() {
-    if (_splashHidden) return;
-    _splashHidden = true;
-    hideWebSplash();
   }
 
   @override
