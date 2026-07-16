@@ -1,7 +1,10 @@
-import 'dart:html' as html;
+import 'dart:js_interop';
+
+@JS('daromHideSplash')
+external void _daromHideSplash();
 
 void hideWebSplash() {
   try {
-    html.window.callMethod('daromHideSplash');
+    _daromHideSplash();
   } catch (_) {}
 }
