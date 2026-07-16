@@ -13,8 +13,8 @@ import 'package:darom_app/widgets/payment_flow.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   unawaited(PlanetAssets.preload());
-  await SessionService.migrateToRemoteServerIfNeeded();
-  await SessionService.migrateToTokenSessionIfNeeded();
+  unawaited(SessionService.migrateToRemoteServerIfNeeded());
+  unawaited(SessionService.migrateToTokenSessionIfNeeded());
   runApp(const DaromApp());
 }
 

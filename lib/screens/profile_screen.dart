@@ -21,12 +21,14 @@ class ProfileScreen extends StatefulWidget {
   final String? userName;
   final String? phoneNumber;
   final bool inShell;
+  final bool isActiveTab;
 
   const ProfileScreen({
     super.key,
     this.userName,
     this.phoneNumber,
     this.inShell = false,
+    this.isActiveTab = true,
   });
 
   @override
@@ -39,12 +41,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   bool _isEditPressed = false;
   bool _uploadingAvatar = false;
-  late Future<User> _profileFuture;
+  Future<User>? _profileFuture;
 
   @override
   void initState() {
     super.initState();
-    _profileFuture = _loadProfile();
+    if (widget.isActiveTab) {
+      _profileFuture = _loadProfile();
+    }
+  }
+
+  @override
+  void didUpdateWidget(ProfileScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActiveTab && !oldWidget.isActiveTab && _profileFuture == null) {
+      setState(() => _profileFuture = _loadProfile());
+    }
   }
 
   @override
@@ -248,14 +260,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final child = SafeArea(
-      child: FutureBuilder<User>(
-          future: _profileFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
-              );
-            }
+            child: FutureBuilder<User>(
+              future: _profileFuture,
+              builder: (context, snapshot) {
+                if (_profileFuture == null ||
+                    snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+                  );
+                }
 
             if (snapshot.hasError || !snapshot.hasData) {
               return Center(

@@ -11,12 +11,14 @@ class FavoritesScreen extends StatefulWidget {
   final String phoneNumber;
   final String? currentUserId;
   final bool inShell;
+  final bool isActiveTab;
 
   const FavoritesScreen({
     super.key,
     required this.phoneNumber,
     this.currentUserId,
     this.inShell = false,
+    this.isActiveTab = true,
   });
 
   @override
@@ -25,12 +27,22 @@ class FavoritesScreen extends StatefulWidget {
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
   final FavoritesApi _api = FavoritesApi();
-  late Future<List<Listing>> _future;
+  Future<List<Listing>>? _future;
 
   @override
   void initState() {
     super.initState();
-    _future = _load();
+    if (widget.isActiveTab) {
+      _future = _load();
+    }
+  }
+
+  @override
+  void didUpdateWidget(FavoritesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActiveTab && !oldWidget.isActiveTab && _future == null) {
+      setState(() => _future = _load());
+    }
   }
 
   @override
@@ -68,7 +80,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             child: FutureBuilder<List<Listing>>(
               future: _future,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                if (_future == null ||
+                    snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
                     child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
                   );

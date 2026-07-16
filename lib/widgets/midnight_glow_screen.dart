@@ -9,11 +9,14 @@ class MidnightGlowScreen extends StatefulWidget {
     required this.child,
     this.bottomNavigationBar,
     this.showDecorations = true,
+    this.lightweight = false,
   });
 
   final Widget child;
   final Widget? bottomNavigationBar;
   final bool showDecorations;
+  /// Без анимации планеты и декораций — для экрана загрузки.
+  final bool lightweight;
 
   @override
   State<MidnightGlowScreen> createState() => _MidnightGlowScreenState();
@@ -22,32 +25,34 @@ class MidnightGlowScreen extends StatefulWidget {
 class _MidnightGlowScreenState extends State<MidnightGlowScreen>
     with SingleTickerProviderStateMixin {
   bool _didPrecacheImage = false;
-  late final AnimationController _planetZoomController;
-  late final Animation<double> _planetZoom;
+  AnimationController? _planetZoomController;
+  Animation<double>? _planetZoom;
 
   @override
   void initState() {
     super.initState();
-    _planetZoomController = AnimationController(
-      vsync: this,
-      duration: PlanetAssets.zoomDuration,
-    );
-    _planetZoom = Tween<double>(begin: 1.0, end: PlanetAssets.zoomScale).animate(
-      CurvedAnimation(parent: _planetZoomController, curve: Curves.easeOut),
-    );
-    _planetZoomController.forward();
+    if (!widget.lightweight) {
+      _planetZoomController = AnimationController(
+        vsync: this,
+        duration: PlanetAssets.zoomDuration,
+      );
+      _planetZoom = Tween<double>(begin: 1.0, end: PlanetAssets.zoomScale).animate(
+        CurvedAnimation(parent: _planetZoomController, curve: Curves.easeOut),
+      );
+      _planetZoomController.forward();
+    }
   }
 
   @override
   void dispose() {
-    _planetZoomController.dispose();
+    _planetZoomController?.dispose();
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_didPrecacheImage) {
+    if (!_didPrecacheImage && !widget.lightweight) {
       _didPrecacheImage = true;
       precacheImage(const AssetImage(PlanetAssets.path), context);
     }
@@ -76,26 +81,27 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen>
                     ),
                   ),
                 ),
-                Positioned.fill(
-                  child: ClipRect(
-                    child: AnimatedBuilder(
-                      animation: _planetZoom,
-                      builder: (context, child) {
-                        return Transform.scale(
-                          scale: _planetZoom.value,
+                if (!widget.lightweight)
+                  Positioned.fill(
+                    child: ClipRect(
+                      child: AnimatedBuilder(
+                        animation: _planetZoom!,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _planetZoom!.value,
+                            alignment: PlanetAssets.alignment,
+                            child: child,
+                          );
+                        },
+                        child: const Image(
+                          image: AssetImage(PlanetAssets.path),
+                          fit: BoxFit.cover,
                           alignment: PlanetAssets.alignment,
-                          child: child,
-                        );
-                      },
-                      child: const Image(
-                        image: AssetImage(PlanetAssets.path),
-                        fit: BoxFit.cover,
-                        alignment: PlanetAssets.alignment,
-                        gaplessPlayback: true,
+                          gaplessPlayback: true,
+                        ),
                       ),
                     ),
                   ),
-                ),
                 Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
@@ -105,7 +111,7 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen>
                 ),
                 const _BlurSpot(top: -100, right: -100, size: 400, color: AppColors.cyan, opacity: 0.3),
                 const _BlurSpot(bottom: -150, left: -150, size: 500, color: AppColors.teal, opacity: 0.4),
-                if (widget.showDecorations) ...[
+                if (widget.showDecorations && !widget.lightweight) ...[
                   const _DecorIcon(
                     top: 50,
                     right: 80,

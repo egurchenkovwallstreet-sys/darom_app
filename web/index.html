@@ -11,17 +11,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Даром">
-  <!-- iOS «На экран Домой» — v=3 квадратная иконка -->
-  <link rel="apple-touch-icon" sizes="180x180" href="icons/Icon-192.png?v=3">
-  <link rel="apple-touch-icon" sizes="192x192" href="icons/Icon-192.png?v=3">
-  <link rel="apple-touch-icon" sizes="512x512" href="icons/Icon-512.png?v=3">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/Icon-192.png?v=4">
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/Icon-192.png?v=4">
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/Icon-512.png?v=4">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png?v=4">
 
-  <link rel="icon" type="image/png" href="favicon.png?v=3"/>
-  <link rel="preload" as="image" href="images/earth.png">
-  <link rel="preload" href="canvaskit/canvaskit.wasm" as="fetch" type="application/wasm" crossorigin>
-  <link rel="preload" href="assets/fonts/NotoSans-Regular.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="preload" href="assets/fonts/NotoSans-Bold.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="icon" type="image/png" href="favicon.png?v=4"/>
+  <link rel="preload" href="flutter_bootstrap.js" as="script">
+  <link rel="preload" href="main.dart.js" as="script">
 
   <title>Даром</title>
   <link rel="manifest" href="manifest.json">
@@ -35,99 +32,103 @@
       background-color: #001F3F;
     }
 
-    /* Фон при загрузке — те же слои, что в MidnightGlowScreen (градиент + планета слева + overlay). */
     #darom-splash {
       position: fixed;
       inset: 0;
-      z-index: 0;
+      z-index: 9999;
       overflow: hidden;
-      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       transition: opacity 0.35s ease;
     }
 
     #darom-splash.is-hiding {
       opacity: 0;
+      pointer-events: none;
     }
 
     #darom-splash .splash-gradient {
       position: absolute;
       inset: 0;
       background: linear-gradient(to bottom right, #001F3F, #008C8C, #00BFFF);
+      z-index: 0;
     }
 
-    #darom-splash .splash-planet {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: left center;
-      transform-origin: left center;
-      animation: splash-planet-zoom 10s ease-out forwards;
+    #darom-splash .splash-status {
+      position: relative;
+      z-index: 2;
+      margin-top: 24px;
+      color: rgba(255, 255, 255, 0.92);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      font-size: 16px;
+      letter-spacing: 0.02em;
+      text-align: center;
+      padding: 0 24px;
     }
 
-    @keyframes splash-planet-zoom {
-      from { transform: scale(1); }
-      to { transform: scale(1.1); }
+    #darom-splash .splash-spinner {
+      position: relative;
+      z-index: 2;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.25);
+      border-top-color: #00BFFF;
+      animation: splash-spin 0.9s linear infinite;
     }
 
-    #darom-splash .splash-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        to bottom right,
-        rgba(0, 31, 63, 0.7),
-        rgba(0, 140, 140, 0.3),
-        rgba(0, 191, 255, 0.2)
-      );
+    @keyframes splash-spin {
+      to { transform: rotate(360deg); }
     }
-
-    /* Скрытие — сразу после появления flutter-view (см. script внизу). */
   </style>
 </head>
 <body>
-  <div id="darom-splash" aria-hidden="true">
+  <div id="darom-splash" aria-live="polite">
     <div class="splash-gradient"></div>
-    <img class="splash-planet" src="images/earth.png" alt="">
-    <div class="splash-overlay"></div>
+    <div class="splash-spinner" role="progressbar" aria-label="Загрузка"></div>
+    <p class="splash-status" id="darom-splash-text">Загрузка приложения…</p>
   </div>
   <script>
     (function () {
       var splash = document.getElementById('darom-splash');
+      var splashText = document.getElementById('darom-splash-text');
       if (!splash) return;
 
-      var hideDelayMs = 0;
       var fadeMs = 350;
-      var scheduled = false;
+      var hidden = false;
 
-      function scheduleHide() {
-        if (scheduled) return;
-        scheduled = true;
+      window.daromHideSplash = function daromHideSplash() {
+        if (hidden) return;
+        hidden = true;
+        splash.classList.add('is-hiding');
         setTimeout(function () {
-          splash.classList.add('is-hiding');
-          setTimeout(function () {
-            splash.style.display = 'none';
-          }, fadeMs);
-        }, hideDelayMs);
-      }
+          splash.style.display = 'none';
+        }, fadeMs);
+      };
 
-      function onFlutterReady() {
-        if (document.querySelector('flutter-view')) {
-          scheduleHide();
-          return true;
+      var loadStarted = Date.now();
+      var statusTimer = setInterval(function () {
+        var sec = Math.round((Date.now() - loadStarted) / 1000);
+        if (sec >= 8 && splashText) {
+          splashText.textContent = 'Загрузка занимает больше обычного… Подождите ещё немного';
+        } else if (sec >= 3 && splashText) {
+          splashText.textContent = 'Подготовка интерфейса…';
         }
-        return false;
-      }
+      }, 1000);
 
-      if (onFlutterReady()) return;
-
-      var observer = new MutationObserver(function () {
-        if (onFlutterReady()) observer.disconnect();
+      window.addEventListener('error', function (event) {
+        if (!splashText || hidden) return;
+        splashText.textContent = 'Ошибка загрузки. Обновите страницу или проверьте интернет';
       });
-      observer.observe(document.body, { childList: true, subtree: true });
+
+      window.addEventListener('pagehide', function () {
+        clearInterval(statusTimer);
+      });
     })();
   </script>
-  <script src="push_helper.js?v=3"></script>
-  <script src="flutter_bootstrap.js" async></script>
+  <script src="push_helper.js?v=4" defer></script>
+  <script src="flutter_bootstrap.js" defer></script>
 </body>
 </html>

@@ -200,8 +200,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   double get _currentRadiusKm => _radiusKmValues[_radiusIndex];
 
-  Future<void> _initLocationAndListings() async {
-    await _applyLocation(await _locationService.locate());
+  void _initLocationAndListings() {
+    unawaited(_locationService.locate().then(_applyLocation));
   }
 
   Future<void> _retryLocation() async {

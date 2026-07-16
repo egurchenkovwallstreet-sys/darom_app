@@ -38,6 +38,7 @@ class _MainShellState extends State<MainShell> {
   static const _pushPromptDismissedKey = 'push_prompt_dismissed_v1';
 
   late int _currentIndex;
+  final Set<int> _visitedTabs = {0};
   final ChatsApi _chatsApi = ChatsApi();
   int _unreadChatCount = 0;
   Timer? _unreadPollTimer;
@@ -158,9 +159,57 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _onTabTap(int index) {
-    setState(() => _currentIndex = index);
+    setState(() {
+      _visitedTabs.add(index);
+      _currentIndex = index;
+    });
     if (index == 3) {
       _refreshUnreadCount();
+    }
+  }
+
+  Widget _tabChild(int index) {
+    if (!_visitedTabs.contains(index)) {
+      return const SizedBox.shrink();
+    }
+    switch (index) {
+      case 0:
+        return HomeScreen(
+          userName: widget.userName,
+          phoneNumber: widget.phoneNumber,
+          userId: widget.userId,
+          inShell: true,
+          isActiveTab: _currentIndex == 0,
+        );
+      case 1:
+        return FavoritesScreen(
+          phoneNumber: widget.phoneNumber,
+          currentUserId: widget.userId,
+          inShell: true,
+          isActiveTab: _currentIndex == 1,
+        );
+      case 2:
+        return AddListingScreen(
+          phoneNumber: widget.phoneNumber,
+          inShell: true,
+          onPublished: () => setState(() => _currentIndex = 0),
+        );
+      case 3:
+        return ChatsScreen(
+          phoneNumber: widget.phoneNumber,
+          currentUserId: widget.userId,
+          inShell: true,
+          isActiveTab: _currentIndex == 3,
+        );
+      case 4:
+        return ProfileScreen(
+          userName: widget.userName,
+          phoneNumber: widget.phoneNumber,
+          inShell: true,
+          isActiveTab: _currentIndex == 4,
+        );
+      default:
+        return const SizedBox.shrink();
     }
   }
 
@@ -218,36 +267,7 @@ class _MainShellState extends State<MainShell> {
       ),
       child: IndexedStack(
         index: _currentIndex,
-        children: [
-          HomeScreen(
-            userName: widget.userName,
-            phoneNumber: widget.phoneNumber,
-            userId: widget.userId,
-            inShell: true,
-            isActiveTab: _currentIndex == 0,
-          ),
-          FavoritesScreen(
-            phoneNumber: widget.phoneNumber,
-            currentUserId: widget.userId,
-            inShell: true,
-          ),
-          AddListingScreen(
-            phoneNumber: widget.phoneNumber,
-            inShell: true,
-            onPublished: () => setState(() => _currentIndex = 0),
-          ),
-          ChatsScreen(
-            phoneNumber: widget.phoneNumber,
-            currentUserId: widget.userId,
-            inShell: true,
-            isActiveTab: _currentIndex == 3,
-          ),
-          ProfileScreen(
-            userName: widget.userName,
-            phoneNumber: widget.phoneNumber,
-            inShell: true,
-          ),
-        ],
+        children: List.generate(5, _tabChild),
       ),
     );
   }

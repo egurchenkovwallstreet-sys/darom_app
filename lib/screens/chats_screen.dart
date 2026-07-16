@@ -38,7 +38,9 @@ class _ChatsScreenState extends State<ChatsScreen> {
   @override
   void initState() {
     super.initState();
-    _bootstrap();
+    if (widget.isActiveTab) {
+      _bootstrap();
+    }
   }
 
   @override
@@ -46,8 +48,12 @@ class _ChatsScreenState extends State<ChatsScreen> {
     super.didUpdateWidget(oldWidget);
     if (widget.isActiveTab == oldWidget.isActiveTab) return;
     if (widget.isActiveTab) {
-      _startPoll();
-      _refresh(silent: true);
+      if (_conversations.isEmpty && !_loadInFlight) {
+        _bootstrap();
+      } else {
+        _startPoll();
+        _refresh(silent: true);
+      }
     } else {
       _stopPoll();
     }

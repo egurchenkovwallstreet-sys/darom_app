@@ -27,8 +27,8 @@ class LocationService {
 
     try {
       final position = await geolocation
-          .getCurrentPosition(enableHighAccuracy: true)
-          .timeout(const Duration(seconds: 15));
+          .getCurrentPosition(enableHighAccuracy: false)
+          .timeout(const Duration(seconds: 6));
       final coords = position.coords;
       if (coords == null) {
         return const GeoLocationResult(status: GeoLocationStatus.unavailable);
