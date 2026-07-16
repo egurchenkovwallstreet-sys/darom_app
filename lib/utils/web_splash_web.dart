@@ -1,10 +1,11 @@
 import 'dart:js_interop';
-
-@JS('daromHideSplash')
-external void _daromHideSplash();
+import 'dart:js_interop_unsafe';
 
 void hideWebSplash() {
   try {
-    _daromHideSplash();
+    final fn = globalContext.getProperty('daromHideSplash'.toJS);
+    if (fn != null && fn.isA<JSFunction>()) {
+      (fn as JSFunction).callAsFunction();
+    }
   } catch (_) {}
 }

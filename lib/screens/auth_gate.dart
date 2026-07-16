@@ -23,6 +23,7 @@ class _AuthGateState extends State<AuthGate> {
   void initState() {
     super.initState();
     _sessionFuture = _loadSession();
+    _sessionFuture.whenComplete(_hideSplashOnce);
   }
 
   Future<SessionData?> _loadSession() {
@@ -41,7 +42,7 @@ class _AuthGateState extends State<AuthGate> {
       future: _sessionFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const MidnightGlowScreen(
+          return MidnightGlowScreen(
             lightweight: true,
             child: Center(
               child: CircularProgressIndicator(color: AppColors.cyan),
@@ -50,7 +51,6 @@ class _AuthGateState extends State<AuthGate> {
         }
 
         final session = snapshot.data;
-        _hideSplashOnce();
         if (session != null) {
           return MainShell(
             userName: session.name,
