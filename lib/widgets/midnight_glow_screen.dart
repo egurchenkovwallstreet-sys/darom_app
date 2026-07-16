@@ -32,14 +32,15 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen>
   void initState() {
     super.initState();
     if (!widget.lightweight) {
-      _planetZoomController = AnimationController(
+      final controller = AnimationController(
         vsync: this,
         duration: PlanetAssets.zoomDuration,
       );
+      _planetZoomController = controller;
       _planetZoom = Tween<double>(begin: 1.0, end: PlanetAssets.zoomScale).animate(
-        CurvedAnimation(parent: _planetZoomController, curve: Curves.easeOut),
+        CurvedAnimation(parent: controller, curve: Curves.easeOut),
       );
-      _planetZoomController.forward();
+      controller.forward();
     }
   }
 
