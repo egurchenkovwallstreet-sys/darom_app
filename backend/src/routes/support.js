@@ -111,6 +111,67 @@ async function fetchMessages(ticketId) {
   return result.rows.map(mapMessageRow);
 }
 
+async function markTicketRead(ticketId, readerRole, readerId) {
+  await db.query(
+    `
+    INSERT INTO support_ticket_reads (ticket_id, reader_role, reader_id, last_read_at)
+    VALUES (
+      $1,
+      $2,
+      $3,
+      COALESCE(
+        (SELECT MAX(created_at) FROM support_messages WHERE ticket_id = $1),
+        NOW()
+      )
+    )
+    ON CONFLICT (ticket_id, reader_role, reader_id)
+    DO UPDATE SET last_read_at = EXCLUDED.last_read_at
+    `,
+    [ticketId, readerRole, readerId]
+  );
+}
+
+const unreadForUserSelect = `
+  COALESCE((
+    SELECT COUNT(*)::int
+    FROM support_messages sm
+    LEFT JOIN support_ticket_reads str
+      ON str.ticket_id = sm.ticket_id
+     AND str.reader_role = 'user'
+     AND str.reader_id = $1
+    WHERE sm.ticket_id = t.id
+      AND sm.author_role = 'admin'
+      AND sm.created_at > COALESCE(str.last_read_at, TIMESTAMPTZ '1970-01-01')
+  ), 0) AS unread_for_user
+`;
+
+function unreadForAdminSelect(adminIdParam) {
+  return `
+  COALESCE((
+    SELECT COUNT(*)::int
+    FROM support_messages sm
+    LEFT JOIN support_ticket_reads str
+      ON str.ticket_id = sm.ticket_id
+     AND str.reader_role = 'admin'
+     AND str.reader_id = ${adminIdParam}
+    WHERE sm.ticket_id = t.id
+      AND sm.author_role = 'user'
+      AND sm.created_at > COALESCE(str.last_read_at, TIMESTAMPTZ '1970-01-01')
+  ), 0) AS unread_for_admin
+`;
+}
+
+function supportReadsDbError(error) {
+  const message = String(error?.message ?? error);
+  if (error?.code === '42P01' && message.includes('support_ticket_reads')) {
+    return 'База данных не обновлена: выполните migrate_support_reads.sql на сервере (VNC)';
+  }
+  if (error?.code === '42P01') {
+    return 'База данных не обновлена: выполните migrate_support.sql на сервере (VNC)';
+  }
+  return message;
+}
+
 // ─── Пользователь ───────────────────────────────────────────────────────────
 
 router.post('/tickets', requireUserSession, supportCreateLimiter, async (req, res) => {
@@ -197,17 +258,7 @@ router.get('/tickets', requireUserSession, async (req, res) => {
         t.updated_at,
         lm.body AS last_message,
         lm.created_at AS last_message_at,
-        COALESCE((
-          SELECT COUNT(*)::int
-          FROM support_messages sm
-          WHERE sm.ticket_id = t.id
-            AND sm.author_role = 'admin'
-            AND sm.created_at > COALESCE((
-              SELECT MAX(sm2.created_at)
-              FROM support_messages sm2
-              WHERE sm2.ticket_id = t.id AND sm2.author_role = 'user'
-            ), TIMESTAMPTZ '1970-01-01')
-        ), 0) AS unread_for_user
+        ${unreadForUserSelect}
       FROM support_tickets t
       LEFT JOIN LATERAL (
         SELECT body, created_at
@@ -224,13 +275,37 @@ router.get('/tickets', requireUserSession, async (req, res) => {
 
     res.json({ items: result.rows.map(mapTicketRow) });
   } catch (error) {
-    const message = String(error?.message ?? error);
-    if (error?.code === '42P01') {
-      return res.status(503).json({
-        error: 'База данных не обновлена: выполните migrate_support.sql на сервере (VNC)',
-      });
-    }
-    res.status(500).json({ error: message });
+    res.status(500).json({ error: supportReadsDbError(error) });
+  }
+});
+
+// GET /api/support/unread-summary?phone=
+router.get('/unread-summary', requireUserSession, async (req, res) => {
+  const { phone } = req.query;
+  if (!ensureSessionPhone(req, res, phone)) return;
+
+  const userId = req.userSession.userId;
+
+  try {
+    const result = await db.query(
+      `
+      SELECT COUNT(*)::int AS total_unread
+      FROM support_messages sm
+      JOIN support_tickets t ON t.id = sm.ticket_id
+      LEFT JOIN support_ticket_reads str
+        ON str.ticket_id = sm.ticket_id
+       AND str.reader_role = 'user'
+       AND str.reader_id = $1
+      WHERE t.user_id = $1
+        AND sm.author_role = 'admin'
+        AND sm.created_at > COALESCE(str.last_read_at, TIMESTAMPTZ '1970-01-01')
+      `,
+      [userId]
+    );
+
+    res.json({ total_unread: result.rows[0]?.total_unread ?? 0 });
+  } catch (error) {
+    res.status(500).json({ error: supportReadsDbError(error) });
   }
 });
 
@@ -254,6 +329,27 @@ router.get('/tickets/:id/messages', requireUserSession, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/support/tickets/:id/read { phone }
+router.post('/tickets/:id/read', requireUserSession, async (req, res) => {
+  const { phone } = req.body ?? {};
+  if (!ensureSessionPhone(req, res, phone)) return;
+
+  const userId = req.userSession.userId;
+  const ticketId = req.params.id;
+
+  try {
+    const ticket = await getTicketForUser(ticketId, userId);
+    if (!ticket) {
+      return res.status(404).json({ error: 'Обращение не найдено' });
+    }
+
+    await markTicketRead(ticketId, 'user', userId);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: supportReadsDbError(error) });
   }
 });
 
@@ -316,6 +412,8 @@ router.post('/tickets/:id/messages', requireUserSession, supportMessageLimiter, 
 // ─── Админ (обычный Bearer token + super_admin) ─────────────────────────────
 
 router.get('/admin/tickets', ...requireSuperAdminUserSession, async (req, res) => {
+  const adminId = req.adminUser.id;
+
   try {
     const result = await db.query(
       `
@@ -329,17 +427,7 @@ router.get('/admin/tickets', ...requireSuperAdminUserSession, async (req, res) =
         u.phone AS user_phone,
         lm.body AS last_message,
         lm.created_at AS last_message_at,
-        COALESCE((
-          SELECT COUNT(*)::int
-          FROM support_messages sm
-          WHERE sm.ticket_id = t.id
-            AND sm.author_role = 'user'
-            AND sm.created_at > COALESCE((
-              SELECT MAX(sm2.created_at)
-              FROM support_messages sm2
-              WHERE sm2.ticket_id = t.id AND sm2.author_role = 'admin'
-            ), TIMESTAMPTZ '1970-01-01')
-        ), 0) AS unread_for_admin
+        ${unreadForAdminSelect('$1')}
       FROM support_tickets t
       JOIN users u ON u.id = t.user_id
       LEFT JOIN LATERAL (
@@ -353,18 +441,39 @@ router.get('/admin/tickets', ...requireSuperAdminUserSession, async (req, res) =
         CASE WHEN t.status = 'closed' THEN 1 ELSE 0 END,
         t.updated_at DESC
       LIMIT 200
-      `
+      `,
+      [adminId]
     );
 
     res.json({ items: result.rows.map(mapTicketRow) });
   } catch (error) {
-    const message = String(error?.message ?? error);
-    if (error?.code === '42P01') {
-      return res.status(503).json({
-        error: 'База данных не обновлена: выполните migrate_support.sql на сервере (VNC)',
-      });
-    }
-    res.status(500).json({ error: message });
+    res.status(500).json({ error: supportReadsDbError(error) });
+  }
+});
+
+// GET /api/support/admin/unread-summary
+router.get('/admin/unread-summary', ...requireSuperAdminUserSession, async (req, res) => {
+  const adminId = req.adminUser.id;
+
+  try {
+    const result = await db.query(
+      `
+      SELECT COUNT(*)::int AS total_unread
+      FROM support_messages sm
+      JOIN support_tickets t ON t.id = sm.ticket_id
+      LEFT JOIN support_ticket_reads str
+        ON str.ticket_id = sm.ticket_id
+       AND str.reader_role = 'admin'
+       AND str.reader_id = $1
+      WHERE sm.author_role = 'user'
+        AND sm.created_at > COALESCE(str.last_read_at, TIMESTAMPTZ '1970-01-01')
+      `,
+      [adminId]
+    );
+
+    res.json({ total_unread: result.rows[0]?.total_unread ?? 0 });
+  } catch (error) {
+    res.status(500).json({ error: supportReadsDbError(error) });
   }
 });
 
@@ -397,6 +506,24 @@ router.get('/admin/tickets/:id/messages', ...requireSuperAdminUserSession, async
     res.json({ ticket: mapTicketRow(ticket), messages });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/support/admin/tickets/:id/read
+router.post('/admin/tickets/:id/read', ...requireSuperAdminUserSession, async (req, res) => {
+  const ticketId = req.params.id;
+  const adminId = req.adminUser.id;
+
+  try {
+    const ticket = await getTicketById(ticketId);
+    if (!ticket) {
+      return res.status(404).json({ error: 'Обращение не найдено' });
+    }
+
+    await markTicketRead(ticketId, 'admin', adminId);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: supportReadsDbError(error) });
   }
 });
 

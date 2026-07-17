@@ -75,6 +75,12 @@ class _SupportThreadScreenState extends State<SupportThreadScreen> {
         _error = null;
       });
 
+      if (widget.isAdminMode) {
+        await _api.markAdminTicketRead(ticketId: _ticket.id);
+      } else {
+        await _api.markTicketRead(phone: widget.phoneNumber, ticketId: _ticket.id);
+      }
+
       if (initial || _messages.isNotEmpty) {
         _scrollToBottom();
       }

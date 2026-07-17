@@ -31,6 +31,54 @@ class SupportApi {
         .toList();
   }
 
+  Future<int> fetchUnreadSummary({required String phone}) async {
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}/api/support/unread-summary').replace(
+        queryParameters: {'phone': phone},
+      );
+      final response = await _client
+          .get(uri, headers: await authHeaders())
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return (data['total_unread'] as num?)?.toInt() ?? 0;
+      }
+    } catch (_) {}
+
+    return _fetchUnreadTotalFromList(phone);
+  }
+
+  Future<int> fetchAdminUnreadSummary() async {
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}/api/support/admin/unread-summary');
+      final response = await _client
+          .get(uri, headers: await authHeaders())
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return (data['total_unread'] as num?)?.toInt() ?? 0;
+      }
+    } catch (_) {}
+
+    try {
+      final tickets = await fetchAdminTickets();
+      return tickets.fold<int>(0, (sum, ticket) => sum + ticket.unreadForAdmin);
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  Future<int> _fetchUnreadTotalFromList(String phone) async {
+    try {
+      final tickets = await fetchMyTickets(phone: phone);
+      return tickets.fold<int>(0, (sum, ticket) => sum + ticket.unreadForUser);
+    } catch (_) {
+      return 0;
+    }
+  }
+
   Future<SupportTicket> createTicket({
     required String phone,
     String? subject,
@@ -100,6 +148,27 @@ class SupportApi {
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     return SupportMessage.fromJson(data['message'] as Map<String, dynamic>);
+  }
+
+  Future<void> markTicketRead({
+    required String phone,
+    required String ticketId,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/support/tickets/$ticketId/read');
+    await _client
+        .post(
+          uri,
+          headers: await jsonAuthHeaders(),
+          body: jsonEncode({'phone': phone}),
+        )
+        .timeout(const Duration(seconds: 10));
+  }
+
+  Future<void> markAdminTicketRead({required String ticketId}) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/support/admin/tickets/$ticketId/read');
+    await _client
+        .post(uri, headers: await jsonAuthHeaders(), body: jsonEncode({}))
+        .timeout(const Duration(seconds: 10));
   }
 
   Future<List<SupportTicket>> fetchAdminTickets() async {

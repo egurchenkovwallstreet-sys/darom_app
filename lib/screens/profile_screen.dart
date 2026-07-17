@@ -7,6 +7,7 @@ import '../models/user.dart';
 import '../services/auth_api.dart';
 import '../services/push_service.dart';
 import '../services/session_service.dart';
+import '../services/support_api.dart';
 import '../services/users_api.dart';
 import '../widgets/avatar_image.dart';
 import '../widgets/midnight_glow_screen.dart';
@@ -40,10 +41,13 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UsersApi _usersApi = UsersApi();
   final AuthApi _authApi = AuthApi();
+  final SupportApi _supportApi = SupportApi();
   final ImagePicker _imagePicker = ImagePicker();
   bool _isEditPressed = false;
   bool _uploadingAvatar = false;
   Future<User>? _profileFuture;
+  int _supportUnread = 0;
+  int _adminSupportUnread = 0;
 
   @override
   void initState() {
@@ -65,7 +69,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void dispose() {
     _usersApi.dispose();
     _authApi.dispose();
+    _supportApi.dispose();
     super.dispose();
+  }
+
+  Future<void> _refreshSupportUnread(User user) async {
+    try {
+      final userCount = await _supportApi.fetchUnreadSummary(phone: user.phoneNumber);
+      var adminCount = 0;
+      if (user.isSuperAdmin) {
+        adminCount = await _supportApi.fetchAdminUnreadSummary();
+      }
+      if (!mounted) return;
+      setState(() {
+        _supportUnread = userCount;
+        _adminSupportUnread = adminCount;
+      });
+    } catch (_) {}
   }
 
   Future<User> _loadProfile() {
@@ -313,7 +333,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               );
             }
 
-            return _buildContent(snapshot.data!);
+            final user = snapshot.data!;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && widget.isActiveTab) {
+                _refreshSupportUnread(user);
+              }
+            });
+            return _buildContent(user);
           },
         ),
     );
@@ -722,8 +748,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   _buildSettingsItem(
                                     Icons.support_agent_outlined,
                                     'Обращения пользователей',
-                                    onTap: () {
-                                      Navigator.push(
+                                    badgeCount: _adminSupportUnread,
+                                    onTap: () async {
+                                      await Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => SupportScreen(
@@ -732,6 +759,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           ),
                                         ),
                                       );
+                                      if (mounted) _refreshSupportUnread(user);
                                     },
                                   ),
                                   Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
@@ -751,8 +779,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 _buildSettingsItem(
                                   Icons.support_agent_outlined,
                                   'Служба поддержки',
-                                  onTap: () {
-                                    Navigator.push(
+                                  badgeCount: _supportUnread,
+                                  onTap: () async {
+                                    await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => SupportScreen(
@@ -760,6 +789,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       ),
                                     );
+                                    if (mounted) _refreshSupportUnread(user);
                                   },
                                 ),
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
@@ -825,7 +855,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSettingsItem(IconData icon, String title, {VoidCallback? onTap}) {
+  Widget _buildSettingsItem(
+    IconData icon,
+    String title, {
+    VoidCallback? onTap,
+    int badgeCount = 0,
+  }) {
     return InkWell(
       onTap: onTap ?? () {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -851,6 +886,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
+            if (badgeCount > 0) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFF5722),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                child: Text(
+                  badgeCount > 99 ? '99+' : '$badgeCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
             Icon(
               Icons.arrow_forward_ios,
               color: Color(0xFFFFFFFF).withOpacity(0.4),
