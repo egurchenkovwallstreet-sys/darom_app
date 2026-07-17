@@ -29,6 +29,7 @@ function paidAtFilter(period) {
 
 async function fetchPeriodStats(db, period) {
   const userWhere = periodSql('created_at', period);
+  const listingsWhere = periodSql('created_at', period);
   const activeWhere = periodSql('last_active_at', period);
   const dealsWhere = periodSql('created_at', period);
   const paidWhere = paidAtFilter(period);
@@ -39,6 +40,7 @@ async function fetchPeriodStats(db, period) {
 
   const [
     newUsers,
+    newListings,
     activeUsers,
     deals,
     payments,
@@ -46,6 +48,7 @@ async function fetchPeriodStats(db, period) {
     activeBloggers,
   ] = await Promise.all([
     db.query(`SELECT COUNT(*)::int AS cnt FROM users WHERE ${userWhere}`),
+    db.query(`SELECT COUNT(*)::int AS cnt FROM listings WHERE ${listingsWhere}`),
     db.query(
       `SELECT COUNT(*)::int AS cnt FROM users WHERE last_active_at IS NOT NULL AND ${activeWhere}`
     ),
@@ -85,6 +88,7 @@ async function fetchPeriodStats(db, period) {
     period,
     label: PERIOD_LABELS[period],
     new_users: newUsers.rows[0]?.cnt ?? 0,
+    new_listings: newListings.rows[0]?.cnt ?? 0,
     active_users: activeUsers.rows[0]?.cnt ?? 0,
     deals_count: deals.rows[0]?.cnt ?? 0,
     payments_count: payments.rows[0]?.payments_count ?? 0,
@@ -106,6 +110,7 @@ function formatStatsBlock(stats) {
   return [
     `▸ ${stats.label}`,
     `  • Новые пользователи: ${stats.new_users}`,
+    `  • Новые объявления: ${stats.new_listings}`,
     `  • Активные (заходили): ${stats.active_users}`,
     `  • Сделки: ${stats.deals_count}`,
     `  • Оплаты: ${stats.payments_count} (${stats.payments_rub} ₽)`,
@@ -133,6 +138,7 @@ function formatReportHtml(reportDateLabel, statsByPeriod) {
       <h3 style="margin:16px 0 8px;color:#00BFFF">${s.label}</h3>
       <ul style="margin:0;padding-left:20px;line-height:1.6">
         <li>Новые пользователи: <strong>${s.new_users}</strong></li>
+        <li>Новые объявления: <strong>${s.new_listings}</strong></li>
         <li>Активные (заходили): <strong>${s.active_users}</strong></li>
         <li>Сделки: <strong>${s.deals_count}</strong></li>
         <li>Оплаты: <strong>${s.payments_count}</strong> (${s.payments_rub} ₽)</li>
