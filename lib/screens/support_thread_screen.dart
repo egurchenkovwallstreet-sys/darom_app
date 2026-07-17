@@ -277,10 +277,11 @@ class _SupportThreadScreenState extends State<SupportThreadScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
             decoration: BoxDecoration(
-              color: isMine ? AppColors.cyan.withOpacity(0.25) : const Color(0xFF0A2A4A),
+              color: isMine ? const Color(0xFF007AA3) : const Color(0xFF001F3F),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isMine ? AppColors.cyan : Colors.white24,
+                color: isMine ? const Color(0xFF80DEEA) : AppColors.cyan,
+                width: 1.5,
               ),
             ),
             child: Column(
