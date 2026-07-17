@@ -20,6 +20,7 @@ import 'admin_login_screen.dart';
 import 'admin_daily_reports_screen.dart';
 import 'admin_reports_screen.dart';
 import 'support_screen.dart';
+import 'about_app_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userName;
@@ -809,7 +810,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(Icons.language, 'Язык'),
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
-                                _buildSettingsItem(Icons.info, 'О приложении'),
+                                _buildSettingsItem(
+                                  Icons.info,
+                                  'О приложении',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const AboutAppScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
                               ],
                             ),
                           )
