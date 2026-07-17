@@ -25,7 +25,7 @@ const {
   recordPartnerPayment,
   normalizePartnerCode,
 } = require('../utils/partner_helpers');
-const { checkAdminAccessByPhone } = require('../utils/admin_auth');
+const { checkAdminAccessByPhone, getAdminUserByPhone } = require('../utils/admin_auth');
 const { storeVerifyToken } = require('../utils/phone_verify_token');
 const { upsertPushToken } = require('../services/push_service');
 const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
@@ -94,7 +94,9 @@ async function formatUserWithStats(db, row, { includePhone = false } = {}) {
 
   if (includePhone) {
     user.phone = row.phone;
-    user.can_access_admin_panel = await checkAdminAccessByPhone(db, row.phone);
+    const adminUser = await getAdminUserByPhone(db, row.phone);
+    user.can_access_admin_panel = Boolean(adminUser);
+    user.is_super_admin = adminUser?.role === 'super_admin';
   }
 
   return user;

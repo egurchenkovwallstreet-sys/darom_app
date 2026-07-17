@@ -82,6 +82,24 @@ const partnerCodeValidateLimiter = rateLimit({
   message: { error: 'Слишком много проверок кода. Подождите 15 минут.' },
 });
 
+/** Анти-спам: создание обращений в поддержку. */
+const supportCreateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Слишком много обращений. Подождите час.' },
+});
+
+/** Лимит сообщений в поддержку. */
+const supportMessageLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Слишком много сообщений. Подождите час.' },
+});
+
 module.exports = {
   apiGeneralLimiter,
   authGeneralLimiter,
@@ -91,4 +109,6 @@ module.exports = {
   checkPhoneLimiter,
   verifyCodeLimiter,
   partnerCodeValidateLimiter,
+  supportCreateLimiter,
+  supportMessageLimiter,
 };

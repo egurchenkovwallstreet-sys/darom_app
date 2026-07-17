@@ -29,16 +29,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   bool _loading = true;
   String? _error;
 
-  List<Map<String, dynamic>> _listingReports = [];
-  List<Map<String, dynamic>> _chatReports = [];
   Map<String, dynamic> _platformStats = {};
   AdminBloggersData? _bloggers;
 
   @override
   void initState() {
     super.initState();
-    final tabCount = widget.session.isSuperAdmin ? 3 : 1;
-    _tabs = TabController(length: tabCount, vsync: this);
+    _tabs = TabController(length: 2, vsync: this);
     _loadAll();
   }
 
@@ -56,36 +53,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     });
 
     final token = widget.session.token;
-    var listingReports = <Map<String, dynamic>>[];
-    var chatReports = <Map<String, dynamic>>[];
     var stats = <String, dynamic>{};
     AdminBloggersData? bloggers;
     String? loadError;
 
     try {
-      listingReports = await _api.fetchListingReports(token: token);
-      chatReports = await _api.fetchChatReports(token: token);
+      stats = await _api.fetchPlatformStats(token: token, period: _period);
     } catch (error) {
       loadError = '$error';
     }
-
-    if (widget.session.isSuperAdmin) {
-      try {
-        stats = await _api.fetchPlatformStats(token: token, period: _period);
-      } catch (error) {
-        loadError ??= '$error';
-      }
-      try {
-        bloggers = await _api.fetchBloggers(token: token, period: _period);
-      } catch (error) {
-        loadError ??= '$error';
-      }
+    try {
+      bloggers = await _api.fetchBloggers(token: token, period: _period);
+    } catch (error) {
+      loadError ??= '$error';
     }
 
     if (!mounted) return;
     setState(() {
-      _listingReports = listingReports;
-      _chatReports = chatReports;
       _platformStats = stats;
       _bloggers = bloggers;
       _loading = false;
@@ -107,50 +91,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         ),
       ),
     );
-  }
-
-  Future<void> _blockUser(String userId, {required bool permanent, int days = 3}) async {
-    try {
-      await _api.blockUser(
-        token: widget.session.token,
-        userId: userId,
-        permanent: permanent,
-        days: permanent ? null : days,
-        reason: 'admin_panel',
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Пользователь заблокирован'), backgroundColor: AppColors.cyan),
-      );
-      await _loadAll();
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error'), backgroundColor: AppColors.red),
-      );
-    }
-  }
-
-  Future<void> _blockListing(String listingId, {required bool permanent, int days = 3}) async {
-    try {
-      await _api.blockListing(
-        token: widget.session.token,
-        listingId: listingId,
-        permanent: permanent,
-        days: permanent ? null : days,
-        reason: 'admin_panel',
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Объявление скрыто'), backgroundColor: AppColors.cyan),
-      );
-      await _loadAll();
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error'), backgroundColor: AppColors.red),
-      );
-    }
   }
 
   Future<void> _payPartner(String partnerId) async {
@@ -209,16 +149,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           indicatorColor: AppColors.cyan,
           labelColor: AppColors.cyan,
           unselectedLabelColor: Colors.white54,
-          tabs: [
-            const Tab(text: 'Жалобы'),
-            if (widget.session.isSuperAdmin) const Tab(text: 'Статистика'),
-            if (widget.session.isSuperAdmin) const Tab(text: 'Блогеры'),
+          tabs: const [
+            Tab(text: 'Статистика'),
+            Tab(text: 'Блогеры'),
           ],
         ),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.cyan))
-          : _error != null && _listingReports.isEmpty && _chatReports.isEmpty && _bloggers == null
+          : _error != null && _bloggers == null
               ? Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -243,130 +182,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       child: TabBarView(
                         controller: _tabs,
                         children: [
-                          _buildReportsTab(),
-                          if (widget.session.isSuperAdmin) _buildStatsTab(),
-                          if (widget.session.isSuperAdmin) _buildBloggersTab(),
+                          _buildStatsTab(),
+                          _buildBloggersTab(),
                         ],
                       ),
                     ),
                   ],
                 ),
-    );
-  }
-
-  Widget _buildReportsTab() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _sectionTitle('Жалобы на объявления (${_listingReports.length})'),
-        if (_listingReports.isEmpty)
-          const Text('Нет жалоб', style: TextStyle(color: Colors.white54))
-        else
-          ..._listingReports.map(_listingReportCard),
-        const SizedBox(height: 24),
-        _sectionTitle('Жалобы на чаты (${_chatReports.length})'),
-        if (_chatReports.isEmpty)
-          const Text('Нет жалоб', style: TextStyle(color: Colors.white54))
-        else
-          ..._chatReports.map(_chatReportCard),
-      ],
-    );
-  }
-
-  Widget _sectionTitle(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _listingReportCard(Map<String, dynamic> r) {
-    final listingId = r['listing_id'] as String? ?? '';
-    final ownerPhone = r['owner_phone'] as String? ?? '';
-    return Card(
-      color: const Color(0xFF0A2A4A),
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(r['listing_title'] as String? ?? '—', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            Text(r['listing_description'] as String? ?? '', style: const TextStyle(color: Colors.white70)),
-            Text('Жалоб: ${r['reports_count'] ?? 0} | Статус: ${r['listing_status']}', style: const TextStyle(color: Colors.white54)),
-            Text('От: ${r['reporter_name']} | Причина: ${r['reason'] ?? '—'}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                _blockBtn('Скрыть 3 дня', () => _blockListing(listingId, permanent: false, days: 3)),
-                _blockBtn('Навсегда', () => _blockListing(listingId, permanent: true)),
-                if (ownerPhone.isNotEmpty)
-                  _blockBtn('Блок владельца', () => _blockUser(r['owner_id'] as String? ?? '', permanent: false, days: 7)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _chatReportCard(Map<String, dynamic> r) {
-    final messages = (r['messages'] as List<dynamic>? ?? []);
-    final listingId = r['listing_id'] as String? ?? '';
-    return Card(
-      color: const Color(0xFF0A2A4A),
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Чат: ${r['listing_title']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            Text('Даритель: ${r['donor_name']} | Получатель: ${r['recipient_name']}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
-            Text('Жалоба от: ${r['reporter_name']} — ${r['reason'] ?? '—'}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
-            const SizedBox(height: 8),
-            Container(
-              constraints: const BoxConstraints(maxHeight: 200),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.black26,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: ListView(
-                shrinkWrap: true,
-                children: messages.map((m) {
-                  final map = m as Map<String, dynamic>;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text(
-                      '${map['created_at']}: ${map['body']}',
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                _blockBtn('Скрыть объявление', () => _blockListing(listingId, permanent: false, days: 7)),
-                _blockBtn('Блок дарителя', () => _blockUser(r['donor_id'] as String? ?? '', permanent: false, days: 7)),
-                _blockBtn('Блок получателя', () => _blockUser(r['recipient_id'] as String? ?? '', permanent: false, days: 7)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _blockBtn(String label, VoidCallback onTap) {
-    return OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(foregroundColor: AppColors.red, side: const BorderSide(color: AppColors.red)),
-      child: Text(label, style: const TextStyle(fontSize: 12)),
     );
   }
 

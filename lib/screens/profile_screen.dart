@@ -16,6 +16,8 @@ import 'onboarding_screen.dart';
 import 'partner_stats_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_login_screen.dart';
+import 'admin_reports_screen.dart';
+import 'support_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userName;
@@ -703,6 +705,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 if (user.canAccessAdminPanel) ...[
                                   Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
+                                    Icons.flag_outlined,
+                                    'Жалобы',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const AdminReportsScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                                if (user.isSuperAdmin) ...[
+                                  Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                  _buildSettingsItem(
+                                    Icons.support_agent_outlined,
+                                    'Обращения пользователей',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => SupportScreen(
+                                            phoneNumber: user.phoneNumber,
+                                            isAdminMode: true,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                  _buildSettingsItem(
                                     Icons.admin_panel_settings_outlined,
                                     'Админ-панель',
                                     onTap: () => _openAdminPanel(user.phoneNumber),
@@ -715,9 +748,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   onTap: () => _openPushSettings(user.phoneNumber),
                                 ),
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
-                                _buildSettingsItem(Icons.language, 'Язык'),
+                                _buildSettingsItem(
+                                  Icons.support_agent_outlined,
+                                  'Служба поддержки',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => SupportScreen(
+                                          phoneNumber: user.phoneNumber,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
-                                _buildSettingsItem(Icons.help, 'Помощь'),
+                                _buildSettingsItem(Icons.language, 'Язык'),
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(Icons.info, 'О приложении'),
                               ],

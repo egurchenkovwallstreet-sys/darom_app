@@ -27,6 +27,8 @@
 **DDoS:** Timeweb «Защита от DDoS» ✅ + rate limit backend + nginx HSTS.  
 **Observatory:** **B+** (80/100) ✅ — CSP −20 из‑за Flutter Web `unsafe-inline` (норма).
 
+**Обновление 17.07.2026:** Reg.ru NS + Cloudflare **Active** перепроверены ✅; сайт без VPN — протестировано на телефоне ✅. Периодические «белый экран / только с VPN» — **не баг кода**, а нестабильность DNS провайдеров + статус Cloudflare **Moved** (см. резюме 17.07).
+
 **Новый чат:** скопируйте промпт из `docs/NEW_CHAT.md`.
 
 ---
@@ -78,6 +80,87 @@
 - `lib/screens/chats_screen.dart`, `favorites_screen.dart`, `profile_screen.dart`, `home_screen.dart`
 - `lib/services/location_service_web.dart`, `lib/widgets/midnight_glow_screen.dart`
 - `web/index.html`, `deploy/nginx-gzip.conf`, `deploy/NGINX_GZIP.md`
+
+---
+
+## 📋 Резюме 17.07.2026 — периодический «не открывается без VPN» (DNS / сеть) ✅
+
+### Симптомы (16–17.07)
+- Сайт **то открывается без VPN**, то **белый экран / таймаут**; **с VPN** — работает.
+- На сервере `curl https://darom-app.online/` → **200 OK** (сервер жив).
+- С ПК: `nslookup` **без** 8.8.8.8 → «No response from server»; **с** 8.8.8.8 → `5.129.243.246`.
+- Cloudflare: статус **Moved** / «not active yet»; письмо на почту — NS «не заданы».
+- **Настройки в Reg.ru и Cloudflare формально были верными** — пользователь их не менял; сбой **временный**.
+
+### Причины (не код приложения)
+| Фактор | Что происходит |
+|--------|----------------|
+| **Cloudflare Moved** | Cloudflare временно «теряет» NS → у разных DNS разный ответ |
+| **DNS провайдера (РФ)** | МТС/Мегафон/Wi‑Fi иногда **не резолвят** домен |
+| **Фильтрация HTTPS** | Порт 443 открыт, но TLS **зависает/сбрасывается** до Timeweb `5.129.243.246` |
+| **VPN** | Обходит DNS провайдера и маршрут → кажется, что «сломался сайт» |
+
+> **Не путать** с оранжевым облаком Cloudflare (Proxied) — у нас **серое** (DNS only). Gzip и ускорение Web **не влияют** на доступность домена.
+
+### Эталонная конфигурация (проверено 17.07.2026) ✅
+
+**Reg.ru → DNS-серверы:**
+```
+kira.ns.cloudflare.com
+weston.ns.cloudflare.com
+```
+
+**Cloudflare → DNS → Records:**
+
+| Type | Name | Content | Proxy |
+|------|------|---------|-------|
+| A | `@` | `5.129.243.246` | **DNS only** (серое ☁️) |
+| A | `www` | `5.129.243.246` | **DNS only** (серое ☁️) |
+
+**Cloudflare → Overview:** статус **Active** (не Moved).
+
+**Жёлтый баннер «Enable Proxy»** — **игнорировать**, оранжевое облако **не включать** (иначе в РФ снова VPN).
+
+### Диагностика при повторении (3 уровня)
+
+**Телефон (без VPN):** приватная вкладка → https://darom-app.online/ ; попробовать **мобильный интернет** вместо Wi‑Fi.
+
+**ПК (PowerShell):**
+```powershell
+nslookup darom-app.online 8.8.8.8
+curl.exe -sSI "https://darom-app.online/"
+```
+
+| nslookup | curl | Вывод |
+|----------|------|-------|
+| OK → `5.129.243.246` | OK 200 | кэш браузера → инкогнито |
+| OK | таймаут / reset | фильтрация HTTPS до Timeweb |
+| ошибка | — | DNS провайдера / Cloudflare Moved |
+
+**Сервер (VNC):**
+```bash
+curl -sSI https://darom-app.online/ | head -3
+sudo systemctl restart nginx
+```
+Если на сервере **200 OK**, а с телефона нет — проблема **сеть/DNS**, не backend.
+
+### Если Cloudflare снова «Moved»
+1. Reg.ru — NS `kira` + `weston` на месте; DNSSEC **выключен**
+2. Cloudflare → **Check nameservers now**
+3. Дождаться **Active** (15 мин – 24 ч)
+4. A-записи → серое облако
+
+Инструкция: `deploy/CLOUDFLARE.md`
+
+### Профилактика (рекомендации)
+- Раз в месяц: Reg.ru NS + Cloudflare Active + серые облака
+- При сбое: не менять код — сначала диагностика выше
+- ⏳ **UptimeRobot** (бесплатно) — пинг сайта + email при падении (настроить позже)
+
+### Проверка ✅ 17.07.2026
+- Cloudflare **Active** ✅
+- A `@` / `www` → `5.129.243.246`, DNS only ✅
+- Сайт на **телефоне без VPN** — открывается ✅ (владелец)
 
 ---
 
@@ -925,6 +1008,10 @@ backend/
 | Push не спрашивает разрешение | Нужно нажать **«Включить»** в диалоге приложения; или **Профиль → Уведомления** |
 | `TypeError: minified:FK…` после «Разрешить» | Исправлено 28.06 (`push_helper.js`); обновить сайт + очистить данные Safari для darom-app.online |
 | Push на iPhone не работает | **Safari → Поделиться → «На экран Домой»**; запускать с иконки; iOS **16.4+**; см. `deploy/FIREBASE.md` |
+| Периодически **белый экран / только с VPN**, на сервере 200 OK | **DNS/сеть РФ**, не код: Cloudflare **Moved**? Reg.ru NS `kira`+`weston`; A-записи **серое облако**; см. резюме **17.07.2026** |
+| Cloudflare письмо «Moved» / NS не заданы | Reg.ru → NS `kira.ns.cloudflare.com`, `weston.ns.cloudflare.com` → Cloudflare **Check nameservers** → **Active** |
+| `nslookup` OK (8.8.8.8), `curl` HTTPS **таймаут** | Фильтрация канала до Timeweb; попробовать мобильный интернет; `sudo systemctl restart nginx` на сервере |
+| Cloudflare жёлтый баннер «Enable Proxy» | **Не включать** оранжевое облако — для РФ нужно **DNS only** (серое) |
 
 ---
 
@@ -993,6 +1080,7 @@ backend/
 - [x] **K — сделка в чате** ✅
 - [x] **Push Web (iPhone PWA):** диалог, push_helper.js, FCM-токен ✅ (28.06.2026)
 - [x] **Ускорение Flutter Web:** ленивые вкладки, splash, gzip nginx ✅ (16.07.2026)
+- [x] **DNS/доступ РФ:** Reg.ru NS + Cloudflare Active + DNS only перепроверены ✅ (17.07.2026)
 - [ ] **100% чеклист** ← перед запуском для всех
 - [ ] F: Sightengine — weapon/alcohol/tobacco на фото ⏳
 - [x] C: Робокасса ✅ (27.06.2026)
@@ -1000,10 +1088,44 @@ backend/
 
 ---
 
+## 📋 Резюме 17.07.2026 — служба поддержки + модерация в профиле ✅
+
+### Что сделано
+| Компонент | Детали |
+|-----------|--------|
+| **БД** | `backend/db/migrate_support.sql` — таблицы `support_tickets`, `support_messages` |
+| **API пользователь** | `POST/GET /api/support/tickets`, сообщения в тикете (Bearer + phone) |
+| **API админ (профиль)** | `GET/POST/PATCH /api/support/admin/*` — super_admin через обычный Bearer token |
+| **API жалобы (профиль)** | `GET /api/moderation/reports/*`, `POST /api/moderation/block/*` — admin через Bearer |
+| **Flutter** | Профиль → «Служба поддержки»; админ → «Обращения», «Жалобы»; переписка с polling 3 с |
+| **Админ-панель** | Вкладка «Жалобы» убрана — остались **Статистика** и **Блогеры** (Mobile ID + почта) |
+| **Email** | Уведомления о новых обращениях **не** отправляются (по решению владельца) |
+
+### Миграция на сервере (VNC, Терминал 1)
+```bash
+cd /opt/darom_app && git pull && cat backend/db/migrate_support.sql | docker exec -i darom_db psql -U darom -d darom && pm2 restart darom-api --update-env
+```
+
+### Проверка (Терминал 2)
+```powershell
+curl.exe -s "https://darom-app.online/api/health"
+flutter run -d chrome --web-port=8080
+```
+Профиль → «Служба поддержки» (создать обращение); super_admin → «Обращения пользователей», «Жалобы».
+
+### Ключевые файлы
+- `backend/db/migrate_support.sql`, `backend/src/routes/support.js`, `backend/src/routes/moderation.js`
+- `backend/src/middleware/require_admin_user.js`
+- `lib/screens/support_screen.dart`, `support_thread_screen.dart`, `admin_reports_screen.dart`
+- `lib/services/support_api.dart`, `lib/services/moderation_api.dart`
+
+---
+
 ## Тестовый аккаунт (dev)
 
 - Телефон: `+79138931428`, имя: **Евгений**, статус **основатель** + **super admin**
-- В профиле: пункт **«Админ-панель»** → Mobile ID + код с **почты** → кабинет админа
+- **Профиль (обычный вход PIN):** «Служба поддержки», «Обращения пользователей», «Жалобы»
+- **Админ-панель:** только **Статистика** и **Блогеры** → Mobile ID + код с **почты**
 - Для проверки лимитов можно использовать `backend/scripts/seed_listings.js`
 
 ---
