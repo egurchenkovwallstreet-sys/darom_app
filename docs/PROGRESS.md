@@ -1121,6 +1121,30 @@ flutter run -d chrome --web-port=8080
 
 ---
 
+## 📋 Резюме 17.07.2026 — ежедневная статистика super_admin (21:00 МСК) ✅
+
+### Что сделано
+| Компонент | Детали |
+|-----------|--------|
+| **БД** | `migrate_admin_daily_reports.sql` — `last_active_at`, `partner_since`, таблица `admin_daily_reports` |
+| **Статистика** | 4 периода (сутки/неделя/месяц/всего): новые и активные пользователи, сделки, оплаты/₽, новые и активные блогеры |
+| **Активный блогер** | есть рефералы **и** оплаты партнёра за период |
+| **Расписание** | PM2: каждый день **21:00 Москва** → отчёт в БД + письмо на `ADMIN_EMAIL` |
+| **Профиль** | super_admin → «Ежедневная статистика» (список + «Сформировать сейчас») |
+
+### Миграция (VNC, Терминал 1)
+```bash
+cd /opt/darom_app && git pull && cat backend/db/migrate_admin_daily_reports.sql | docker exec -i darom_db psql -U darom -d darom && pm2 restart darom-api --update-env
+```
+
+### Ключевые файлы
+- `backend/db/migrate_admin_daily_reports.sql`
+- `backend/src/services/daily_stats_service.js`, `daily_report_scheduler.js`
+- `backend/src/routes/daily_reports.js`
+- `lib/screens/admin_daily_reports_screen.dart`, `lib/services/daily_reports_api.dart`
+
+---
+
 ## Тестовый аккаунт (dev)
 
 - Телефон: `+79138931428`, имя: **Евгений**, статус **основатель** + **super admin**

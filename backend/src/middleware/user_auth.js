@@ -90,6 +90,25 @@ async function getUserSession(token) {
   };
 }
 
+async function touchUserActivity(userId) {
+  try {
+    await db.query(
+      `
+      UPDATE users
+      SET last_active_at = NOW()
+      WHERE id = $1
+        AND (
+          last_active_at IS NULL
+          OR last_active_at < NOW() - INTERVAL '10 minutes'
+        )
+      `,
+      [userId]
+    );
+  } catch (_) {
+    /* не блокируем запрос */
+  }
+}
+
 async function requireUserSession(req, res, next) {
   try {
     const token = getBearerToken(req);
@@ -104,6 +123,7 @@ async function requireUserSession(req, res, next) {
     }
 
     req.userSession = session;
+    touchUserActivity(session.userId);
     return next();
   } catch (error) {
     return res.status(500).json({ error: error.message });

@@ -155,10 +155,10 @@ router.post('/', async (req, res) => {
         `
         INSERT INTO users (
           phone, name, is_founder, phone_verified_at, real_phone_verified_at,
-          is_partner, partner_public_code
+          is_partner, partner_public_code, partner_since
         )
         VALUES (
-          $1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), NOW(), TRUE, $3
+          $1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), NOW(), TRUE, $3, NOW()
         )
         RETURNING id
         `,

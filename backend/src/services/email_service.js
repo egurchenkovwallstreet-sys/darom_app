@@ -123,7 +123,57 @@ async function sendAdminEmailCode({ to, code }) {
   return { mock: false, error: message };
 }
 
+async function sendAdminDailyReportEmail({ to, subject, text, html }) {
+  const mailOptions = {
+    from: config.smtp.from,
+    to,
+    subject,
+    text,
+    html,
+  };
+
+  if (config.adminEmailMock || !config.smtp.host) {
+    console.log(`[DAILY REPORT EMAIL MOCK] to=${to} subject=${subject}`);
+    return { mock: true, sent: false };
+  }
+
+  if (!config.smtp.user || !config.smtp.pass) {
+    console.error('[DAILY REPORT EMAIL] SMTP не настроен');
+    return { mock: false, sent: false, error: 'SMTP не настроен' };
+  }
+
+  const attempts = transportAttempts();
+  let lastError = null;
+
+  for (let i = 0; i < attempts.length; i += 1) {
+    const attempt = attempts[i];
+    const transport = nodemailer.createTransport(
+      buildTransportOptions({ port: attempt.port, secure: attempt.secure })
+    );
+
+    try {
+      await transport.sendMail(mailOptions);
+      console.log(`[DAILY REPORT EMAIL] sent to=${to} via ${config.smtp.host}:${attempt.label}`);
+      return { mock: false, sent: true };
+    } catch (err) {
+      lastError = err;
+      console.error(
+        `[DAILY REPORT EMAIL] ${config.smtp.host}:${attempt.label} failed: ${err.message}`
+      );
+      if (i < attempts.length - 1 && isConnectionError(err)) {
+        continue;
+      }
+      break;
+    } finally {
+      transport.close();
+    }
+  }
+
+  return { mock: false, sent: false, error: lastError?.message || 'Не удалось отправить письмо' };
+}
+
 module.exports = {
   generateEmailCode,
   sendAdminEmailCode,
+  sendAdminDailyReportEmail,
 };

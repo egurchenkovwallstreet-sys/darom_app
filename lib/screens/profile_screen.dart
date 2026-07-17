@@ -17,6 +17,7 @@ import 'onboarding_screen.dart';
 import 'partner_stats_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_login_screen.dart';
+import 'admin_daily_reports_screen.dart';
 import 'admin_reports_screen.dart';
 import 'support_screen.dart';
 
@@ -744,6 +745,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ],
                                 if (user.isSuperAdmin) ...[
+                                  Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                  _buildSettingsItem(
+                                    Icons.bar_chart_outlined,
+                                    'Ежедневная статистика',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const AdminDailyReportsScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                   Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
                                     Icons.support_agent_outlined,
