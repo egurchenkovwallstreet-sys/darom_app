@@ -58,6 +58,8 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     super.dispose();
   }
 
+  bool get _isAllListingsMode => MapRadiusOptions.isAllListings(_radiusIndex);
+
   double get _radiusKm => MapRadiusOptions.kmAt(_radiusIndex);
 
   List<MapMarker> get _markers {
@@ -94,11 +96,13 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     });
 
     try {
-      final items = await _listingsApi.fetchNearby(
-        lat: widget.position.lat,
-        lng: widget.position.lng,
-        radiusKm: _radiusKm,
-      );
+      final items = _isAllListingsMode
+          ? await _listingsApi.fetchAllForMap()
+          : await _listingsApi.fetchNearby(
+              lat: widget.position.lat,
+              lng: widget.position.lng,
+              radiusKm: _radiusKm,
+            );
       if (!mounted) return;
       setState(() {
         _listings = items;
@@ -189,12 +193,13 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                   OsmMapWidget(
                     centerLat: widget.position.lat,
                     centerLng: widget.position.lng,
-                    zoom: MapRadiusOptions.zoomFor(_radiusKm),
-                    radiusKm: _radiusKm,
+                    zoom: MapRadiusOptions.zoomForIndex(_radiusIndex),
+                    radiusKm: _isAllListingsMode ? null : _radiusKm,
                     markers: _markers,
                     isApproximateLocation: widget.isApproximateLocation,
                     showBorder: false,
                     fillParent: true,
+                    interactive: true,
                     onMarkerTap: (marker) {
                       setState(() => _selectedMarkerId = marker.id);
                     },

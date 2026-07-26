@@ -161,6 +161,36 @@ router.get('/nearby', async (req, res) => {
   }
 });
 
+// GET /api/listings/map — все активные объявления для карты (без радиуса)
+router.get('/map', async (req, res) => {
+  try {
+    await expireReservations(db);
+
+    const result = await db.query(
+      `
+      SELECT
+        ${listingFields},
+        0.0 AS distance_km,
+        ST_Y(l.location::geometry) AS lat,
+        ST_X(l.location::geometry) AS lng
+      FROM listings l
+      JOIN users u ON u.id = l.user_id
+      WHERE l.status IN ('active', 'reserved')
+        AND u.is_shadow_banned = FALSE
+      ORDER BY
+        CASE WHEN l.status = 'reserved' THEN 1 ELSE 0 END,
+        CASE WHEN u.is_founder THEN 0 ELSE 1 END,
+        l.created_at DESC
+      LIMIT 500
+      `
+    );
+
+    res.json({ items: result.rows.map(mapListingRow) });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/listings/search?q=...&lat=...&lng=...&radius_km=50
 router.get('/search', async (req, res) => {
   const q = String(req.query.q || '').trim();

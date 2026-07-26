@@ -19,6 +19,26 @@ class ListingsApi {
 
   final http.Client _client;
 
+  Future<List<Listing>> fetchAllForMap() async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/listings/map');
+
+    final response = await _client.get(uri).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      throw ListingsApiException(
+        body['error'] as String? ?? 'Не удалось загрузить объявления на карте',
+      );
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final items = data['items'] as List<dynamic>? ?? [];
+
+    return items
+        .map((item) => Listing.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<Listing>> fetchNearby({
     required double lat,
     required double lng,

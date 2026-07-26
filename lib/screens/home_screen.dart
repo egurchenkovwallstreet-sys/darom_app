@@ -201,6 +201,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   double get _currentRadiusKm => _radiusKmValues[_radiusIndex];
 
+  bool get _isAllListingsMode => MapRadiusOptions.isAllListings(_radiusIndex);
+
   void _initLocationAndListings() {
     unawaited(_locationService.locate().then(_applyLocation));
   }
@@ -252,11 +254,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      final items = await _listingsApi.fetchNearby(
-        lat: _position.lat,
-        lng: _position.lng,
-        radiusKm: _currentRadiusKm,
-      );
+      final items = _isAllListingsMode
+          ? await _listingsApi.fetchAllForMap()
+          : await _listingsApi.fetchNearby(
+              lat: _position.lat,
+              lng: _position.lng,
+              radiusKm: _currentRadiusKm,
+            );
       if (!mounted) return;
       setState(() {
         _nearbyListings = items;
@@ -818,8 +822,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   child: OsmMapWidget(
                                                     centerLat: _position.lat,
                                                     centerLng: _position.lng,
-                                                    zoom: _currentRadiusKm <= 2 ? 14 : 12,
-                                                    radiusKm: _currentRadiusKm,
+                                                    zoom: MapRadiusOptions.zoomForIndex(_radiusIndex),
+                                                    radiusKm: _isAllListingsMode ? null : _currentRadiusKm,
                                                     markers: _mapMarkers,
                                                     isApproximateLocation: _locationHint != null,
                                                     interactive: false,
@@ -1139,7 +1143,11 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_nearbyListings.isEmpty) {
       return SizedBox(
         height: 120,
-        child: _buildMapPlaceholder('В радиусе ${_radiusLabels[_radiusIndex]} объявлений нет'),
+        child: _buildMapPlaceholder(
+          _isAllListingsMode
+              ? 'Объявлений на карте пока нет'
+              : 'В радиусе ${_radiusLabels[_radiusIndex]} объявлений нет',
+        ),
       );
     }
 
