@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../data/legal_consent.dart';
-import 'privacy_policy_screen.dart';
-import 'public_offer_screen.dart';
+import '../screens/privacy_policy_screen.dart';
+import '../screens/public_offer_screen.dart';
 
 /// Чекбоксы оферты и согласия на обработку ПДн (156-ФЗ — отдельно от оферты).
 class LegalConsentCheckboxes extends StatelessWidget {
