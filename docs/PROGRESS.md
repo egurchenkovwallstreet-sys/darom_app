@@ -27,6 +27,8 @@
 **DDoS:** Timeweb «Защита от DDoS» ✅ + rate limit backend + nginx HSTS.  
 **Observatory:** **B+** (80/100) ✅ — CSP −20 из‑за Flutter Web `unsafe-inline` (норма).
 
+**Обновление 26.07.2026:** верификация номера переведена на **Плюсofon Flash Call** (~0,6 ₽) — первое объявление/чат, партнёр, **админка**, **сброс PIN**; health: `"verify":{"provider":"flash_call","plusofonReady":true}` ✅ протестировано на проде.
+
 **Обновление 17.07.2026:** Reg.ru NS + Cloudflare **Active** перепроверены ✅; сайт без VPN — протестировано на телефоне ✅. Периодические «белый экран / только с VPN» — **не баг кода**, а нестабильность DNS провайдеров + статус Cloudflare **Moved** (см. резюме 17.07).
 
 **Новый чат:** скопируйте промпт из `docs/NEW_CHAT.md`.
@@ -245,6 +247,7 @@ sudo systemctl restart nginx
 | Yandex Vision | 0,5 нов. объявл./MAU × 2 фото × 0,3 ₽ | **~300** |
 | Yandex S3 | 1 GB + трафик | **~100–300** |
 | Mobile ID | 15% новых × 5 ₽ (разовое, в первый месяц) | **~75** (амортизация) |
+| **Плюсofon Flash Call** (с 26.07.2026) | те же сценарии × **~0,6 ₽** | **~9** (амортизация) |
 | Робокасса | 3,5% от оплат | от оборота |
 | Блогеры | 30% с оплат рефералов | 0–40% оборота |
 
@@ -862,6 +865,13 @@ cat backend/db/migrate_user_sessions.sql | docker exec -i darom_db psql -U darom
 pm2 restart darom-api --update-env
 ```
 
+**Плюсofon Flash Call (26.07.2026, один раз после `git pull`):**
+```bash
+cd /opt/darom_app
+cat backend/db/migrate_plusofon_flash.sql | docker exec -i darom_db psql -U darom -d darom
+pm2 restart darom-api --update-env
+```
+
 **Nginx (фото JPG/PNG) — один раз на сервере:**
 ```bash
 sed -i 's/location \/api\/ {/location ^~ \/api\/ {/' /etc/nginx/sites-available/darom
@@ -941,6 +951,8 @@ cat backend/db/migrate_partner_mobile_id.sql | docker exec -i darom_db psql -U d
 | GET/POST | `/api/chats` | Чаты и сообщения |
 | POST | `/api/users/avatar` | Аватар |
 
+> **Дополнение 26.07.2026:** эндпоинты `active-verify/*`, `partner-verify/*`, `reset-pin/*`, `/api/admin/auth/mobile-id/*` возвращают `"mode":"flash_call"` при `VERIFY_PROVIDER=plusofon`; подтверждение — **4 цифры входящего звонка** (не SMS-код). См. `deploy/PLUSOFON.md`.
+
 ---
 
 ## Структура кода
@@ -956,8 +968,8 @@ web/           push_helper.js, firebase-messaging-sw.js, index.html (push_helper
 backend/
   src/routes/  auth.js, users.js, listings.js, partners.js, admin.js, chats.js, deploy_web.js, ...
   src/utils/   admin_auth.js, prohibited_goods.js, stop_words.js, photo_moderation.js, ...
-  src/services/ sms_service.js, mobile_id_service.js, email_service.js, vision_service.js, push_service.js
-  db/          migrate_admin.sql, migrate_mobile_id.sql, migrate_real_phone_verify.sql, ...
+  src/services/ sms_service.js, mobile_id_service.js, plusofon_flash_service.js, email_service.js, vision_service.js, push_service.js
+  db/          migrate_admin.sql, migrate_mobile_id.sql, migrate_plusofon_flash.sql, migrate_real_phone_verify.sql, ...
 ```
 
 ---
@@ -969,13 +981,18 @@ backend/
   (номер при регистрации НЕ проверяется по SMS)
 
 Партнёр: код 0001… + телефон → Mobile ID (~3–6 ₽) → имя → PIN → Главная
+  (с 26.07.2026 на проде: Flash Call ~0,6 ₽)
 
 Первое объявление ИЛИ первое сообщение в чате → диалог подтверждения номера
   → Mobile ID (push или SMS ~3–6 ₽) → real_phone_verified навсегда
+  (с 26.07.2026 на проде: Flash Call — 4 цифры входящего звонка ~0,6 ₽)
 
 Повторный вход: только PIN
 
-Профиль admin-телефона → «Админ-панель» → Mobile ID (~3–6 ₽) + код почты (mock) → аналитика
+Профиль admin-телефона → «Админ-панель» → Mobile ID (~3–6 ₽) + код почты → аналитика
+  (с 26.07.2026 на проде: Flash Call ~0,6 ₽ + код почты)
+
+Восстановление PIN → Mobile ID / Flash Call → новый PIN (с 26.07.2026: Flash Call)
 
 Запасной вход в админку: https://darom-app.online/admin
 ```
@@ -1081,6 +1098,7 @@ backend/
 - [x] **Push Web (iPhone PWA):** диалог, push_helper.js, FCM-токен ✅ (28.06.2026)
 - [x] **Ускорение Flutter Web:** ленивые вкладки, splash, gzip nginx ✅ (16.07.2026)
 - [x] **DNS/доступ РФ:** Reg.ru NS + Cloudflare Active + DNS only перепроверены ✅ (17.07.2026)
+- [x] **Плюсofon Flash Call:** верификация номера (~0,6 ₽) — объявление/чат, партнёр, админ, сброс PIN ✅ (26.07.2026)
 - [ ] **100% чеклист** ← перед запуском для всех
 - [ ] F: Sightengine — weapon/alcohol/tobacco на фото ⏳
 - [x] C: Робокасса ✅ (27.06.2026)
@@ -1151,6 +1169,71 @@ cd /opt/darom_app && git pull && cat backend/db/migrate_admin_daily_reports.sql 
 - **Профиль (обычный вход PIN):** «Служба поддержки», «Обращения пользователей», «Жалобы»
 - **Админ-панель:** только **Статистика** и **Блогеры** → Mobile ID + код с **почты**
 - Для проверки лимитов можно использовать `backend/scripts/seed_listings.js`
+
+---
+
+## 📋 Резюме 26.07.2026 — Плюсofon Flash Call (верификация номера) ✅
+
+### Задача
+Сохранить **логику ТЗ** (номер **не** при регистрации; один раз при первом объявлении/чате; партнёр при регистрации), но заменить дорогой **SMS Aero Mobile ID** (~7 ₽) на **Плюсofon Flash Call** (~0,6 ₽).
+
+### Что сделано (коммиты `a2b98fd` → `42bba18`)
+| Компонент | Детали |
+|-----------|--------|
+| **Backend** | `plusofon_flash_service.js`, `phone_verify_flow.js`; `VERIFY_PROVIDER=plusofon` в `.env` |
+| **Миграция БД** | `migrate_plusofon_flash.sql` — `provider`, `flash_key`, `flash_pin` в `mobile_id_sessions` |
+| **Сценарии** | active-verify, partner-verify, **reset-pin**, **admin login (шаг 1 из 2FA)** |
+| **Flutter** | `real_phone_verify_dialog.dart`, `partner_verify_screen.dart`, `reset_pin_verify_screen.dart`, `admin_login_screen.dart` — UX «4 цифры входящего звонка» |
+| **Документация** | `deploy/PLUSOFON.md` |
+| **Health** | `"verify":{"provider":"flash_call","plusofonConfigured":true,"plusofonReady":true}` |
+
+### Переменные `.env` (боевой сервер)
+```env
+VERIFY_PROVIDER=plusofon
+PLUSOFON_FLASH_ACCESS_TOKEN=…   # access_token аккаунта Flash Call (lk.plusofon.ru)
+PLUSOFON_MOCK=false
+```
+
+Mobile ID (`SMS_AERO_MOBILE_ID_SIGN`) можно **оставить** как запасной канал при `VERIFY_PROVIDER=auto` или `mobile_id`.
+
+### Деплой на сервере (VNC, один раз)
+```bash
+cd /opt/darom_app
+git pull
+cat backend/db/migrate_plusofon_flash.sql | docker exec -i darom_db psql -U darom -d darom
+nano backend/.env   # добавить VERIFY_PROVIDER, PLUSOFON_FLASH_ACCESS_TOKEN, PLUSOFON_MOCK=false
+cd backend && npm install && pm2 restart darom-api --update-env
+curl -s https://darom-app.online/api/health | head -c 800
+```
+
+**Сайт (Flutter):** `git push` → GitHub Actions (изменения в `lib/`).
+
+### Проверка ✅ (26.07.2026)
+- Health: `plusofonReady: true` ✅
+- Верификация при первом объявлении с **другого телефона** — звонок, код, объявление опубликовано ✅
+- Админка и сброс PIN — код на backend + Flutter; деплой `42bba18`
+
+### Экономика (ориентир)
+| Способ | ~₽ за проверку |
+|--------|----------------|
+| SMS Aero Mobile ID (было) | **7,3** |
+| Плюсofon Flash Call (пакет 1000) | **0,6** |
+| Плюсofon (пакет 100 000) | **0,42** |
+
+При **10 000** верификаций/мес: **~73 000 ₽** → **~6 000 ₽**.
+
+### Ключевые файлы
+- `backend/src/services/plusofon_flash_service.js`
+- `backend/src/utils/phone_verify_flow.js`
+- `backend/src/utils/admin_auth.js`
+- `backend/db/migrate_plusofon_flash.sql`
+- `deploy/PLUSOFON.md`
+- `lib/widgets/real_phone_verify_dialog.dart`
+- `lib/screens/admin_login_screen.dart`, `reset_pin_verify_screen.dart`
+
+### Безопасность
+- `access_token` Plusofon — только в `backend/.env`, **не** в git
+- После настройки рекомендуется **перевыпустить** токен в lk.plusofon.ru (если светился в переписке)
 
 ---
 

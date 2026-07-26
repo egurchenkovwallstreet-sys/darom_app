@@ -24,6 +24,8 @@
 - После успеха — все функции без повторной проверки
 - Инструкция: `deploy/MOBILE_ID.md`
 
+> **Дополнение 26.07.2026:** на боевом сервере основной канал — **Плюсofon Flash Call** (~**0,6 ₽**): короткий звонок, пользователь вводит **последние 4 цифры** номера звонящего. Логика триггеров **не изменилась**. SMS Aero Mobile ID остаётся **запасным** при `VERIFY_PROVIDER=auto` или `mobile_id`. Инструкция: `deploy/PLUSOFON.md`.
+
 ### Основатель (первые 1000 пользователей)
 - Значок навсегда, приоритет в ленте
 - **Лимит объявлений и заборы — как у всех** (30 объявлений бесплатно; бонус заборов только если зарегистрировался по реферальному коду блогера)
@@ -71,7 +73,7 @@
 
 | Правило | Описание |
 |---------|----------|
-| Регистрация партнёра | Код **0001–1000** по очереди; кнопка «Я партнёр / блогер»; подтверждение номера — **Mobile ID** (~3–6 ₽) |
+| Регистрация партнёра | Код **0001–1000** по очереди; кнопка «Я партнёр / блогер»; подтверждение номера — **Flash Call / Mobile ID** (~0,6–6 ₽) |
 | Заявка на партнёрство | Почта **Darom.partner.ru@yandex.ru** |
 | Код для аудитории | Номер партнёра (0001, 0002…) при регистрации пользователя |
 | Привязка реферала | **365 дней** с регистрации |
@@ -87,8 +89,8 @@
 |---------|----------|
 | URL | `/admin` (Flutter Web) — запасной путь |
 | **Вход из профиля** | Пункт «Админ-панель» в ЛК — **только** если телефон есть в `admin_users` (проверка на backend: `can_access_admin_panel`) |
-| **После кнопки** | Телефон уже известен → «Получить коды» → **Mobile ID** + код с почты → кабинет |
-| Вход | **2FA:** **Mobile ID** (~3–6 ₽) + код на email (SMTP); запасной режим — SMS |
+| **После кнопки** | Телефон уже известен → «Получить коды» → **Flash Call / Mobile ID** + код с почты → кабинет |
+| Вход | **2FA:** **Flash Call / Mobile ID** (~0,6–6 ₽) + код на email (SMTP); запасной режим — SMS |
 | Super admin | Полный доступ: жалобы, блоки, статистика, блогеры, выплаты |
 | Moderator (позже) | Только жалобы и блокировки — **без** монетизации и статистики |
 | Жалобы объявлений | С контекстом объявления |
@@ -111,6 +113,7 @@
 | Карты | flutter_map + OpenStreetMap | ✅ бесплатно |
 | Модерация | Yandex Vision + стоп-слова + запрещённые товары + **Sightengine** ⏳ | Vision ✅ (`deploy/VISION.md`); Sightengine — оружие на фото, позже |
 | SMS | SMS Aero + Mobile ID | ✅ боевой (`SMS_MOCK=false`, `SMS_AUTH_MODE=mobile_id`) |
+| **Верификация номера** | **Плюсofon Flash Call** + запасной Mobile ID | ✅ боевой 26.07.2026 (`VERIFY_PROVIDER=plusofon`); `deploy/PLUSOFON.md` |
 | Оплата | Робокасса | ✅ боевой 27.06.2026; `deploy/ROBOKASSA.md` |
 
 ## 4. Категории
@@ -236,7 +239,9 @@
 | **Первое объявление или 1-е сообщение в чате** | Диалог «Подтвердить номер»; Mobile ID | **~3–6 ₽** (SMS Aero) |
 | **Партнёр** | Код + телефон → Mobile ID → имя → PIN | **~3–6 ₽** (Mobile ID) |
 | **Админ-панель** | Mobile ID + код с **почты** | **~3–6 ₽** (Mobile ID) + **письмо на email** ✅ |
-| **Сброс PIN** | SMS-код | Реальное SMS |
+| **Сброс PIN** | Flash Call / Mobile ID → новый PIN | **~0,6–6 ₽** |
+
+> **Дополнение 26.07.2026 (актуальный боевой канал):** все строки с подтверждением номера используют **Плюсofon Flash Call** при `VERIFY_PROVIDER=plusofon`. Таблица выше сохранена для истории; стоимость Mobile ID — запасной режим.
 
 Поля в БД: `phone_verified_at` (аккаунт создан), `real_phone_verified_at` (номер подтверждён навсегда).
 
@@ -512,5 +517,55 @@ backend/
   scripts/      deploy_backend.sh
   db/           migrate_push_tokens.sql, migrate_user_sessions.sql, …
 .github/workflows/  deploy-web.yml, deploy-backend.yml
-deploy/         FIREBASE.md, nginx-security-headers.conf
+deploy/         FIREBASE.md, nginx-security-headers.conf, PLUSOFON.md
 ```
+
+---
+
+## 12. Плюсofon Flash Call — верификация номера (26.07.2026) ✅
+
+> Дополнение к §2 и §7.1. Исторические формулировки про Mobile ID **сохранены**; на продакшене основной канал — Flash Call.
+
+### Сценарии (логика ТЗ без изменений)
+
+| Сценарий | Когда | Канал (боевой) | ~₽ |
+|----------|-------|----------------|-----|
+| Первое объявление или 1-е сообщение в чате | Один раз навсегда | Flash Call | **0,6** |
+| Регистрация партнёра | При регистрации | Flash Call | **0,6** |
+| Вход в админ-панель | Шаг 1 из 2FA (+ код с почты) | Flash Call | **0,6** |
+| Восстановление PIN | Перед новым PIN | Flash Call | **0,6** |
+
+**Не затронуто:** регистрация обычного пользователя (номер + имя + PIN **без** SMS).
+
+### Техническая реализация
+
+| Компонент | Путь / переменная |
+|-----------|-------------------|
+| Сервис API | `backend/src/services/plusofon_flash_service.js` |
+| Общий поток verify | `backend/src/utils/phone_verify_flow.js` |
+| Админ 2FA (телефон) | `backend/src/utils/admin_auth.js` |
+| Миграция | `backend/db/migrate_plusofon_flash.sql` |
+| `.env` | `VERIFY_PROVIDER=plusofon`, `PLUSOFON_FLASH_ACCESS_TOKEN`, `PLUSOFON_MOCK=false` |
+| Health | `"verify":{"provider":"flash_call","plusofonConfigured":true,"plusofonReady":true}` |
+| Flutter UX | 4 цифры входящего звонка — `real_phone_verify_dialog.dart`, `admin_login_screen.dart`, `reset_pin_verify_screen.dart`, `partner_verify_screen.dart` |
+| Инструкция | `deploy/PLUSOFON.md` |
+
+### Запасной режим
+
+| `VERIFY_PROVIDER` | Поведение |
+|-------------------|-----------|
+| `plusofon` | Только Flash Call (если настроен токен) |
+| `mobile_id` | SMS Aero Mobile ID (~3–6 ₽) |
+| `auto` | Flash Call при наличии токена, иначе Mobile ID |
+
+Webhook Mobile ID (`/api/auth/mobile-id/webhook`) **сохранён** для режима `mobile_id` / `auto`.
+
+### Деплой (кратко)
+
+1. `git pull` на сервере  
+2. Миграция `migrate_plusofon_flash.sql` (один раз)  
+3. `.env`: токен Plusofon + `VERIFY_PROVIDER=plusofon`  
+4. `pm2 restart darom-api --update-env`  
+5. `git push` — автодеплой Flutter Web (GitHub Actions)
+
+Подробно: `deploy/PLUSOFON.md`, резюме: `docs/PROGRESS.md` → **26.07.2026**.
