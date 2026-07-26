@@ -6,6 +6,7 @@ import '../widgets/auth_form_scroll.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/partner_email_request_card.dart';
 import '../widgets/primary_action_button.dart';
+import '../widgets/legal_consent_checkboxes.dart';
 import 'partner_verify_screen.dart';
 
 class PartnerRegisterScreen extends StatefulWidget {
@@ -24,6 +25,8 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
   final AuthApi _authApi = AuthApi();
   final PartnersApi _partnersApi = PartnersApi();
   bool _isLoading = false;
+  bool _offerAccepted = false;
+  bool _privacyAccepted = false;
 
   @override
   void dispose() {
@@ -52,6 +55,16 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
       return;
     }
 
+    if (!_offerAccepted) {
+      _showError('Примите условия оферты');
+      return;
+    }
+
+    if (!_privacyAccepted) {
+      _showError('Дайте согласие на обработку персональных данных');
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -71,6 +84,8 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
           builder: (context) => PartnerVerifyScreen(
             phoneNumber: check.phone,
             partnerActivationCode: code,
+            offerAccepted: _offerAccepted,
+            privacyAccepted: _privacyAccepted,
           ),
         ),
       );
@@ -169,10 +184,23 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
             ),
           ],
         ),
-        footer: PrimaryActionButton(
-          label: 'Продолжить',
-          loading: _isLoading,
-          onPressed: _continue,
+        footer: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LegalConsentCheckboxes(
+              offerAccepted: _offerAccepted,
+              privacyAccepted: _privacyAccepted,
+              enabled: !_isLoading,
+              onOfferChanged: (value) => setState(() => _offerAccepted = value),
+              onPrivacyChanged: (value) => setState(() => _privacyAccepted = value),
+            ),
+            const SizedBox(height: 12),
+            PrimaryActionButton(
+              label: 'Продолжить',
+              loading: _isLoading,
+              onPressed: _continue,
+            ),
+          ],
         ),
       ),
     );

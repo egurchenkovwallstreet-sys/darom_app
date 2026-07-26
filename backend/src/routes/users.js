@@ -29,6 +29,7 @@ const { checkAdminAccessByPhone, getAdminUserByPhone } = require('../utils/admin
 const { storeVerifyToken } = require('../utils/phone_verify_token');
 const { upsertPushToken } = require('../services/push_service');
 const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
+const { LEGAL_VERSIONS } = require('../utils/legal_versions');
 
 const router = express.Router();
 
@@ -51,7 +52,11 @@ const userFields = `
   is_partner,
   partner_public_code,
   real_phone_verified_at,
-  created_at
+  created_at,
+  offer_accepted_at,
+  offer_version,
+  privacy_consent_at,
+  privacy_policy_version
 `;
 
 const userStatsSubquery = `
@@ -122,6 +127,10 @@ router.post('/', async (req, res) => {
     name,
     partner_activation_code: partnerActivationCode,
     referral_code: referralCode,
+    privacy_consent: privacyConsent,
+    privacy_policy_version: privacyPolicyVersion,
+    offer_accepted: offerAccepted,
+    offer_version: offerVersion,
   } = req.body;
 
   if (!phone || !name) {
@@ -136,6 +145,26 @@ router.post('/', async (req, res) => {
   try {
     const normalizedPhone = normalizePhone(phone);
     const existing = await fetchUserByPhone(normalizedPhone);
+
+    if (!existing) {
+      if (!privacyConsent) {
+        return res.status(400).json({
+          error: 'Нужно согласие на обработку персональных данных',
+          code: 'PRIVACY_CONSENT_REQUIRED',
+        });
+      }
+      if (!offerAccepted) {
+        return res.status(400).json({
+          error: 'Нужно принять условия оферты',
+          code: 'OFFER_ACCEPTANCE_REQUIRED',
+        });
+      }
+    }
+
+    const consentNow = privacyConsent ? 'NOW()' : 'NULL';
+    const offerNow = offerAccepted ? 'NOW()' : 'NULL';
+    const resolvedPrivacyVersion = privacyPolicyVersion || LEGAL_VERSIONS.privacyPolicy;
+    const resolvedOfferVersion = offerVersion || LEGAL_VERSIONS.offer;
 
     if (partnerActivationCode) {
       if (existing) {
@@ -155,14 +184,17 @@ router.post('/', async (req, res) => {
         `
         INSERT INTO users (
           phone, name, is_founder, phone_verified_at, real_phone_verified_at,
-          is_partner, partner_public_code, partner_since
+          is_partner, partner_public_code, partner_since,
+          privacy_consent_at, privacy_policy_version,
+          offer_accepted_at, offer_version
         )
         VALUES (
-          $1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), NOW(), TRUE, $3, NOW()
+          $1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), NOW(), TRUE, $3, NOW(),
+          NOW(), $4, NOW(), $5
         )
         RETURNING id
         `,
-        [normalizedPhone, trimmedName, partnerPublicCode]
+        [normalizedPhone, trimmedName, partnerPublicCode, resolvedPrivacyVersion, resolvedOfferVersion]
       );
 
       await db.query(
@@ -189,11 +221,13 @@ router.post('/', async (req, res) => {
       await db.query(
         `
         INSERT INTO users (
-          phone, name, is_founder, phone_verified_at, referred_by_partner_id, referred_at
+          phone, name, is_founder, phone_verified_at, referred_by_partner_id, referred_at,
+          privacy_consent_at, privacy_policy_version, offer_accepted_at, offer_version
         )
         VALUES (
           $1, $2, (SELECT COUNT(*) < 1000 FROM users), NOW(), $3::uuid,
-          CASE WHEN $3::uuid IS NOT NULL THEN NOW() ELSE NULL END
+          CASE WHEN $3::uuid IS NOT NULL THEN NOW() ELSE NULL END,
+          NOW(), $4, NOW(), $5
         )
         ON CONFLICT (phone) DO UPDATE SET
           name = EXCLUDED.name,
@@ -202,9 +236,13 @@ router.post('/', async (req, res) => {
           referred_at = COALESCE(
             users.referred_at,
             CASE WHEN EXCLUDED.referred_by_partner_id IS NOT NULL THEN NOW() ELSE NULL END
-          )
+          ),
+          privacy_consent_at = COALESCE(users.privacy_consent_at, EXCLUDED.privacy_consent_at),
+          privacy_policy_version = COALESCE(users.privacy_policy_version, EXCLUDED.privacy_policy_version),
+          offer_accepted_at = COALESCE(users.offer_accepted_at, EXCLUDED.offer_accepted_at),
+          offer_version = COALESCE(users.offer_version, EXCLUDED.offer_version)
         `,
-        [normalizedPhone, trimmedName, referredByPartnerId]
+        [normalizedPhone, trimmedName, referredByPartnerId, resolvedPrivacyVersion, resolvedOfferVersion]
       );
     }
 
@@ -444,6 +482,146 @@ router.post('/push-token', requireUserSession, async (req, res) => {
     const saved = await upsertPushToken(db, user.id, token, platform || 'web');
     res.json({ ok: true, token_id: saved?.id ?? null });
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/users/personal-data?phone= — сведения об обрабатываемых ПДн (ст. 14 152-ФЗ)
+router.get('/personal-data', requireUserSession, async (req, res) => {
+  const { phone } = req.query;
+
+  if (!phone) {
+    return res.status(400).json({ error: 'Нужен параметр phone' });
+  }
+
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
+  }
+
+  try {
+    const normalizedPhone = normalizePhone(phone);
+    const user = await fetchUserByPhone(normalizedPhone);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const [listings, chats, favorites, support, payments] = await Promise.all([
+      db.query(
+        `
+        SELECT COUNT(*)::int AS total,
+               COUNT(*) FILTER (WHERE status IN ('active', 'reserved'))::int AS active
+        FROM listings WHERE user_id = $1
+        `,
+        [user.id]
+      ),
+      db.query(
+        `
+        SELECT COUNT(*)::int AS conversations,
+               (SELECT COUNT(*)::int FROM chat_messages cm
+                JOIN conversations c ON c.id = cm.conversation_id
+                WHERE c.donor_id = $1 OR c.recipient_id = $1) AS messages
+        FROM conversations
+        WHERE donor_id = $1 OR recipient_id = $1
+        `,
+        [user.id]
+      ),
+      db.query('SELECT COUNT(*)::int AS cnt FROM favorites WHERE user_id = $1', [user.id]),
+      db.query('SELECT COUNT(*)::int AS cnt FROM support_tickets WHERE user_id = $1', [user.id]),
+      db.query('SELECT COUNT(*)::int AS cnt FROM payments WHERE user_id = $1', [user.id]),
+    ]);
+
+    res.json({
+      exported_at: new Date().toISOString(),
+      profile: {
+        id: user.id,
+        phone: user.phone,
+        name: user.name,
+        avatar_url: normalizeAvatarUrl(user.avatar_url) || null,
+        donor_level: user.donor_level,
+        rating: user.rating,
+        is_founder: user.is_founder,
+        is_partner: user.is_partner ?? false,
+        real_phone_verified: Boolean(user.real_phone_verified_at),
+        created_at: user.created_at,
+        privacy_consent_at: user.privacy_consent_at ?? null,
+        privacy_policy_version: user.privacy_policy_version ?? null,
+        offer_accepted_at: user.offer_accepted_at ?? null,
+        offer_version: user.offer_version ?? null,
+      },
+      counts: {
+        listings_total: listings.rows[0].total,
+        listings_active: listings.rows[0].active,
+        chat_conversations: chats.rows[0].conversations,
+        chat_messages: chats.rows[0].messages,
+        favorites: favorites.rows[0].cnt,
+        support_tickets: support.rows[0].cnt,
+        payments: payments.rows[0].cnt,
+      },
+      note:
+        'PIN-код хранится только в виде хеша. Геолокация устройства в профиле не сохраняется. '
+        + 'Для удаления всех данных используйте «Удалить аккаунт» в профиле.',
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/users/delete-account { phone } — удаление аккаунта и связанных данных
+router.post('/delete-account', requireUserSession, async (req, res) => {
+  const { phone } = req.body;
+
+  if (!phone) {
+    return res.status(400).json({ error: 'Нужен phone' });
+  }
+
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
+  }
+
+  try {
+    const normalizedPhone = normalizePhone(phone);
+    const user = await fetchUserByPhone(normalizedPhone);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    await db.query('BEGIN');
+
+    await db.query(
+      'UPDATE users SET referred_by_partner_id = NULL WHERE referred_by_partner_id = $1',
+      [user.id]
+    );
+    await db.query(
+      'UPDATE partner_activation_codes SET used_by_user_id = NULL WHERE used_by_user_id = $1',
+      [user.id]
+    );
+    await db.query(
+      'UPDATE listings SET reserved_by_user_id = NULL WHERE reserved_by_user_id = $1',
+      [user.id]
+    );
+    await db.query(
+      'DELETE FROM ratings WHERE from_user_id = $1 OR to_user_id = $1',
+      [user.id]
+    );
+    await db.query(
+      'DELETE FROM deals WHERE donor_id = $1 OR recipient_id = $1',
+      [user.id]
+    );
+    await db.query('DELETE FROM listing_reports WHERE reporter_id = $1', [user.id]);
+    await db.query('DELETE FROM users WHERE id = $1', [user.id]);
+
+    await db.query('COMMIT');
+
+    res.json({
+      ok: true,
+      message: 'Аккаунт и связанные персональные данные удалены',
+    });
+  } catch (error) {
+    try {
+      await db.query('ROLLBACK');
+    } catch (_) {}
     res.status(500).json({ error: error.message });
   }
 });

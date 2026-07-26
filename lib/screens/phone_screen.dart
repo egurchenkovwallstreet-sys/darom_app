@@ -3,12 +3,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../services/auth_api.dart';
 import '../widgets/auth_form_scroll.dart';
+import '../widgets/legal_consent_checkboxes.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import 'pin_login_screen.dart';
 import 'partner_register_screen.dart';
 import 'profile_setup_screen.dart';
-import 'public_offer_screen.dart';
 
 class PhoneScreen extends StatefulWidget {
   const PhoneScreen({super.key});
@@ -24,6 +24,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
   final AuthApi _authApi = AuthApi();
   bool _isLoading = false;
   bool _offerAccepted = false;
+  bool _privacyAccepted = false;
 
   @override
   void dispose() {
@@ -40,6 +41,16 @@ class _PhoneScreenState extends State<PhoneScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Примите условия оферты, чтобы продолжить'),
+          backgroundColor: Color(0xFFFF5722),
+        ),
+      );
+      return;
+    }
+
+    if (!_privacyAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Дайте согласие на обработку персональных данных'),
           backgroundColor: Color(0xFFFF5722),
         ),
       );
@@ -80,6 +91,8 @@ class _PhoneScreenState extends State<PhoneScreen> {
           builder: (context) => ProfileSetupScreen(
             phoneNumber: check.phone,
             initialUserName: check.userName,
+            offerAccepted: _offerAccepted,
+            privacyAccepted: _privacyAccepted,
           ),
         ),
       );
@@ -181,67 +194,12 @@ class _PhoneScreenState extends State<PhoneScreen> {
         footer: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFF001F3F).withOpacity(0.7),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF00BFFF).withOpacity(0.25)),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: Checkbox(
-                          value: _offerAccepted,
-                          activeColor: const Color(0xFF00BFFF),
-                          side: const BorderSide(color: Color(0xFF00BFFF)),
-                          onChanged: _isLoading
-                              ? null
-                              : (value) => setState(() => _offerAccepted = value ?? false),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Принимаю условия пользовательского соглашения (оферты)',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.85),
-                            fontSize: 13,
-                            height: 1.35,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const PublicOfferScreen(),
-                                ),
-                              );
-                            },
-                      child: const Text(
-                        'Читать оферту',
-                        style: TextStyle(
-                          color: Color(0xFF00BFFF),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            LegalConsentCheckboxes(
+              offerAccepted: _offerAccepted,
+              privacyAccepted: _privacyAccepted,
+              enabled: !_isLoading,
+              onOfferChanged: (value) => setState(() => _offerAccepted = value),
+              onPrivacyChanged: (value) => setState(() => _privacyAccepted = value),
             ),
             const SizedBox(height: 8),
             PrimaryActionButton(

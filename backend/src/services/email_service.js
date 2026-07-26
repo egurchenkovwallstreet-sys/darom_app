@@ -1,6 +1,7 @@
 const dns = require('dns');
 const nodemailer = require('nodemailer');
 const config = require('../config');
+const { logAdminEmailMock, logAdminEmailSent, maskEmail, logInfo } = require('../utils/safe_log');
 
 function ipv4Lookup(hostname, _options, callback) {
   dns.lookup(hostname, { family: 4 }, callback);
@@ -73,7 +74,7 @@ async function sendAdminEmailCode({ to, code }) {
   };
 
   if (config.adminEmailMock || !config.smtp.host) {
-    console.log(`[ADMIN EMAIL MOCK] to=${to} code=${code}`);
+    logAdminEmailMock({ to });
     return { mock: true, debugCode: code };
   }
 
@@ -93,7 +94,7 @@ async function sendAdminEmailCode({ to, code }) {
 
     try {
       await transport.sendMail(mailOptions);
-      console.log(`[ADMIN EMAIL] sent to=${to} via ${config.smtp.host}:${attempt.label}`);
+      logAdminEmailSent({ to, host: config.smtp.host, portLabel: attempt.label });
       return { mock: false, sent: true };
     } catch (err) {
       lastError = err;
@@ -133,7 +134,7 @@ async function sendAdminDailyReportEmail({ to, subject, text, html }) {
   };
 
   if (config.adminEmailMock || !config.smtp.host) {
-    console.log(`[DAILY REPORT EMAIL MOCK] to=${to} subject=${subject}`);
+    logInfo(`[DAILY REPORT EMAIL MOCK] to=${maskEmail(to)} subject=${subject}`);
     return { mock: true, sent: false };
   }
 
@@ -153,7 +154,7 @@ async function sendAdminDailyReportEmail({ to, subject, text, html }) {
 
     try {
       await transport.sendMail(mailOptions);
-      console.log(`[DAILY REPORT EMAIL] sent to=${to} via ${config.smtp.host}:${attempt.label}`);
+      logInfo(`[DAILY REPORT EMAIL] sent to=${maskEmail(to)} via ${config.smtp.host}:${attempt.label}`);
       return { mock: false, sent: true };
     } catch (err) {
       lastError = err;

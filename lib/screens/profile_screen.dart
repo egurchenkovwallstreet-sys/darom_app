@@ -21,6 +21,9 @@ import 'admin_daily_reports_screen.dart';
 import 'admin_reports_screen.dart';
 import 'support_screen.dart';
 import 'about_app_screen.dart';
+import 'public_offer_screen.dart';
+import 'privacy_policy_screen.dart';
+import 'personal_data_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userName;
@@ -136,6 +139,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _uploadingAvatar = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error is UsersApiException ? error.message : '$error'),
+          backgroundColor: const Color(0xFFFF5722),
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteAccount(User user) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF001F3F),
+        title: const Text('Удалить аккаунт?', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'Будут удалены профиль, объявления, чаты и другие персональные данные. '
+          'Это действие необратимо.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Отмена', style: TextStyle(color: Color(0xFF80DEEA))),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Удалить', style: TextStyle(color: Color(0xFFFF5722))),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await _usersApi.deleteAccount(phone: user.phoneNumber);
+      await _authApi.logout();
+      await SessionService.clear();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+        (_) => false,
+      );
+    } catch (error) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error is UsersApiException ? error.message : '$error'),
@@ -808,7 +857,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   },
                                 ),
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
-                                _buildSettingsItem(Icons.language, 'Язык'),
+                                _buildSettingsItem(
+                                  Icons.policy_outlined,
+                                  'Публичная оферта',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const PublicOfferScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                _buildSettingsItem(
+                                  Icons.privacy_tip_outlined,
+                                  'Политика персональных данных',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const PrivacyPolicyScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                _buildSettingsItem(
+                                  Icons.folder_shared_outlined,
+                                  'Мои персональные данные',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PersonalDataScreen(
+                                          phoneNumber: user.phoneNumber,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.info,
@@ -831,7 +919,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               .fadeIn(duration: Duration(milliseconds: 800))
                               .slideY(begin: 0.3, end: 0),
                           
-                          SizedBox(height: 20),
+                          SizedBox(height: 12),
+
+                          PrimaryActionButton(
+                            label: 'Удалить аккаунт',
+                            height: 50,
+                            fontSize: 16,
+                            borderRadius: 25,
+                            gradientColors: const [
+                              Color(0xFF8B0000),
+                              Color(0xFFFF5722),
+                            ],
+                            shadowColor: const Color(0xFFFF5722),
+                            onPressed: () => _deleteAccount(user),
+                          )
+                              .animate(
+                                delay: Duration(milliseconds: 750),
+                              )
+                              .fadeIn(duration: Duration(milliseconds: 800))
+                              .slideY(begin: 0.3, end: 0),
+
+                          SizedBox(height: 12),
 
                           PrimaryActionButton(
                             label: 'Выйти',

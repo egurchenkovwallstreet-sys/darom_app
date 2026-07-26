@@ -1,6 +1,10 @@
 const crypto = require('crypto');
 const config = require('../config');
 const { digitsForSms } = require('./sms_service');
+const {
+  logPlusofonFlashMockInitiated,
+  logPlusofonFlashMockCheck,
+} = require('../utils/safe_log');
 
 const API_BASE = 'https://restapi.plusofon.ru/api/v1/flash-call';
 const CLIENT_HEADER = '10553';
@@ -55,7 +59,7 @@ async function sendPlusofonFlashCall(phone) {
   if (shouldMockPlusofon()) {
     const pin = String(Math.floor(1000 + Math.random() * 9000));
     const key = crypto.randomUUID();
-    console.log(`[Plusofon Flash mock] ${number} → код ${pin}, key ${key}`);
+    logPlusofonFlashMockInitiated();
     return { mock: true, key, pin };
   }
 
@@ -75,7 +79,7 @@ async function checkPlusofonFlashPin({ key, pin }) {
   }
 
   if (shouldMockPlusofon()) {
-    console.log(`[Plusofon Flash mock check] key=${key} pin=${trimmedPin}`);
+    logPlusofonFlashMockCheck();
     return { ok: true, mock: true };
   }
 

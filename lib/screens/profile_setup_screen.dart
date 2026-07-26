@@ -13,6 +13,8 @@ class ProfileSetupScreen extends StatefulWidget {
   final String? verificationToken;
   final String? partnerActivationCode;
   final String? initialUserName;
+  final bool offerAccepted;
+  final bool privacyAccepted;
 
   const ProfileSetupScreen({
     super.key,
@@ -20,6 +22,8 @@ class ProfileSetupScreen extends StatefulWidget {
     this.verificationToken,
     this.partnerActivationCode,
     this.initialUserName,
+    this.offerAccepted = false,
+    this.privacyAccepted = false,
   });
 
   @override
@@ -77,6 +81,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         referralCode: widget.partnerActivationCode == null
             ? _referralController.text.trim()
             : null,
+        offerAccepted: widget.offerAccepted,
+        privacyConsent: widget.privacyAccepted,
       );
 
       final pinToken = widget.verificationToken ?? result.verificationToken;

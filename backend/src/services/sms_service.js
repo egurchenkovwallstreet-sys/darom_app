@@ -1,5 +1,6 @@
 const config = require('../config');
 const { normalizePhone } = require('../utils/phone');
+const { logSmsMock } = require('../utils/safe_log');
 
 function digitsForSms(phone) {
   return normalizePhone(phone).replace(/\D/g, '');
@@ -47,14 +48,12 @@ async function sendSmsCode(phone, code, options = {}) {
     (mode === 'real' && !canSendRealSms());
 
   if (useMock) {
-    let reason = '';
-    if (mode === 'real') {
-      reason = config.smsMock
-        ? 'SMS_MOCK=true'
-        : 'нет SMS_AERO_EMAIL/SMS_AERO_API_KEY в backend/.env';
-    }
-    const suffix = reason ? ` (${reason})` : '';
-    console.log(`[SMS mock${suffix}] ${to} → код ${code}`);
+    const reason = mode === 'real'
+      ? (config.smsMock
+          ? 'SMS_MOCK=true'
+          : 'нет SMS_AERO_EMAIL/SMS_AERO_API_KEY в backend/.env')
+      : '';
+    logSmsMock({ reason: reason || undefined });
     return { mock: true, debugCode: code };
   }
 

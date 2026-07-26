@@ -8,6 +8,7 @@ import 'package:darom_app/services/planet_assets.dart';
 import 'package:darom_app/services/session_service.dart';
 import 'package:darom_app/theme/app_colors.dart';
 import 'package:darom_app/screens/public_offer_screen.dart';
+import 'package:darom_app/screens/privacy_policy_screen.dart';
 import 'package:darom_app/widgets/payment_flow.dart';
 
 Future<void> main() async {
@@ -42,6 +43,9 @@ class DaromApp extends StatelessWidget {
       }
       if (path.startsWith('/offer')) {
         return const PublicOfferScreen();
+      }
+      if (path.startsWith('/privacy')) {
+        return const PrivacyPolicyScreen();
       }
     }
     return const AuthGate();

@@ -15,10 +15,14 @@ class PartnerVerifyScreen extends StatefulWidget {
     super.key,
     required this.phoneNumber,
     required this.partnerActivationCode,
+    required this.offerAccepted,
+    required this.privacyAccepted,
   });
 
   final String phoneNumber;
   final String partnerActivationCode;
+  final bool offerAccepted;
+  final bool privacyAccepted;
 
   @override
   State<PartnerVerifyScreen> createState() => _PartnerVerifyScreenState();
@@ -204,6 +208,8 @@ class _PartnerVerifyScreenState extends State<PartnerVerifyScreen> {
           phoneNumber: result.phone,
           verificationToken: result.verificationToken,
           partnerActivationCode: result.partnerActivationCode,
+          offerAccepted: widget.offerAccepted,
+          privacyAccepted: widget.privacyAccepted,
         ),
       ),
     );
