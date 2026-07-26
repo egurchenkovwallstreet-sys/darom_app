@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/instant_on_web.dart';
+import '../utils/responsive_layout.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
+import '../widgets/responsive_page_frame.dart';
 import 'phone_screen.dart';
 import 'partner_register_screen.dart';
 
@@ -54,7 +56,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return MidnightGlowScreen(
       child: SafeArea(
-        child: Column(
+        child: ResponsivePageFrame(
+          maxWidth: ResponsiveLayout.isDesktop(context) ? 560 : double.infinity,
+          child: Column(
           children: [
             Expanded(
               child: PageView.builder(
@@ -163,6 +167,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ],
             SizedBox(height: 20),
           ],
+        ),
         ),
       ),
     );

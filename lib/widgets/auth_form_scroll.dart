@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../utils/responsive_layout.dart';
 import 'keyboard_inset_padding.dart';
+import 'responsive_page_frame.dart';
 
 /// Прокручиваемая форма входа/регистрации — поле не перекрывается клавиатурой (в т.ч. на телефоне в браузере).
 class AuthFormScroll extends StatefulWidget {
@@ -85,7 +87,9 @@ class _AuthFormScrollState extends State<AuthFormScroll> {
 
     return KeyboardInsetPadding(
       child: SafeArea(
-        child: SingleChildScrollView(
+        child: ResponsivePageFrame(
+          maxWidth: ResponsiveLayout.authFormMaxWidth(context),
+          child: SingleChildScrollView(
           controller: _scrollController,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: EdgeInsets.fromLTRB(30, _compact ? 12 : 24, 30, 24),
@@ -146,6 +150,7 @@ class _AuthFormScrollState extends State<AuthFormScroll> {
               ],
             ],
           ),
+        ),
         ),
       ),
     );

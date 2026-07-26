@@ -9,6 +9,7 @@ import '../widgets/listing_photo_gallery.dart';
 import '../theme/app_colors.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
+import '../widgets/responsive_page_frame.dart';
 import 'add_listing_screen.dart';
 import 'chat_thread_screen.dart';
 import '../widgets/pickup_pack_offer_dialog.dart';
@@ -289,7 +290,8 @@ class _ListingScreenState extends State<ListingScreen> {
   Widget build(BuildContext context) {
     return MidnightGlowScreen(
       child: SafeArea(
-        child: Column(
+        child: ResponsivePageFrame(
+          child: Column(
           children: [
             _buildHeader(),
             Expanded(
@@ -327,6 +329,7 @@ class _ListingScreenState extends State<ListingScreen> {
             ),
             _buildActions(),
           ],
+        ),
         ),
       ),
     );

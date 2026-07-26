@@ -13,6 +13,7 @@ import '../data/map_radius_options.dart';
 import '../services/users_api.dart';
 import '../utils/instant_on_web.dart';
 import '../utils/map_marker_spread.dart';
+import '../utils/responsive_layout.dart';
 import '../widgets/avatar_image.dart';
 import '../widgets/listing_tile_card.dart';
 import '../widgets/midnight_glow_screen.dart';
@@ -357,6 +358,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildContent() {
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+    final mapPreviewHeight = isDesktop ? 360.0 : 130.0;
+
     return Column(
                 children: [
                   Container(
@@ -719,7 +723,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 8),
 
-                  Padding(
+                  if (!isDesktop)
+                    Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                     child: Row(
                       children: [
@@ -794,12 +799,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
 
+                          if (isDesktop && !_showListView) _buildDesktopCategoriesRow(),
+
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: _showListView
                                 ? _buildNearbyList()
                                 : SizedBox(
-                                    height: 130,
+                                    height: mapPreviewHeight,
                                     child: _loadingLocation
                                         ? _buildMapPlaceholder('Определяем местоположение...')
                                         : GestureDetector(
@@ -913,7 +920,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           const SizedBox(height: 8),
 
-                          GridView.builder(
+                          if (!isDesktop)
+                            GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -924,70 +932,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               childAspectRatio: 0.9,
                             ),
                             itemCount: _categories.length,
-                            itemBuilder: (context, index) {
-                              return GestureDetector(
-                                onTapDown: (_) => setState(() => _pressedCategoryIndex = index),
-                                onTapUp: (_) {
-                                  setState(() => _pressedCategoryIndex = -1);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SubcategoriesScreen(
-                                        categoryName: _categories[index],
-                                        categoryColor: AppColors.categoryIcon,
-                                        phoneNumber: widget.phoneNumber,
-                                        currentUserId: widget.userId,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                onTapCancel: () => setState(() => _pressedCategoryIndex = -1),
-                                child: AnimatedScale(
-                                  scale: _pressedCategoryIndex == index ? 1.08 : 1.0,
-                                  duration: Duration(milliseconds: 150),
-                                  curve: Curves.easeOut,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Color(0xFF001F3F).withOpacity(0.85),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: AppColors.categoryIcon,
-                                        width: 2,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: AppColors.categoryIcon.withOpacity(0.3),
-                                          blurRadius: 5,
-                                          offset: Offset(0, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          _categoryIcons[index],
-                                          size: 24,
-                                          color: AppColors.categoryIcon,
-                                        ),
-                                        const SizedBox(height: 3),
-                                        Text(
-                                          _categories[index],
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.categoryIcon,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+                            itemBuilder: (context, index) => _buildCategoryTile(
+                              index,
+                              compact: false,
+                            ),
                           ),
                           const SizedBox(height: 8),
                         ],
@@ -996,6 +944,106 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   ],
                 ],
+    );
+  }
+
+  void _openCategory(int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SubcategoriesScreen(
+          categoryName: _categories[index],
+          categoryColor: AppColors.categoryIcon,
+          phoneNumber: widget.phoneNumber,
+          currentUserId: widget.userId,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopCategoriesRow() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      child: Row(
+        children: List.generate(_categories.length, (index) {
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: index == 0 ? 0 : 3,
+                right: index == _categories.length - 1 ? 0 : 3,
+              ),
+              child: _buildCategoryTile(index, compact: true),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildCategoryTile(int index, {required bool compact}) {
+    final iconSize = compact ? 22.0 : 24.0;
+    final fontSize = compact ? 12.0 : 10.0;
+    final tileHeight = compact ? 58.0 : null;
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressedCategoryIndex = index),
+      onTapUp: (_) {
+        setState(() => _pressedCategoryIndex = -1);
+        _openCategory(index);
+      },
+      onTapCancel: () => setState(() => _pressedCategoryIndex = -1),
+      child: AnimatedScale(
+        scale: _pressedCategoryIndex == index ? 1.06 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        child: SizedBox(
+          height: tileHeight,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: compact ? 2 : 4,
+              vertical: compact ? 4 : 6,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFF001F3F).withOpacity(0.85),
+              borderRadius: BorderRadius.circular(compact ? 8 : 12),
+              border: Border.all(
+                color: AppColors.categoryIcon,
+                width: compact ? 1.2 : 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.categoryIcon.withOpacity(compact ? 0.2 : 0.3),
+                  blurRadius: compact ? 3 : 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _categoryIcons[index],
+                  size: iconSize,
+                  color: AppColors.categoryIcon,
+                ),
+                SizedBox(height: compact ? 2 : 3),
+                Text(
+                  _categories[index],
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.categoryIcon,
+                    height: 1.05,
+                  ),
+                  maxLines: compact ? 2 : 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
