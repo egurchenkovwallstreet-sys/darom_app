@@ -223,7 +223,9 @@ class AuthApi {
       phone: body['phone'] as String,
       partnerActivationCode: body['partner_activation_code'] as String? ?? partnerActivationCode,
       sessionToken: body['session_token'] as String,
+      mode: body['mode'] as String? ?? 'mobile_id',
       hint: body['hint'] as String?,
+      debugCode: body['debug_code'] as String?,
     );
   }
 
@@ -579,6 +581,8 @@ class ActiveVerifySendResult {
   final String? hint;
 
   bool get isMobileId => mode == 'mobile_id';
+  bool get isFlashCall => mode == 'flash_call';
+  bool get needsCodeEntry => isFlashCall || mode == 'sms';
 
   factory ActiveVerifySendResult.fromJson(Map<String, dynamic> json) {
     return ActiveVerifySendResult(
@@ -635,13 +639,20 @@ class PartnerVerifyResult {
     required this.phone,
     required this.partnerActivationCode,
     required this.sessionToken,
+    this.mode = 'mobile_id',
     this.hint,
+    this.debugCode,
   });
 
   final String phone;
   final String partnerActivationCode;
   final String sessionToken;
+  final String mode;
   final String? hint;
+  final String? debugCode;
+
+  bool get isFlashCall => mode == 'flash_call';
+  bool get isMobileId => mode == 'mobile_id';
 }
 
 class PartnerVerifyCompleteResult {

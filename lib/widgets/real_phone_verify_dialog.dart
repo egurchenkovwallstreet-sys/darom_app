@@ -9,7 +9,7 @@ import 'keyboard_inset_padding.dart';
 import 'pin_code_fields.dart';
 import 'primary_action_button.dart';
 
-/// Диалог одноразового подтверждения реального номера (SMS Aero Mobile ID или SMS).
+/// Диалог одноразового подтверждения реального номера (Плюсofon Flash Call или SMS Aero Mobile ID).
 Future<String?> showRealPhoneVerifyDialog(
   BuildContext context, {
   required String phoneNumber,
@@ -55,6 +55,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
   bool _started = false;
   bool _loading = false;
   bool _success = false;
+  bool _flashCallMode = false;
   bool _mobileIdMode = false;
   bool _needsOtp = false;
   String? _debugCode;
@@ -134,20 +135,21 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
 
       setState(() {
         _started = true;
+        _flashCallMode = result.isFlashCall;
         _mobileIdMode = result.isMobileId;
         _sessionToken = result.sessionToken;
         _debugCode = result.debugCode;
         _loading = false;
-        _statusMessage = result.isMobileId
-            ? (result.hint ??
-                'На телефон может прийти запрос «Подтвердить» или SMS с кодом.')
-            : null;
-        _needsOtp = !result.isMobileId;
+        _statusMessage = result.hint ??
+            (result.isFlashCall
+                ? 'На телефон поступит звонок. Введите последние 4 цифры номера звонящего.'
+                : 'На телефон может прийти запрос «Подтвердить» или SMS с кодом.');
+        _needsOtp = result.isFlashCall || !result.isMobileId;
       });
 
       if (result.isMobileId && result.sessionToken != null) {
         _startPolling(result.sessionToken!);
-      } else if (!result.isMobileId) {
+      } else if (result.isFlashCall || !result.isMobileId) {
         _codeFocus.requestFocus();
         _scrollToKey(_codeFieldKey);
       }
@@ -228,7 +230,9 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
 
     final code = PinCodeFields.readCode(_codeControllers);
     if (code.length < 4) {
-      setState(() => _error = 'Введите 4 цифры из SMS');
+      setState(() => _error = _flashCallMode
+          ? 'Введите 4 цифры номера входящего звонка'
+          : 'Введите 4 цифры из SMS');
       return;
     }
 
@@ -242,7 +246,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
         accountPhone: widget.phoneNumber,
         verifyPhone: _phoneController.text,
         code: code,
-        sessionToken: _mobileIdMode ? _sessionToken : null,
+        sessionToken: _mobileIdMode || _flashCallMode ? _sessionToken : null,
       );
       await _finishSuccess(result.phone);
     } catch (error) {
@@ -273,7 +277,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
   @override
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.sizeOf(context).height * 0.92;
-    final showOtp = _started && (_needsOtp || !_mobileIdMode);
+    final showOtp = _started && (_needsOtp || _flashCallMode || !_mobileIdMode);
 
     return Dialog(
       backgroundColor: const Color(0xFF001F3F),
@@ -314,8 +318,8 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                 ] else ...[
                   const Text(
                     'Один раз бесплатно подтвердите номер — так мы проверяем, что вы человек, '
-                    'и защищаем площадку и пользователей от мошенничества. '
-                    'Дальше — подсказки на экране (push «Подтвердить» или SMS-код).',
+                    'и защищаем площадку от мошенничества. '
+                    'На телефон поступит короткий звонок: введите последние 4 цифры номера звонящего.',
                     style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.45),
                   ),
                   const SizedBox(height: 16),
@@ -386,7 +390,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                   if (showOtp) ...[
                     const SizedBox(height: 16),
                     const Text(
-                      'Код из SMS',
+                      'Последние 4 цифры номера звонящего',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
@@ -431,7 +435,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                               )
                             : showOtp
                                 ? PrimaryActionButton(
-                                    label: 'Ввести код',
+                                    label: 'Подтвердить',
                                     loading: _loading,
                                     height: 44,
                                     fontSize: 15,
@@ -439,7 +443,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                                     onPressed: _confirmCode,
                                   )
                                 : PrimaryActionButton(
-                                    label: 'Ждём телефон…',
+                                    label: 'Ждём подтверждение…',
                                     loading: true,
                                     height: 44,
                                     fontSize: 15,

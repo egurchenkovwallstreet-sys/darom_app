@@ -3,6 +3,9 @@ const db = require('../db/pool');
 const config = require('../config');
 const securityVersion = require('../security_version');
 const { isRobokassaConfigured } = require('../utils/robokassa');
+const { canUsePlusofonFlash, isPlusofonConfigured } = require('../services/plusofon_flash_service');
+const { canUseMobileId } = require('../services/mobile_id_service');
+const { resolveVerifyProvider } = require('../utils/phone_verify_flow');
 
 const router = express.Router();
 
@@ -64,6 +67,12 @@ router.get('/', async (_req, res) => {
         mock: config.pushMock,
         configured: pushConfigured,
         ready: config.pushMock || pushConfigured,
+      },
+      verify: {
+        provider: resolveVerifyProvider(),
+        plusofonConfigured: isPlusofonConfigured(),
+        plusofonReady: canUsePlusofonFlash() || config.plusofonMock,
+        mobileIdReady: canUseMobileId(),
       },
       db: {
         connected: true,

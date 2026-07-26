@@ -31,8 +31,11 @@ class _PartnerVerifyScreenState extends State<PartnerVerifyScreen> {
 
   Timer? _pollTimer;
   bool _loading = true;
+  bool _flashCallMode = false;
+  bool _mobileIdMode = false;
   bool _needsOtp = false;
   String? _sessionToken;
+  String? _debugCode;
   String? _error;
   String? _statusMessage;
 
@@ -69,12 +72,22 @@ class _PartnerVerifyScreenState extends State<PartnerVerifyScreen> {
 
       setState(() {
         _loading = false;
+        _flashCallMode = result.isFlashCall;
+        _mobileIdMode = result.isMobileId;
         _sessionToken = result.sessionToken;
+        _debugCode = result.debugCode;
         _statusMessage = result.hint ??
-            'На телефон может прийти запрос «Подтвердить» или SMS с кодом.';
+            (result.isFlashCall
+                ? 'На телефон поступит звонок. Введите последние 4 цифры номера звонящего.'
+                : 'На телефон может прийти запрос «Подтвердить» или SMS с кодом.');
+        _needsOtp = result.isFlashCall;
       });
 
-      _startPolling(result.sessionToken);
+      if (result.isFlashCall) {
+        _codeFocus.requestFocus();
+      } else {
+        _startPolling(result.sessionToken);
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -136,7 +149,9 @@ class _PartnerVerifyScreenState extends State<PartnerVerifyScreen> {
     if (poll.needsOtp && !_needsOtp) {
       setState(() {
         _needsOtp = true;
-        _statusMessage = 'Введите код из SMS (4 цифры)';
+        _statusMessage = _flashCallMode
+            ? 'Введите последние 4 цифры номера входящего звонка'
+            : 'Введите код из SMS (4 цифры)';
       });
       _codeFocus.requestFocus();
     } else if (!_needsOtp) {
@@ -152,7 +167,9 @@ class _PartnerVerifyScreenState extends State<PartnerVerifyScreen> {
 
     final code = PinCodeFields.readCode(_codeControllers);
     if (code.length < 4) {
-      setState(() => _error = 'Введите 4 цифры из SMS');
+      setState(() => _error = _flashCallMode
+          ? 'Введите 4 цифры номера входящего звонка'
+          : 'Введите 4 цифры из SMS');
       return;
     }
 
@@ -198,7 +215,7 @@ class _PartnerVerifyScreenState extends State<PartnerVerifyScreen> {
       child: AuthFormScroll(
         title: 'Подтверждение номера партнёра',
         subtitle: widget.phoneNumber,
-        compactSubtitle: _statusMessage ?? 'Mobile ID — дешевле обычного SMS',
+        compactSubtitle: _statusMessage ?? 'Подтверждение номера звонком',
         focusNode: _codeFocus,
         form: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -211,6 +228,16 @@ class _PartnerVerifyScreenState extends State<PartnerVerifyScreen> {
                   style: const TextStyle(color: Color(0xFFFF5722), fontSize: 14),
                 ),
               ),
+            if (_debugCode != null) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'Тестовый код: $_debugCode',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Color(0xFF80DEEA), fontSize: 16),
+                ),
+              ),
+            ],
             if (_needsOtp) ...[
               KeyboardInsetPadding(
                 child: PinCodeFields(

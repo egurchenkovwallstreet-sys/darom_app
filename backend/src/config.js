@@ -19,6 +19,10 @@ const config = {
   smsAeroMobileIdSign: process.env.SMS_AERO_MOBILE_ID_SIGN || '',
   smsAuthMode: (process.env.SMS_AUTH_MODE || 'mobile_id').toLowerCase(),
   smsMock: process.env.SMS_MOCK !== 'false',
+  /** plusofon | mobile_id | auto — auto: Плюсofon Flash Call, иначе Mobile ID */
+  verifyProvider: (process.env.VERIFY_PROVIDER || 'auto').toLowerCase(),
+  plusofonFlashAccessToken: process.env.PLUSOFON_FLASH_ACCESS_TOKEN || '',
+  plusofonMock: process.env.PLUSOFON_MOCK === 'true',
   publicBaseUrl,
   photoStorage:
     process.env.PHOTO_STORAGE ||
@@ -124,6 +128,14 @@ if (config.smsMock) {
   console.log('✓ SMS.ru: боевой режим');
 } else {
   console.warn('⚠ SMS: SMS_MOCK=false, но SMS_AERO_EMAIL / SMS_AERO_API_KEY пустые — коды будут тестовыми');
+}
+
+if (config.plusofonMock || !config.plusofonFlashAccessToken) {
+  if (config.verifyProvider === 'plusofon' || config.verifyProvider === 'flash_call') {
+    console.log('Plusofon Flash Call: тестовый режим (PLUSOFON_MOCK=true или нет PLUSOFON_FLASH_ACCESS_TOKEN)');
+  }
+} else {
+  console.log(`✓ Plusofon Flash Call: боевой режим, VERIFY_PROVIDER=${config.verifyProvider}`);
 }
 
 if (config.adminEmailMock) {
