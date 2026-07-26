@@ -6,6 +6,7 @@ const os = require('os');
 const { execFile } = require('child_process');
 const { promisify } = require('util');
 const config = require('../config');
+const { deployLimiter } = require('../middleware/rate_limit');
 
 const execFileAsync = promisify(execFile);
 const router = express.Router();
@@ -15,7 +16,7 @@ const upload = multer({
   limits: { fileSize: 80 * 1024 * 1024 },
 });
 
-router.post('/', upload.single('archive'), async (req, res) => {
+router.post('/', deployLimiter, upload.single('archive'), async (req, res) => {
   if (!config.deploySecret) {
     return res.status(503).json({ ok: false, error: 'DEPLOY_SECRET не настроен на сервере' });
   }

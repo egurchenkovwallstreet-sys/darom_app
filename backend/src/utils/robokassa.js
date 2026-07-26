@@ -176,7 +176,10 @@ function verifyResultSignature(params) {
 }
 
 function buildPaymentRedirectToken(invId, userId) {
-  const secret = config.robokassa.password2 || 'darom-pay-redirect';
+  const secret = config.robokassa.password2;
+  if (!secret) {
+    throw new Error('ROBOKASSA_PASSWORD2 не настроен');
+  }
   return crypto
     .createHmac('sha256', secret)
     .update(`go:${invId}:${userId}`)

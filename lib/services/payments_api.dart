@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
 import 'auth_headers.dart';
+import 'darom_http_client.dart';
 
 class RobokassaPaymentForm {
   final String action;
@@ -87,7 +88,7 @@ class PaymentStatusResult {
 }
 
 class PaymentsApi {
-  PaymentsApi({http.Client? client}) : _client = client ?? http.Client();
+  PaymentsApi({http.Client? client}) : _client = client ?? createDaromHttpClient();
 
   final http.Client _client;
 

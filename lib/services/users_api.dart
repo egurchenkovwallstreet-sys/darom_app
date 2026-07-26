@@ -8,6 +8,7 @@ import '../data/legal_consent.dart';
 import '../models/user.dart';
 import 'api_config.dart';
 import 'auth_headers.dart';
+import 'darom_http_client.dart';
 import 'partners_api.dart';
 
 class PersonalDataExport {
@@ -34,7 +35,7 @@ class PersonalDataExport {
 }
 
 class UsersApi {
-  UsersApi({http.Client? client}) : _client = client ?? http.Client();
+  UsersApi({http.Client? client}) : _client = client ?? createDaromHttpClient();
 
   final http.Client _client;
 

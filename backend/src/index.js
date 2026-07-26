@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const config = require('./config');
 const { ensureUploadDir } = require('./utils/photo_storage');
 const healthRouter = require('./routes/health');
@@ -33,13 +34,15 @@ app.use(
   cors({
     origin(origin, callback) {
       if (!origin || corsOrigins.has(origin)) {
-        callback(null, true);
+        callback(null, origin || true);
         return;
       }
       callback(null, false);
     },
+    credentials: true,
   })
 );
+app.use(cookieParser());
 app.use(express.json());
 
 app.use('/api/auth', authGeneralLimiter);

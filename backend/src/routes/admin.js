@@ -18,7 +18,8 @@ const {
 } = require('../utils/admin_stats');
 const { blockUser, blockListing } = require('../utils/block_helpers');
 const config = require('../config');
-const { adminAuthStartLimiter } = require('../middleware/rate_limit');
+const { adminAuthStartLimiter, adminAuthVerifyLimiter, adminMobileIdStepLimiter } = require('../middleware/rate_limit');
+const { readVerifySessionToken } = require('../utils/verify_session_token');
 
 const router = express.Router();
 
@@ -60,11 +61,12 @@ router.post('/auth/start', adminAuthStartLimiter, async (req, res) => {
   }
 });
 
-// GET /api/admin/auth/mobile-id/poll?phone=&session_token=
-router.get('/auth/mobile-id/poll', async (req, res) => {
-  const { phone, session_token: sessionToken } = req.query;
+// GET /api/admin/auth/mobile-id/poll?phone=
+router.get('/auth/mobile-id/poll', adminMobileIdStepLimiter, async (req, res) => {
+  const { phone } = req.query;
+  const sessionToken = readVerifySessionToken(req, { allowQuery: true });
   if (!phone || !sessionToken) {
-    return res.status(400).json({ error: 'Нужны phone и session_token' });
+    return res.status(400).json({ error: 'Нужны phone и X-Verify-Session-Token' });
   }
 
   try {
@@ -78,11 +80,12 @@ router.get('/auth/mobile-id/poll', async (req, res) => {
   }
 });
 
-// POST /api/admin/auth/mobile-id/complete { phone, session_token }
-router.post('/auth/mobile-id/complete', async (req, res) => {
-  const { phone, session_token: sessionToken } = req.body ?? {};
+// POST /api/admin/auth/mobile-id/complete { phone }
+router.post('/auth/mobile-id/complete', adminMobileIdStepLimiter, async (req, res) => {
+  const { phone } = req.body ?? {};
+  const sessionToken = readVerifySessionToken(req, { allowBody: true });
   if (!phone || !sessionToken) {
-    return res.status(400).json({ error: 'Нужны phone и session_token' });
+    return res.status(400).json({ error: 'Нужны phone и X-Verify-Session-Token' });
   }
 
   try {
@@ -96,11 +99,12 @@ router.post('/auth/mobile-id/complete', async (req, res) => {
   }
 });
 
-// POST /api/admin/auth/mobile-id/confirm { phone, session_token, code }
-router.post('/auth/mobile-id/confirm', async (req, res) => {
-  const { phone, session_token: sessionToken, code } = req.body ?? {};
+// POST /api/admin/auth/mobile-id/confirm { phone, code }
+router.post('/auth/mobile-id/confirm', adminMobileIdStepLimiter, async (req, res) => {
+  const { phone, code } = req.body ?? {};
+  const sessionToken = readVerifySessionToken(req, { allowBody: true });
   if (!phone || !sessionToken || !code) {
-    return res.status(400).json({ error: 'Нужны phone, session_token и code' });
+    return res.status(400).json({ error: 'Нужны phone, code и X-Verify-Session-Token' });
   }
 
   try {
@@ -119,7 +123,7 @@ router.post('/auth/mobile-id/confirm', async (req, res) => {
 });
 
 // POST /api/admin/auth/verify { phone, email_code, sms_code? | session_token? }
-router.post('/auth/verify', async (req, res) => {
+router.post('/auth/verify', adminAuthVerifyLimiter, async (req, res) => {
   const {
     phone,
     sms_code: smsCode,

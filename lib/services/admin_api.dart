@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
+import 'auth_headers.dart';
+import 'darom_http_client.dart';
 
 class AdminApi {
-  AdminApi({http.Client? client}) : _client = client ?? http.Client();
+  AdminApi({http.Client? client}) : _client = client ?? createDaromHttpClient();
 
   final http.Client _client;
 
@@ -32,10 +34,10 @@ class AdminApi {
     required String sessionToken,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/auth/mobile-id/poll').replace(
-      queryParameters: {'phone': phone, 'session_token': sessionToken},
+      queryParameters: {'phone': phone},
     );
     final response = await _client
-        .get(uri, headers: _headers(null))
+        .get(uri, headers: verifySessionHeadersPublic(sessionToken))
         .timeout(const Duration(seconds: 15));
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -53,8 +55,8 @@ class AdminApi {
     final response = await _client
         .post(
           uri,
-          headers: _headers(null),
-          body: jsonEncode({'phone': phone, 'session_token': sessionToken}),
+          headers: verifySessionJsonHeadersPublic(sessionToken),
+          body: jsonEncode({'phone': phone}),
         )
         .timeout(const Duration(seconds: 15));
 
@@ -73,10 +75,9 @@ class AdminApi {
     final response = await _client
         .post(
           uri,
-          headers: _headers(null),
+          headers: verifySessionJsonHeadersPublic(sessionToken),
           body: jsonEncode({
             'phone': phone,
-            'session_token': sessionToken,
             'code': code,
           }),
         )

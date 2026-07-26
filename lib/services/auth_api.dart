@@ -4,9 +4,10 @@ import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
 import 'auth_headers.dart';
+import 'darom_http_client.dart';
 
 class AuthApi {
-  AuthApi({http.Client? client}) : _client = client ?? http.Client();
+  AuthApi({http.Client? client}) : _client = client ?? createDaromHttpClient();
 
   final http.Client _client;
 
@@ -112,14 +113,11 @@ class AuthApi {
     required String sessionToken,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/active-verify/poll').replace(
-      queryParameters: {
-        'phone': accountPhone,
-        'session_token': sessionToken,
-      },
+      queryParameters: {'phone': accountPhone},
     );
 
     final response = await _client
-        .get(uri, headers: await authHeaders())
+        .get(uri, headers: await verifySessionHeaders(sessionToken))
         .timeout(const Duration(seconds: 10));
     final body = jsonDecode(response.body) as Map<String, dynamic>;
 
@@ -139,10 +137,9 @@ class AuthApi {
     final response = await _client
         .post(
           uri,
-          headers: await jsonAuthHeaders(),
+          headers: await verifySessionJsonHeaders(sessionToken),
           body: jsonEncode({
             'phone': accountPhone,
-            'session_token': sessionToken,
           }),
         )
         .timeout(const Duration(seconds: 10));
@@ -169,15 +166,19 @@ class AuthApi {
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/active-verify/confirm');
 
+    var headers = await jsonAuthHeaders();
+    if (sessionToken != null) {
+      headers = withVerifySessionToken(headers, sessionToken);
+    }
+
     final response = await _client
         .post(
           uri,
-          headers: await jsonAuthHeaders(),
+          headers: headers,
           body: jsonEncode({
             'phone': accountPhone,
             'verify_phone': verifyPhone,
             'code': code,
-            if (sessionToken != null) 'session_token': sessionToken,
           }),
         )
         .timeout(const Duration(seconds: 10));
@@ -234,13 +235,12 @@ class AuthApi {
     required String sessionToken,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/partner-verify/poll').replace(
-      queryParameters: {
-        'phone': phone,
-        'session_token': sessionToken,
-      },
+      queryParameters: {'phone': phone},
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _client
+        .get(uri, headers: verifySessionHeadersPublic(sessionToken))
+        .timeout(const Duration(seconds: 10));
     final body = jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode != 200) {
@@ -259,11 +259,8 @@ class AuthApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'phone': phone,
-            'session_token': sessionToken,
-          }),
+          headers: verifySessionJsonHeadersPublic(sessionToken),
+          body: jsonEncode({'phone': phone}),
         )
         .timeout(const Duration(seconds: 10));
 
@@ -286,11 +283,10 @@ class AuthApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: verifySessionJsonHeadersPublic(sessionToken),
           body: jsonEncode({
             'phone': phone,
             'code': code,
-            'session_token': sessionToken,
           }),
         )
         .timeout(const Duration(seconds: 10));
@@ -335,13 +331,12 @@ class AuthApi {
     required String sessionToken,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/reset-pin/poll').replace(
-      queryParameters: {
-        'phone': phone,
-        'session_token': sessionToken,
-      },
+      queryParameters: {'phone': phone},
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _client
+        .get(uri, headers: verifySessionHeadersPublic(sessionToken))
+        .timeout(const Duration(seconds: 10));
     final body = jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode != 200) {
@@ -360,11 +355,8 @@ class AuthApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'phone': phone,
-            'session_token': sessionToken,
-          }),
+          headers: verifySessionJsonHeadersPublic(sessionToken),
+          body: jsonEncode({'phone': phone}),
         )
         .timeout(const Duration(seconds: 10));
 
@@ -387,11 +379,10 @@ class AuthApi {
     final response = await _client
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: verifySessionJsonHeadersPublic(sessionToken),
           body: jsonEncode({
             'phone': phone,
             'code': code,
-            'session_token': sessionToken,
           }),
         )
         .timeout(const Duration(seconds: 10));

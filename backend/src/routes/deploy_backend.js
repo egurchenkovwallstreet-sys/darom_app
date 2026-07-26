@@ -3,11 +3,12 @@ const path = require('path');
 const { execFile } = require('child_process');
 const { promisify } = require('util');
 const config = require('../config');
+const { deployLimiter } = require('../middleware/rate_limit');
 
 const execFileAsync = promisify(execFile);
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+router.post('/', deployLimiter, async (req, res) => {
   if (!config.deploySecret) {
     return res.status(503).json({ ok: false, error: 'DEPLOY_SECRET не настроен на сервере' });
   }

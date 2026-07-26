@@ -166,6 +166,16 @@ router.post('/', async (req, res) => {
     const resolvedPrivacyVersion = privacyPolicyVersion || LEGAL_VERSIONS.privacyPolicy;
     const resolvedOfferVersion = offerVersion || LEGAL_VERSIONS.offer;
 
+    if (existing) {
+      const pinRow = await db.query('SELECT pin_hash FROM users WHERE phone = $1', [normalizedPhone]);
+      if (pinRow.rows[0]?.pin_hash) {
+        return res.status(409).json({
+          error: 'Этот номер уже зарегистрирован. Войдите по PIN.',
+          code: 'ALREADY_REGISTERED',
+        });
+      }
+    }
+
     if (partnerActivationCode) {
       if (existing) {
         return res.status(400).json({ error: 'Этот номер уже зарегистрирован' });

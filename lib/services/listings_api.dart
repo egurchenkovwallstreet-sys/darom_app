@@ -10,12 +10,13 @@ import '../models/listing_limit_info.dart';
 import '../models/pickup_limit_info.dart';
 import 'api_config.dart';
 import 'auth_headers.dart';
+import 'darom_http_client.dart';
 import 'real_phone_required.dart';
 
 export 'real_phone_required.dart' show RealPhoneRequiredException;
 
 class ListingsApi {
-  ListingsApi({http.Client? client}) : _client = client ?? http.Client();
+  ListingsApi({http.Client? client}) : _client = client ?? createDaromHttpClient();
 
   final http.Client _client;
 

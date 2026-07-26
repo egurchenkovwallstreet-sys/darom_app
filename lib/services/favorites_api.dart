@@ -5,9 +5,10 @@ import 'package:http/http.dart' as http;
 import '../models/listing.dart';
 import 'api_config.dart';
 import 'auth_headers.dart';
+import 'darom_http_client.dart';
 
 class FavoritesApi {
-  FavoritesApi({http.Client? client}) : _client = client ?? http.Client();
+  FavoritesApi({http.Client? client}) : _client = client ?? createDaromHttpClient();
 
   final http.Client _client;
 

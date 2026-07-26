@@ -6,9 +6,10 @@ import '../models/support_message.dart';
 import '../models/support_ticket.dart';
 import 'api_config.dart';
 import 'auth_headers.dart';
+import 'darom_http_client.dart';
 
 class SupportApi {
-  SupportApi({http.Client? client}) : _client = client ?? http.Client();
+  SupportApi({http.Client? client}) : _client = client ?? createDaromHttpClient();
 
   final http.Client _client;
 

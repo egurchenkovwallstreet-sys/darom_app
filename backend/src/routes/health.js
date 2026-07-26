@@ -43,9 +43,6 @@ router.get('/', async (_req, res) => {
         mock: paymentMock,
         robokassaConfigured,
         robokassaTestMode: config.robokassa.testMode,
-        robokassaTestModeEnv: process.env.ROBOKASSA_TEST_MODE ?? null,
-        robokassaMerchantLogin: config.robokassa.merchantLogin || null,
-        robokassaFiscalReceipt: config.robokassa.fiscalReceipt,
         ready: paymentMock || robokassaConfigured,
       },
       photos: {
@@ -77,7 +74,6 @@ router.get('/', async (_req, res) => {
       db: {
         connected: true,
         time: dbInfo.now,
-        postgis: dbInfo.postgis,
       },
     });
   } catch (error) {

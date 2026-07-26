@@ -30,6 +30,8 @@ const {
   verifyCodeLimiter,
 } = require('../middleware/rate_limit');
 const { requireMobileIdWebhookSecret } = require('../middleware/mobile_id_webhook');
+const { setSessionCookie, clearSessionCookie } = require('../utils/session_cookie');
+const { readVerifySessionToken } = require('../utils/verify_session_token');
 const {
   startPhoneVerification,
   fetchVerifySession,
@@ -444,6 +446,8 @@ router.post('/set-pin', async (req, res) => {
     const sessionInfo = await createUserSession(updated.rows[0].id);
     const row = updated.rows[0];
 
+    setSessionCookie(res, sessionInfo.token);
+
     res.json({
       ok: true,
       phone: normalizedPhone,
@@ -530,6 +534,8 @@ router.post('/login-pin', loginPinLimiter, async (req, res) => {
 
     const sessionInfo = await createUserSession(user.id);
 
+    setSessionCookie(res, sessionInfo.token);
+
     res.json({
       ok: true,
       session_token: sessionInfo.token,
@@ -550,6 +556,7 @@ router.post('/login-pin', loginPinLimiter, async (req, res) => {
 router.post('/logout', requireUserSession, async (req, res) => {
   try {
     await revokeUserSession(req.userSession.token);
+    clearSessionCookie(res);
     res.json({ ok: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -602,12 +609,13 @@ router.post('/active-verify/send', requireUserSession, async (req, res) => {
   }
 });
 
-// GET /api/auth/active-verify/poll?phone=&session_token=
+// GET /api/auth/active-verify/poll?phone= — токен в X-Verify-Session-Token
 router.get('/active-verify/poll', requireUserSession, async (req, res) => {
-  const { phone, session_token: sessionToken } = req.query;
+  const { phone } = req.query;
+  const sessionToken = readVerifySessionToken(req, { allowQuery: true });
 
   if (!phone || !sessionToken) {
-    return res.status(400).json({ error: 'Нужны phone и session_token' });
+    return res.status(400).json({ error: 'Нужны phone и X-Verify-Session-Token' });
   }
   if (!rejectMismatchedPhone(req, res, phone)) {
     return;
@@ -627,12 +635,13 @@ router.get('/active-verify/poll', requireUserSession, async (req, res) => {
   }
 });
 
-// POST /api/auth/active-verify/complete { phone, session_token }
+// POST /api/auth/active-verify/complete { phone } — токен в X-Verify-Session-Token
 router.post('/active-verify/complete', requireUserSession, async (req, res) => {
-  const { phone, session_token: sessionToken } = req.body;
+  const { phone } = req.body ?? {};
+  const sessionToken = readVerifySessionToken(req, { allowBody: true });
 
   if (!phone || !sessionToken) {
-    return res.status(400).json({ error: 'Нужны phone и session_token' });
+    return res.status(400).json({ error: 'Нужны phone и X-Verify-Session-Token' });
   }
   if (!rejectMismatchedPhone(req, res, phone)) {
     return;
@@ -708,12 +717,13 @@ router.post('/partner-verify/send', async (req, res) => {
   }
 });
 
-// GET /api/auth/partner-verify/poll?phone=&session_token=
+// GET /api/auth/partner-verify/poll?phone=
 router.get('/partner-verify/poll', async (req, res) => {
-  const { phone, session_token: sessionToken } = req.query;
+  const { phone } = req.query;
+  const sessionToken = readVerifySessionToken(req, { allowQuery: true });
 
   if (!phone || !sessionToken) {
-    return res.status(400).json({ error: 'Нужны phone и session_token' });
+    return res.status(400).json({ error: 'Нужны phone и X-Verify-Session-Token' });
   }
 
   try {
@@ -730,12 +740,13 @@ router.get('/partner-verify/poll', async (req, res) => {
   }
 });
 
-// POST /api/auth/partner-verify/complete { phone, session_token }
+// POST /api/auth/partner-verify/complete { phone }
 router.post('/partner-verify/complete', async (req, res) => {
-  const { phone, session_token: sessionToken } = req.body;
+  const { phone } = req.body ?? {};
+  const sessionToken = readVerifySessionToken(req, { allowBody: true });
 
   if (!phone || !sessionToken) {
-    return res.status(400).json({ error: 'Нужны phone и session_token' });
+    return res.status(400).json({ error: 'Нужны phone и X-Verify-Session-Token' });
   }
 
   try {
@@ -763,12 +774,13 @@ router.post('/partner-verify/complete', async (req, res) => {
   }
 });
 
-// POST /api/auth/partner-verify/confirm { phone, code, session_token }
+// POST /api/auth/partner-verify/confirm { phone, code }
 router.post('/partner-verify/confirm', async (req, res) => {
-  const { phone, code, session_token: sessionToken } = req.body;
+  const { phone, code } = req.body ?? {};
+  const sessionToken = readVerifySessionToken(req, { allowBody: true });
 
   if (!phone || !sessionToken) {
-    return res.status(400).json({ error: 'Нужны phone и session_token' });
+    return res.status(400).json({ error: 'Нужны phone и X-Verify-Session-Token' });
   }
 
   try {
@@ -837,12 +849,13 @@ router.post('/reset-pin/send', smsSendLimiter, async (req, res) => {
   }
 });
 
-// GET /api/auth/reset-pin/poll?phone=&session_token=
+// GET /api/auth/reset-pin/poll?phone=
 router.get('/reset-pin/poll', async (req, res) => {
-  const { phone, session_token: sessionToken } = req.query;
+  const { phone } = req.query;
+  const sessionToken = readVerifySessionToken(req, { allowQuery: true });
 
   if (!phone || !sessionToken) {
-    return res.status(400).json({ error: 'Нужны phone и session_token' });
+    return res.status(400).json({ error: 'Нужны phone и X-Verify-Session-Token' });
   }
 
   try {
@@ -859,12 +872,13 @@ router.get('/reset-pin/poll', async (req, res) => {
   }
 });
 
-// POST /api/auth/reset-pin/complete { phone, session_token }
+// POST /api/auth/reset-pin/complete { phone }
 router.post('/reset-pin/complete', async (req, res) => {
-  const { phone, session_token: sessionToken } = req.body;
+  const { phone } = req.body ?? {};
+  const sessionToken = readVerifySessionToken(req, { allowBody: true });
 
   if (!phone || !sessionToken) {
-    return res.status(400).json({ error: 'Нужны phone и session_token' });
+    return res.status(400).json({ error: 'Нужны phone и X-Verify-Session-Token' });
   }
 
   try {
@@ -892,12 +906,13 @@ router.post('/reset-pin/complete', async (req, res) => {
   }
 });
 
-// POST /api/auth/reset-pin/confirm { phone, code, session_token }
+// POST /api/auth/reset-pin/confirm { phone, code }
 router.post('/reset-pin/confirm', async (req, res) => {
-  const { phone, code, session_token: sessionToken } = req.body;
+  const { phone, code } = req.body ?? {};
+  const sessionToken = readVerifySessionToken(req, { allowBody: true });
 
   if (!phone || !sessionToken) {
-    return res.status(400).json({ error: 'Нужны phone и session_token' });
+    return res.status(400).json({ error: 'Нужны phone и X-Verify-Session-Token' });
   }
 
   try {
@@ -944,9 +959,10 @@ router.post('/mobile-id/webhook', requireMobileIdWebhookSecret, async (req, res)
   }
 });
 
-// POST /api/auth/active-verify/confirm { phone, verify_phone, code, session_token? }
+// POST /api/auth/active-verify/confirm { phone, verify_phone, code }
 router.post('/active-verify/confirm', requireUserSession, async (req, res) => {
-  const { phone, verify_phone: verifyPhoneRaw, code, session_token: sessionToken } = req.body;
+  const { phone, verify_phone: verifyPhoneRaw, code } = req.body ?? {};
+  const sessionToken = readVerifySessionToken(req, { allowBody: true });
 
   if (!phone || !verifyPhoneRaw) {
     return res.status(400).json({ error: 'Нужны phone и verify_phone' });

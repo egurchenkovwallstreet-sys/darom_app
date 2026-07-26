@@ -7,8 +7,6 @@ const AUTH_GENERAL_MAX = 120;
 function skipApiRateLimit(req) {
   return (
     req.path === '/health' ||
-    req.path.startsWith('/deploy-web') ||
-    req.path.startsWith('/deploy-backend') ||
     (req.method === 'GET' && req.path.startsWith('/photos/'))
   );
 }
@@ -101,12 +99,42 @@ const supportMessageLimiter = rateLimit({
   message: { error: 'Слишком много сообщений. Подождите час.' },
 });
 
+/** Brute-force кода с почты при входе в админку (J-H). */
+const adminAuthVerifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Слишком много попыток ввода кода. Подождите 15 минут.' },
+});
+
+/** Flash Call / Mobile ID шаги админ-входа (J-H). */
+const adminMobileIdStepLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Слишком много запросов подтверждения. Подождите 15 минут.' },
+});
+
+/** Деплой с GitHub Actions — не более 5 раз в час с одного IP (J-H). */
+const deployLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Слишком много запросов деплоя. Подождите час.' },
+});
+
 module.exports = {
   apiGeneralLimiter,
   authGeneralLimiter,
   loginPinLimiter,
   smsSendLimiter,
   adminAuthStartLimiter,
+  adminAuthVerifyLimiter,
+  adminMobileIdStepLimiter,
+  deployLimiter,
   checkPhoneLimiter,
   verifyCodeLimiter,
   partnerCodeValidateLimiter,

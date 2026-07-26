@@ -1,10 +1,16 @@
 const crypto = require('crypto');
 const db = require('../db/pool');
 const { normalizePhone } = require('../utils/phone');
+const { readSessionCookie } = require('../utils/session_cookie');
 
 const SESSION_TTL_DAYS = 30;
 
 function getBearerToken(req) {
+  const cookieToken = readSessionCookie(req);
+  if (cookieToken) {
+    return cookieToken;
+  }
+
   const header = req.headers.authorization;
   if (header?.startsWith('Bearer ')) {
     return header.slice(7).trim();

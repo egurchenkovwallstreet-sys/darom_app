@@ -41,4 +41,16 @@ class ApiConfig {
 
     return 'http://localhost:$port';
   }
+
+  /// На боевом сайте (тот же домен) сессия в HttpOnly-cookie; на localhost:8080 — Bearer в localStorage.
+  static bool get usesHttpOnlySessionCookie {
+    if (!kIsWeb) return false;
+    try {
+      final api = Uri.parse(baseUrl);
+      final page = Uri.base;
+      return api.host == page.host;
+    } catch (_) {
+      return false;
+    }
+  }
 }

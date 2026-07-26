@@ -1,4 +1,5 @@
 import '../models/user.dart';
+import 'api_config.dart';
 import 'session_storage.dart';
 
 /// Сохраняет вход пользователя между запусками приложения.
@@ -9,11 +10,19 @@ class SessionService {
   static const _keyPhone = 'session_phone';
   static const _keyName = 'session_name';
   static const _keyToken = 'session_token';
+  static const _keyCookieMode = 'session_cookie_v1';
 
-  static Future<String?> getToken() => readString(_keyToken);
+  static Future<String?> getToken() async {
+    if (ApiConfig.usesHttpOnlySessionCookie &&
+        await readString(_keyCookieMode) == '1') {
+      return null;
+    }
+    return readString(_keyToken);
+  }
 
   static Future<void> saveToken(String token) async {
     await saveString(_keyToken, token);
+    await removeKey(_keyCookieMode);
   }
 
   static Future<void> save(User user) async {
@@ -27,18 +36,36 @@ class SessionService {
     required String sessionToken,
   }) async {
     await save(user);
-    await saveToken(sessionToken);
+    if (ApiConfig.usesHttpOnlySessionCookie) {
+      await saveString(_keyCookieMode, '1');
+      await removeKey(_keyToken);
+    } else {
+      await saveToken(sessionToken);
+    }
   }
 
   static Future<SessionData?> load() async {
     final phone = await readString(_keyPhone);
     final name = await readString(_keyName);
-    final token = await readString(_keyToken);
 
-    if (phone == null || name == null || token == null || token.isEmpty) {
-      if (phone != null && (token == null || token.isEmpty)) {
-        await clear();
-      }
+    if (phone == null || name == null) {
+      return null;
+    }
+
+    if (ApiConfig.usesHttpOnlySessionCookie &&
+        await readString(_keyCookieMode) == '1') {
+      return SessionData(
+        userId: await readString(_keyUserId),
+        phoneNumber: phone,
+        name: name,
+        sessionToken: '',
+        usesCookie: true,
+      );
+    }
+
+    final token = await readString(_keyToken);
+    if (token == null || token.isEmpty) {
+      await clear();
       return null;
     }
 
@@ -47,6 +74,7 @@ class SessionService {
       phoneNumber: phone,
       name: name,
       sessionToken: token,
+      usesCookie: false,
     );
   }
 
@@ -55,6 +83,7 @@ class SessionService {
     await removeKey(_keyPhone);
     await removeKey(_keyName);
     await removeKey(_keyToken);
+    await removeKey(_keyCookieMode);
   }
 
   /// Сбрасывает старый локальный вход без Bearer-токена (этап I-A).
@@ -72,6 +101,15 @@ class SessionService {
     await clear();
     await saveString(key, '1');
   }
+
+  /// Переход на HttpOnly-cookie на боевом сайте (J-H).
+  static Future<void> migrateToHttpOnlyCookieIfNeeded() async {
+    if (!ApiConfig.usesHttpOnlySessionCookie) return;
+    const key = 'session_cookie_migrated_v1';
+    if (await readString(key) == '1') return;
+    await removeKey(_keyToken);
+    await saveString(key, '1');
+  }
 }
 
 class SessionData {
@@ -79,11 +117,13 @@ class SessionData {
   final String phoneNumber;
   final String name;
   final String sessionToken;
+  final bool usesCookie;
 
   const SessionData({
     required this.userId,
     required this.phoneNumber,
     required this.name,
     required this.sessionToken,
+    this.usesCookie = false,
   });
 }

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
+import 'darom_http_client.dart';
 import 'push_service_platform.dart'
     if (dart.library.html) 'push_service_web.dart'
     if (dart.library.io) 'push_service_io.dart';
@@ -23,7 +24,7 @@ class PushService {
   PushService._();
 
   static final PushService instance = PushService._();
-  static final http.Client _client = http.Client();
+  static final http.Client _client = createDaromHttpClient();
 
   static bool _firebaseInitialized = false;
   static bool _listenersAttached = false;

@@ -16,6 +16,7 @@ Future<void> main() async {
   unawaited(PlanetAssets.preload());
   unawaited(SessionService.migrateToRemoteServerIfNeeded());
   unawaited(SessionService.migrateToTokenSessionIfNeeded());
+  unawaited(SessionService.migrateToHttpOnlyCookieIfNeeded());
   runApp(const DaromApp());
 }
 

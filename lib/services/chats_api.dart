@@ -8,11 +8,12 @@ import '../models/listing.dart';
 import '../models/pickup_limit_info.dart';
 import 'api_config.dart';
 import 'auth_headers.dart';
+import 'darom_http_client.dart';
 import 'listings_api.dart' show PickupLimitException;
 import 'real_phone_required.dart';
 
 class ChatsApi {
-  ChatsApi({http.Client? client}) : _client = client ?? http.Client();
+  ChatsApi({http.Client? client}) : _client = client ?? createDaromHttpClient();
 
   final http.Client _client;
 

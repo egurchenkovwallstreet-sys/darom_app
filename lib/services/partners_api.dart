@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
 import 'auth_headers.dart';
+import 'darom_http_client.dart';
 
 String normalizePartnerCode(String code) {
   final digits = code.replaceAll(RegExp(r'\D'), '');
@@ -14,7 +15,7 @@ String normalizePartnerCode(String code) {
 }
 
 class PartnersApi {
-  PartnersApi({http.Client? client}) : _client = client ?? http.Client();
+  PartnersApi({http.Client? client}) : _client = client ?? createDaromHttpClient();
 
   final http.Client _client;
 
