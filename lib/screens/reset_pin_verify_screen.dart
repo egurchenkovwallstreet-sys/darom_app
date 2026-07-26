@@ -29,6 +29,8 @@ class _ResetPinVerifyScreenState extends State<ResetPinVerifyScreen> {
 
   Timer? _pollTimer;
   bool _loading = true;
+  bool _flashCallMode = false;
+  bool _mobileIdMode = false;
   bool _needsOtp = false;
   String? _sessionToken;
   String? _error;
@@ -64,13 +66,22 @@ class _ResetPinVerifyScreenState extends State<ResetPinVerifyScreen> {
 
       setState(() {
         _loading = false;
+        _flashCallMode = result.isFlashCall;
+        _mobileIdMode = result.isMobileId;
         _sessionToken = result.sessionToken;
         _statusMessage = result.hint ??
-            'На телефон может прийти push «Подтвердить» от оператора. '
-            'Подождите или введите код из SMS.';
+            (result.isFlashCall
+                ? 'На телефон поступит звонок. Введите последние 4 цифры номера звонящего.'
+                : 'На телефон может прийти push «Подтвердить» от оператора. '
+                    'Подождите или введите код из SMS.');
+        _needsOtp = result.isFlashCall;
       });
 
-      _startPolling(result.sessionToken);
+      if (result.isFlashCall) {
+        _codeFocus.requestFocus();
+      } else {
+        _startPolling(result.sessionToken);
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -132,14 +143,17 @@ class _ResetPinVerifyScreenState extends State<ResetPinVerifyScreen> {
     if (poll.needsOtp && !_needsOtp) {
       setState(() {
         _needsOtp = true;
-        _statusMessage = 'Введите код из SMS (4 цифры)';
+        _statusMessage = _flashCallMode
+            ? 'Введите последние 4 цифры номера входящего звонка'
+            : 'Введите код из SMS (4 цифры)';
       });
       _codeFocus.requestFocus();
     } else if (!_needsOtp) {
       setState(() {
-        _statusMessage =
-            'На телефон может прийти push «Подтвердить» от оператора. '
-            'Подождите или введите код из SMS.';
+        _statusMessage = _mobileIdMode
+            ? 'На телефон может прийти push «Подтвердить» от оператора. '
+                'Подождите или введите код из SMS.'
+            : 'Ожидаем подтверждение на телефоне…';
       });
     }
   }
@@ -149,7 +163,9 @@ class _ResetPinVerifyScreenState extends State<ResetPinVerifyScreen> {
 
     final code = PinCodeFields.readCode(_codeControllers);
     if (code.length < 4) {
-      setState(() => _error = 'Введите 4 цифры из SMS');
+      setState(() => _error = _flashCallMode
+          ? 'Введите 4 цифры номера входящего звонка'
+          : 'Введите 4 цифры из SMS');
       return;
     }
 
@@ -197,7 +213,7 @@ class _ResetPinVerifyScreenState extends State<ResetPinVerifyScreen> {
         subtitle:
             'Один раз бесплатно подтвердите номер, указанный при регистрации — '
             'так мы убедимся, что аккаунт ваш. Дальше — подсказки на экране '
-            '(push «Подтвердить» или SMS-код).\n\n'
+            '(звонок или SMS-код).\n\n'
             'Номер должен совпадать с регистрационным. '
             'Если он был указан неверно — восстановление может быть невозможно.',
         compactSubtitle: _statusMessage ?? 'Подтверждение номера…',

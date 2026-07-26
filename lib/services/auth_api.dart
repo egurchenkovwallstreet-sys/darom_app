@@ -324,7 +324,9 @@ class AuthApi {
     return ResetPinVerifyResult(
       phone: body['phone'] as String,
       sessionToken: body['session_token'] as String,
+      mode: body['mode'] as String? ?? 'mobile_id',
       hint: body['hint'] as String?,
+      debugCode: body['debug_code'] as String?,
     );
   }
 
@@ -679,12 +681,19 @@ class ResetPinVerifyResult {
   const ResetPinVerifyResult({
     required this.phone,
     required this.sessionToken,
+    this.mode = 'mobile_id',
     this.hint,
+    this.debugCode,
   });
 
   final String phone;
   final String sessionToken;
+  final String mode;
   final String? hint;
+  final String? debugCode;
+
+  bool get isFlashCall => mode == 'flash_call';
+  bool get isMobileId => mode == 'mobile_id';
 }
 
 class ResetPinVerifyCompleteResult {

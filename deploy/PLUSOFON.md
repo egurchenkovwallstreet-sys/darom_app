@@ -213,3 +213,16 @@ flutter run -d chrome --web-port=8080
 | Плюсofon (пакет 100 000) | **0,42** |
 
 При **10 000** верификаций/мес: **~73 000 ₽** → **~6 000 ₽**.
+
+---
+
+## Где используется Flash Call
+
+| Сценарий | Эндпоинт |
+|----------|----------|
+| Первое объявление / чат | `/api/auth/active-verify/*` |
+| Регистрация партнёра | `/api/auth/partner-verify/*` |
+| Восстановление PIN | `/api/auth/reset-pin/*` |
+| Вход в админку (шаг 1 из 2) | `/api/admin/auth/*` + код с почты |
+
+SMS Aero Mobile ID остаётся запасным при `VERIFY_PROVIDER=mobile_id` или `auto` без токена Plusofon.

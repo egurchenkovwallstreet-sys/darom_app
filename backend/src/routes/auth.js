@@ -342,7 +342,7 @@ router.post('/send-code', smsSendLimiter, async (req, res) => {
         return res.status(400).json({ error: 'Сначала пройдите регистрацию' });
       }
       return res.status(400).json({
-        error: 'Для восстановления пароля подтвердите номер через Mobile ID в приложении',
+        error: 'Для восстановления пароля подтвердите номер через приложение (Flash Call)',
       });
     } else if (purpose === 'partner') {
       if (user) {
@@ -792,7 +792,7 @@ router.post('/partner-verify/confirm', async (req, res) => {
   }
 });
 
-// POST /api/auth/reset-pin/send { phone } — восстановление пароля через Mobile ID
+// POST /api/auth/reset-pin/send { phone } — восстановление пароля через Flash Call / Mobile ID
 router.post('/reset-pin/send', smsSendLimiter, async (req, res) => {
   const { phone } = req.body;
 
@@ -811,37 +811,27 @@ router.post('/reset-pin/send', smsSendLimiter, async (req, res) => {
       return res.status(403).json({ error: 'Аккаунт заблокирован. Обратитесь в поддержку.' });
     }
 
-    if (!canUseMobileId()) {
+    if (!canUseMobileId() && !canUsePlusofonFlash()) {
       return res.status(503).json({
         error:
-          'Mobile ID не настроен. Проверьте SMS_AERO_MOBILE_ID_SIGN и SMS_MOCK=false в backend/.env',
+          'Верификация не настроена. Задайте PLUSOFON_FLASH_ACCESS_TOKEN или SMS_AERO_MOBILE_ID_SIGN в backend/.env',
       });
     }
 
-    const aeroData = await sendMobileIdAuth(normalizedPhone);
-    const inserted = await db.query(
-      `
-      INSERT INTO mobile_id_sessions (
-        aero_id, user_id, account_phone, verify_phone, status, purpose
-      )
-      VALUES ($1, $2, $3, $3, $4, 'reset_pin')
-      RETURNING id
-      `,
-      [aeroData.id, user.id, normalizedPhone, Number(aeroData.status) || 0]
-    );
-
-    const status = Number(aeroData.status) || 0;
-    return res.json({
-      ok: true,
-      mode: 'mobile_id',
-      phone: normalizedPhone,
-      session_token: inserted.rows[0].id,
-      status,
-      status_label: statusLabel(status),
-      mock: false,
-      hint:
-        'На телефон может прийти push «Подтвердить» от оператора. Подождите или введите код из SMS.',
+    const started = await startPhoneVerification({
+      verifyPhone: normalizedPhone,
+      accountPhone: normalizedPhone,
+      userId: user.id,
+      purpose: 'reset_pin',
     });
+
+    if (started.mode === 'sms') {
+      return res.status(503).json({
+        error: 'Восстановление пароля недоступно без Flash Call или Mobile ID',
+      });
+    }
+
+    return res.json(started);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -857,21 +847,13 @@ router.get('/reset-pin/poll', async (req, res) => {
 
   try {
     const normalizedPhone = normalizePhone(String(phone));
-    const session = await fetchMobileIdSession(String(sessionToken), normalizedPhone, 'reset_pin');
+    const session = await fetchVerifySession(String(sessionToken), normalizedPhone, 'reset_pin');
     if (!session) {
       return res.status(404).json({ error: 'Сессия не найдена' });
     }
 
     const status = await syncMobileIdSessionStatus(session);
-    const numericStatus = Number(status);
-
-    res.json({
-      status: numericStatus,
-      status_label: statusLabel(numericStatus),
-      needs_otp: numericStatus === MOBILE_ID_STATUS.NEED_OTP,
-      verified: numericStatus === MOBILE_ID_STATUS.SUCCESS,
-      failed: [MOBILE_ID_STATUS.FAILED, MOBILE_ID_STATUS.ERROR].includes(numericStatus),
-    });
+    res.json(buildPollPayload(session, status));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -887,9 +869,15 @@ router.post('/reset-pin/complete', async (req, res) => {
 
   try {
     const normalizedPhone = normalizePhone(phone);
-    const session = await fetchMobileIdSession(String(sessionToken), normalizedPhone, 'reset_pin');
+    const session = await fetchVerifySession(String(sessionToken), normalizedPhone, 'reset_pin');
     if (!session) {
       return res.status(404).json({ error: 'Сессия не найдена' });
+    }
+
+    if (session.provider === 'flash_call') {
+      return res.status(400).json({
+        error: 'Для звонка введите 4 цифры номера в форме подтверждения',
+      });
     }
 
     const status = await syncMobileIdSessionStatus(session);
@@ -914,29 +902,21 @@ router.post('/reset-pin/confirm', async (req, res) => {
 
   try {
     const normalizedPhone = normalizePhone(phone);
-    const session = await fetchMobileIdSession(String(sessionToken), normalizedPhone, 'reset_pin');
+    const session = await fetchVerifySession(String(sessionToken), normalizedPhone, 'reset_pin');
     if (!session) {
       return res.status(404).json({ error: 'Сессия не найдена' });
     }
 
     const trimmedCode = String(code ?? '').trim();
-    if (!/^\d{4,8}$/.test(trimmedCode)) {
-      return res.status(400).json({ error: 'Введите код из SMS' });
-    }
-
-    await verifyMobileIdOtp({ aeroId: session.aero_id, code: trimmedCode });
-    const status = await syncMobileIdSessionStatus(session);
-    if (Number(status) !== MOBILE_ID_STATUS.SUCCESS) {
-      return res.status(400).json({ error: 'Код не принят. Попробуйте ещё раз' });
+    const check = await confirmVerifyCode(session, trimmedCode);
+    if (!check.ok) {
+      return res.status(check.status).json({ error: check.error });
     }
 
     const body = await finalizeResetPinVerify(session);
     res.json(body);
   } catch (error) {
     const message = error.message || 'Ошибка подтверждения';
-    if (message.includes('invalid otp')) {
-      return res.status(400).json({ error: 'Неверный код из SMS' });
-    }
     res.status(500).json({ error: message });
   }
 });

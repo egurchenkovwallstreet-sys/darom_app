@@ -3,14 +3,15 @@ const { normalizePhone } = require('./phone');
 const { generateCode, sendSmsCode, canSendRealSms } = require('../services/sms_service');
 const { generateEmailCode, sendAdminEmailCode } = require('../services/email_service');
 const {
-  STATUS: MOBILE_ID_STATUS,
-  canUseMobileId,
-  sendMobileIdAuth,
-  verifyMobileIdOtp,
-  fetchMobileIdStatus,
-  isTerminalStatus,
-  statusLabel,
-} = require('../services/mobile_id_service');
+  resolveVerifyProvider,
+  startPhoneVerification,
+  fetchVerifySession,
+  syncMobileIdSessionStatus,
+  buildPollPayload,
+  confirmVerifyCode,
+  MOBILE_ID_STATUS,
+  FLASH_CALL_HINT,
+} = require('./phone_verify_flow');
 const config = require('../config');
 
 const CHALLENGE_TTL_MIN = 10;
@@ -53,37 +54,6 @@ async function getLatestChallenge(db, adminId) {
     [adminId]
   );
   return challenge.rows[0] ?? null;
-}
-
-async function fetchAdminMobileIdSession(db, sessionToken, phone) {
-  const result = await db.query(
-    `
-    SELECT id, aero_id, account_phone, verify_phone, status
-    FROM mobile_id_sessions
-    WHERE id = $1 AND account_phone = $2 AND purpose = $3
-    `,
-    [sessionToken, normalizePhone(phone), ADMIN_MOBILE_ID_PURPOSE]
-  );
-  return result.rows[0] ?? null;
-}
-
-async function syncMobileIdSessionStatus(db, sessionRow) {
-  if (!sessionRow) return null;
-  let status = Number(sessionRow.status);
-  if (status === MOBILE_ID_STATUS.NEED_OTP || isTerminalStatus(status)) {
-    return status;
-  }
-
-  try {
-    const remote = await fetchMobileIdStatus(sessionRow.aero_id);
-    status = Number(remote.status);
-    await db.query(
-      'UPDATE mobile_id_sessions SET status = $2, updated_at = NOW() WHERE id = $1',
-      [sessionRow.id, status]
-    );
-  } catch (_) {}
-
-  return status;
 }
 
 async function markAdminPhoneVerified(db, challengeId) {
@@ -173,18 +143,32 @@ async function startAdminLogin(db, phoneRaw) {
   const emailCode = generateEmailCode();
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_MIN * 60 * 1000);
 
-  if (canUseMobileId()) {
+  const verifyProvider = resolveVerifyProvider();
+  if (verifyProvider === 'flash_call' || verifyProvider === 'mobile_id') {
     let emailResult;
-    let aeroData;
+    let phoneStarted;
     try {
-      [emailResult, aeroData] = await Promise.all([
+      [emailResult, phoneStarted] = await Promise.all([
         sendAdminEmailCode({ to: admin.email, code: emailCode }),
-        sendMobileIdAuth(phone),
+        startPhoneVerification({
+          verifyPhone: phone,
+          accountPhone: phone,
+          userId: null,
+          purpose: ADMIN_MOBILE_ID_PURPOSE,
+        }),
       ]);
     } catch (err) {
       return {
         ok: false,
-        error: err.message || 'Не удалось отправить Mobile ID. Попробуйте ещё раз.',
+        error: err.message || 'Не удалось отправить подтверждение на телефон. Попробуйте ещё раз.',
+      };
+    }
+
+    if (!phoneStarted.ok || phoneStarted.mode === 'sms') {
+      return {
+        ok: false,
+        error:
+          'Подтверждение телефона недоступно. Задайте PLUSOFON_FLASH_ACCESS_TOKEN или SMS_AERO_MOBILE_ID_SIGN в backend/.env',
       };
     }
 
@@ -193,17 +177,6 @@ async function startAdminLogin(db, phoneRaw) {
       return { ok: false, error: emailDelivery.error };
     }
 
-    const sessionInsert = await db.query(
-      `
-      INSERT INTO mobile_id_sessions (
-        aero_id, user_id, account_phone, verify_phone, status, purpose
-      )
-      VALUES ($1, NULL, $2, $2, $3, $4)
-      RETURNING id
-      `,
-      [aeroData.id, phone, Number(aeroData.status) || 0, ADMIN_MOBILE_ID_PURPOSE]
-    );
-
     await db.query(
       `
       INSERT INTO admin_login_challenges (
@@ -211,20 +184,23 @@ async function startAdminLogin(db, phoneRaw) {
       )
       VALUES ($1, $2, $3, $4, FALSE)
       `,
-      [admin.id, emailCode, expiresAt, sessionInsert.rows[0].id]
+      [admin.id, emailCode, expiresAt, phoneStarted.session_token]
     );
 
-    const status = Number(aeroData.status) || 0;
     const mobileHint =
-      'На телефон может прийти запрос «Подтвердить» (SIM-PUSH) или SMS с кодом — это нормально.';
+      phoneStarted.mode === 'flash_call'
+        ? FLASH_CALL_HINT
+        : 'На телефон может прийти запрос «Подтвердить» (SIM-PUSH) или SMS с кодом — это нормально.';
     const hintParts = [emailDelivery.email_delivery_hint, mobileHint].filter(Boolean);
     return {
       ok: true,
-      mode: 'mobile_id',
+      mode: phoneStarted.mode,
       phone,
-      session_token: sessionInsert.rows[0].id,
-      status,
-      status_label: statusLabel(status),
+      session_token: phoneStarted.session_token,
+      status: phoneStarted.status,
+      status_label: phoneStarted.status_label,
+      mock: phoneStarted.mock,
+      debug_code: phoneStarted.debug_code,
       email_hint: emailDelivery.email_hint,
       challenge_expires_in: CHALLENGE_TTL_MIN * 60,
       email_mock: emailDelivery.email_mock,
@@ -238,7 +214,7 @@ async function startAdminLogin(db, phoneRaw) {
     return {
       ok: false,
       error:
-        'Mobile ID и SMS не настроены. Проверьте SMS_AERO_* и SMS_AERO_MOBILE_ID_SIGN в backend/.env',
+        'Подтверждение телефона и SMS не настроены. Проверьте PLUSOFON_FLASH_ACCESS_TOKEN или SMS_AERO_* в backend/.env',
     };
   }
 
@@ -290,22 +266,13 @@ async function pollAdminMobileId(db, phoneRaw, sessionToken) {
     return { ok: false, error: 'Нет доступа' };
   }
 
-  const session = await fetchAdminMobileIdSession(db, String(sessionToken), phone);
+  const session = await fetchVerifySession(String(sessionToken), phone, ADMIN_MOBILE_ID_PURPOSE);
   if (!session) {
     return { ok: false, error: 'Сессия не найдена' };
   }
 
-  const status = await syncMobileIdSessionStatus(db, session);
-  const numericStatus = Number(status);
-
-  return {
-    ok: true,
-    status: numericStatus,
-    status_label: statusLabel(numericStatus),
-    needs_otp: numericStatus === MOBILE_ID_STATUS.NEED_OTP,
-    verified: numericStatus === MOBILE_ID_STATUS.SUCCESS,
-    failed: [MOBILE_ID_STATUS.FAILED, MOBILE_ID_STATUS.ERROR].includes(numericStatus),
-  };
+  const status = await syncMobileIdSessionStatus(session);
+  return { ok: true, ...buildPollPayload(session, status) };
 }
 
 async function completeAdminMobileIdPhone(db, phoneRaw, sessionToken) {
@@ -324,12 +291,19 @@ async function completeAdminMobileIdPhone(db, phoneRaw, sessionToken) {
     return { ok: false, error: 'Сессия не совпадает с текущим входом' };
   }
 
-  const session = await fetchAdminMobileIdSession(db, String(sessionToken), phone);
+  const session = await fetchVerifySession(String(sessionToken), phone, ADMIN_MOBILE_ID_PURPOSE);
   if (!session) {
     return { ok: false, error: 'Сессия не найдена' };
   }
 
-  const status = await syncMobileIdSessionStatus(db, session);
+  if (session.provider === 'flash_call') {
+    return {
+      ok: false,
+      error: 'Для звонка введите 4 цифры номера в форме подтверждения',
+    };
+  }
+
+  const status = await syncMobileIdSessionStatus(session);
   if (Number(status) !== MOBILE_ID_STATUS.SUCCESS) {
     return { ok: false, error: 'Подтверждение ещё не завершено на телефоне' };
   }
@@ -354,20 +328,14 @@ async function confirmAdminMobileIdOtp(db, phoneRaw, sessionToken, code) {
     return { ok: false, error: 'Сессия не совпадает с текущим входом' };
   }
 
-  const session = await fetchAdminMobileIdSession(db, String(sessionToken), phone);
+  const session = await fetchVerifySession(String(sessionToken), phone, ADMIN_MOBILE_ID_PURPOSE);
   if (!session) {
     return { ok: false, error: 'Сессия не найдена' };
   }
 
-  const trimmedCode = String(code ?? '').trim();
-  if (!/^\d{4,8}$/.test(trimmedCode)) {
-    return { ok: false, error: 'Введите код из SMS' };
-  }
-
-  await verifyMobileIdOtp({ aeroId: session.aero_id, code: trimmedCode });
-  const status = await syncMobileIdSessionStatus(db, session);
-  if (Number(status) !== MOBILE_ID_STATUS.SUCCESS) {
-    return { ok: false, error: 'Код не принят. Попробуйте ещё раз' };
+  const check = await confirmVerifyCode(session, code);
+  if (!check.ok) {
+    return { ok: false, error: check.error };
   }
 
   await markAdminPhoneVerified(db, row.id);
@@ -389,7 +357,7 @@ async function verifyAdminLogin(db, { phone: phoneRaw, smsCode, emailCode, sessi
 
   if (row.mobile_id_session_id) {
     if (!row.phone_verified) {
-      return { ok: false, error: 'Сначала подтвердите телефон через Mobile ID' };
+      return { ok: false, error: 'Сначала подтвердите телефон (звонок или SMS)' };
     }
     if (sessionToken && String(row.mobile_id_session_id) !== String(sessionToken)) {
       return { ok: false, error: 'Сессия не совпадает с текущим входом' };

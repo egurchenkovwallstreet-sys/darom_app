@@ -41,6 +41,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   bool _loading = false;
   bool _codesSent = false;
   bool _mobileIdMode = false;
+  bool _flashCallMode = false;
   bool _phoneVerified = false;
   bool _needsOtp = false;
   String? _normalizedPhone;
@@ -88,14 +89,22 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         _normalizedPhone = result.phone;
         _emailHint = result.emailHint;
         _mobileIdMode = result.isMobileId;
+        _flashCallMode = result.isFlashCall;
         _sessionToken = result.sessionToken;
         _phoneVerified = false;
-        _needsOtp = false;
-        _statusMessage = result.isMobileId
+        _needsOtp = result.isFlashCall;
+        _statusMessage = result.isFlashCall
             ? (result.hint ??
-                'На телефон может прийти запрос «Подтвердить» или SMS с кодом.')
-            : null;
+                'На телефон поступит звонок. Введите последние 4 цифры номера звонящего.')
+            : result.isMobileId
+                ? (result.hint ??
+                    'На телефон может прийти запрос «Подтвердить» или SMS с кодом.')
+                : null;
       });
+
+      if (result.isFlashCall) {
+        _mobileIdCodeFocus.requestFocus();
+      }
 
       if (result.isEmailSmsFallback) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -127,9 +136,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         );
       }
 
-      if (result.isMobileId && result.sessionToken != null) {
+      if (result.usesPhoneVerify && result.sessionToken != null && !result.isFlashCall) {
         _startPolling(result.sessionToken!);
-      } else if (!result.smsMock && !result.isMobileId) {
+      } else if (!result.smsMock && !result.usesPhoneVerify) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Код из SMS отправлен на ваш номер'),
@@ -211,7 +220,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     if (poll.needsOtp && !_needsOtp) {
       setState(() {
         _needsOtp = true;
-        _statusMessage = 'Введите код из SMS (4 цифры)';
+        _statusMessage = _flashCallMode
+            ? 'Введите последние 4 цифры номера входящего звонка'
+            : 'Введите код из SMS (4 цифры)';
       });
       _mobileIdCodeFocus.requestFocus();
     } else if (!_needsOtp) {
@@ -228,8 +239,12 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     final code = PinCodeFields.readCode(_mobileIdCodeControllers);
     if (code.length < 4) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Введите 4 цифры из SMS'),
+        SnackBar(
+          content: Text(
+            _flashCallMode
+                ? 'Введите 4 цифры номера входящего звонка'
+                : 'Введите 4 цифры из SMS',
+          ),
           backgroundColor: AppColors.red,
         ),
       );
@@ -261,13 +276,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   Future<void> _verify() async {
     if (_loading || _normalizedPhone == null) return;
 
-    if (_mobileIdMode && !_phoneVerified) {
+    if ((_mobileIdMode || _flashCallMode) && !_phoneVerified) {
       if (_needsOtp) {
         await _confirmMobileIdOtp();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Сначала подтвердите телефон через Mobile ID'),
+            content: Text('Сначала подтвердите телефон (звонок или SMS)'),
             backgroundColor: AppColors.red,
           ),
         );
@@ -279,9 +294,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     try {
       final result = await _api.verifyLogin(
         phone: _normalizedPhone!,
-        smsCode: _mobileIdMode ? null : _smsController.text.trim(),
+        smsCode: (_mobileIdMode || _flashCallMode) ? null : _smsController.text.trim(),
         emailCode: _emailController.text.trim(),
-        sessionToken: _mobileIdMode ? _sessionToken : null,
+        sessionToken: (_mobileIdMode || _flashCallMode) ? _sessionToken : null,
       );
       final session = AdminSessionData(token: result.token, role: result.role);
       await AdminSessionService.save(token: result.token, role: result.role);
@@ -300,10 +315,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   String get _subtitle {
     if (!_codesSent) {
       return _fromProfile
-          ? 'Подтвердите доступ: Mobile ID на телефон + код с почты'
-          : 'Двухфакторный вход: Mobile ID на телефон + код с почты';
+          ? 'Подтвердите доступ: звонок на телефон + код с почты'
+          : 'Двухфакторный вход: звонок на телефон + код с почты';
     }
-    if (_mobileIdMode) {
+    if (_mobileIdMode || _flashCallMode) {
       if (_phoneVerified) {
         return 'Телефон подтверждён. Введите код с ${_emailHint ?? 'почты'}';
       }
@@ -314,7 +329,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
   String get _primaryLabel {
     if (!_codesSent) return 'Получить коды';
-    if (_mobileIdMode && _needsOtp && !_phoneVerified) return 'Подтвердить SMS-код';
+    if ((_mobileIdMode || _flashCallMode) && _needsOtp && !_phoneVerified) {
+      return _flashCallMode ? 'Подтвердить код звонка' : 'Подтвердить SMS-код';
+    }
     return 'Войти';
   }
 
@@ -353,14 +370,14 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 ),
               )
             else if (_codesSent) ...[
-              if (_mobileIdMode && _needsOtp && !_phoneVerified) ...[
+              if ((_mobileIdMode || _flashCallMode) && _needsOtp && !_phoneVerified) ...[
                 PinCodeFields(
                   controllers: _mobileIdCodeControllers,
                   firstFocusNode: _mobileIdCodeFocus,
                 ),
                 const SizedBox(height: 12),
               ],
-              if (!_mobileIdMode) ...[
+              if (!_mobileIdMode && !_flashCallMode) ...[
                 TextField(
                   controller: _smsController,
                   keyboardType: TextInputType.number,
@@ -381,7 +398,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 ),
                 const SizedBox(height: 12),
               ],
-              if (!_mobileIdMode || _phoneVerified || _needsOtp)
+              if ((!_mobileIdMode && !_flashCallMode) || _phoneVerified || _needsOtp)
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.number,
@@ -400,7 +417,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     ),
                   ),
                 ),
-              if (_mobileIdMode && !_phoneVerified && !_needsOtp)
+              if ((_mobileIdMode || _flashCallMode) && !_phoneVerified && !_needsOtp)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
