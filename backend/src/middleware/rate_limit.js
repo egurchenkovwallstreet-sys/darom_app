@@ -1,8 +1,29 @@
 const rateLimit = require('express-rate-limit');
+const { readSessionCookie } = require('../utils/session_cookie');
 
-/** Лимиты на одного пользователя (один IP). Чаты опрашиваются раз в 1 с; фото ленты — отдельные GET. */
-const API_GENERAL_MAX = 1000;
+/** Лимиты на одного пользователя (сессия) или IP. Чаты опрашиваются раз в 1 с; фото ленты — отдельные GET. */
+const API_GENERAL_MAX = 2000;
 const AUTH_GENERAL_MAX = 120;
+
+function getRateLimitKey(req) {
+  const cookieToken = readSessionCookie(req);
+  if (cookieToken) {
+    return `session:${cookieToken.slice(0, 24)}`;
+  }
+
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) {
+    const token = header.slice(7).trim();
+    if (token) return `session:${token.slice(0, 24)}`;
+  }
+
+  const userToken = req.headers['x-user-token'];
+  if (userToken) {
+    return `session:${String(userToken).slice(0, 24)}`;
+  }
+
+  return `ip:${req.ip}`;
+}
 
 function skipApiRateLimit(req) {
   return (
@@ -11,13 +32,15 @@ function skipApiRateLimit(req) {
   );
 }
 
-/** Общий лимит API: 1000 запросов / мин / IP (фото и health не считаются). */
+/** Общий лимит API: 2000 запросов / мин / сессия или IP (фото и health не считаются). */
 const apiGeneralLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: API_GENERAL_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   skip: skipApiRateLimit,
+  keyGenerator: getRateLimitKey,
+  validate: { keyGenerator: false },
   message: { error: 'Слишком много запросов. Подождите минуту.' },
 });
 

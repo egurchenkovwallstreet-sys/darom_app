@@ -55,8 +55,17 @@ class _MainShellState extends State<MainShell> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _refreshUnreadCount();
-    _unreadPollTimer = Timer.periodic(RefreshIntervals.chats, (_) => _refreshUnreadCount());
+    _startUnreadPoll();
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkPrivacyConsent());
+  }
+
+  Duration get _unreadPollInterval => _currentIndex == 3
+      ? RefreshIntervals.chatsList
+      : RefreshIntervals.chatsBackground;
+
+  void _startUnreadPoll() {
+    _unreadPollTimer?.cancel();
+    _unreadPollTimer = Timer.periodic(_unreadPollInterval, (_) => _refreshUnreadCount());
   }
 
   @override
@@ -152,6 +161,7 @@ class _MainShellState extends State<MainShell> {
       _visitedTabs.add(index);
       _currentIndex = index;
     });
+    _startUnreadPoll();
     if (index == 3) {
       _refreshUnreadCount();
     }

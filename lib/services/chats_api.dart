@@ -9,6 +9,7 @@ import '../models/pickup_limit_info.dart';
 import 'api_config.dart';
 import 'auth_headers.dart';
 import 'darom_http_client.dart';
+import 'http_retry.dart';
 import 'listings_api.dart' show PickupLimitException;
 import 'real_phone_required.dart';
 
@@ -17,12 +18,24 @@ class ChatsApi {
 
   final http.Client _client;
 
+  Future<http.Response> _get(
+    Uri uri, {
+    Map<String, String>? headers,
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
+    final response = await daromGet(_client, uri, headers: headers, timeout: timeout);
+    if (response.statusCode == 429) {
+      throw ChatsApiException(rateLimitErrorMessage(response));
+    }
+    return response;
+  }
+
   Future<List<Conversation>> fetchConversations({required String phone}) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/chats').replace(
       queryParameters: {'phone': phone},
     );
 
-    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
+    final response = await _get(uri, headers: await authHeaders());
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -43,7 +56,7 @@ class ChatsApi {
         queryParameters: {'phone': phone},
       );
 
-      final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
+      final response = await _get(uri, headers: await authHeaders());
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -59,7 +72,7 @@ class ChatsApi {
       queryParameters: {'phone': phone},
     );
 
-    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
+    final response = await _get(uri, headers: await authHeaders());
 
     if (response.statusCode != 200) {
       return 0;
@@ -152,7 +165,7 @@ class ChatsApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/chats/$conversationId/messages')
         .replace(queryParameters: params);
 
-    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
+    final response = await _get(uri, headers: await authHeaders());
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;

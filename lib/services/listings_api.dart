@@ -11,6 +11,7 @@ import '../models/pickup_limit_info.dart';
 import 'api_config.dart';
 import 'auth_headers.dart';
 import 'darom_http_client.dart';
+import 'http_retry.dart';
 import 'real_phone_required.dart';
 
 export 'real_phone_required.dart' show RealPhoneRequiredException;
@@ -20,10 +21,22 @@ class ListingsApi {
 
   final http.Client _client;
 
+  Future<http.Response> _get(
+    Uri uri, {
+    Map<String, String>? headers,
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
+    final response = await daromGet(_client, uri, headers: headers, timeout: timeout);
+    if (response.statusCode == 429) {
+      throw ListingsApiException(rateLimitErrorMessage(response));
+    }
+    return response;
+  }
+
   Future<List<Listing>> fetchAllForMap() async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/listings/map');
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 15));
+    final response = await _get(uri, timeout: const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -53,7 +66,7 @@ class ListingsApi {
       },
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _get(uri);
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -85,7 +98,7 @@ class ListingsApi {
       },
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _get(uri);
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -117,7 +130,7 @@ class ListingsApi {
       },
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _get(uri);
 
     if (response.statusCode != 200) {
       throw ListingsApiException(
@@ -140,7 +153,7 @@ class ListingsApi {
       queryParameters: {'category': category},
     );
 
-    final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    final response = await _get(uri);
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -159,7 +172,7 @@ class ListingsApi {
       queryParameters: {'phone': phone},
     );
 
-    final response = await _client.get(uri, headers: await authHeaders()).timeout(const Duration(seconds: 10));
+    final response = await _get(uri, headers: await authHeaders());
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;

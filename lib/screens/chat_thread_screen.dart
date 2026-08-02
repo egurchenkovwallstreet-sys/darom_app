@@ -70,7 +70,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   Future<void> _bootstrap() async {
     await _loadMessages(initial: true);
     if (!mounted) return;
-    _pollTimer = Timer.periodic(RefreshIntervals.chats, (_) => _loadMessages());
+    _pollTimer = Timer.periodic(RefreshIntervals.chatsActive, (_) => _loadMessages());
   }
 
   @override

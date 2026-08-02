@@ -22,8 +22,10 @@ const configRouter = require('./routes/config');
 const deployBackendRouter = require('./routes/deploy_backend');
 const dailyReportsRouter = require('./routes/daily_reports');
 const { apiGeneralLimiter, authGeneralLimiter } = require('./middleware/rate_limit');
+const { responseMetricsMiddleware } = require('./middleware/response_metrics');
 const db = require('./db/pool');
 const { startDailyReportScheduler } = require('./services/daily_report_scheduler');
+const { startReservationExpiryScheduler } = require('./services/reservation_expiry_scheduler');
 
 const app = express();
 
@@ -44,6 +46,7 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
+app.use(responseMetricsMiddleware);
 
 app.use('/api/auth', authGeneralLimiter);
 app.use('/api', apiGeneralLimiter);
@@ -83,6 +86,7 @@ app.use('/api/daily-reports', dailyReportsRouter);
 const server = app.listen(config.port, () => {
   console.log(`Darom API: http://localhost:${config.port}`);
   console.log(`Фото: ${config.photoStorage === 's3' ? 'Yandex Object Storage' : 'локально (/uploads)'}`);
+  startReservationExpiryScheduler(db);
   startDailyReportScheduler(db);
 });
 

@@ -1,0 +1,39 @@
+# Нагрузочный тест API (ручной запуск из GitHub Actions).
+
+name: Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      users:
+        description: 'Виртуальных пользователей'
+        required: false
+        default: '30'
+      seconds:
+        description: 'Длительность (сек)'
+        required: false
+        default: '45'
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run load test
+        run: |
+          node tools/load-test/load-test.mjs \
+            --users=${{ inputs.users }} \
+            --seconds=${{ inputs.seconds }}
+
+      - name: Threshold check
+        run: |
+          echo "Пороги (ручная проверка лога выше): p95 < 2000 ms, 429 = 0 при 30 VU"

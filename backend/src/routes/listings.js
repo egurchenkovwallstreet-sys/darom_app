@@ -29,6 +29,11 @@ const {
 } = require('../utils/real_phone_verify');
 const { requireUserSession, rejectMismatchedPhone } = require('../middleware/user_auth');
 const { sanitizeUserText, containsDangerousMarkup } = require('../utils/sanitize_text');
+const {
+  getSubcategoryCounts,
+  setSubcategoryCounts,
+  invalidateSubcategoryCounts,
+} = require('../utils/subcategory_counts_cache');
 
 const router = express.Router();
 
@@ -87,7 +92,6 @@ router.get('/mine', requireUserSession, async (req, res) => {
   if (!ensureSessionPhone(req, res, phone)) return;
 
   try {
-    await expireReservations(db);
     const normalizedPhone = normalizePhone(phone);
 
     const result = await db.query(
@@ -121,8 +125,6 @@ router.get('/nearby', async (req, res) => {
   const radiusMeters = Math.max(radiusKm, 0.1) * 1000;
 
   try {
-    await expireReservations(db);
-
     const result = await db.query(
       `
       SELECT
@@ -164,8 +166,6 @@ router.get('/nearby', async (req, res) => {
 // GET /api/listings/map — все активные объявления для карты (без радиуса)
 router.get('/map', async (req, res) => {
   try {
-    await expireReservations(db);
-
     const result = await db.query(
       `
       SELECT
@@ -209,8 +209,6 @@ router.get('/search', async (req, res) => {
   const pattern = `%${q}%`;
 
   try {
-    await expireReservations(db);
-
     const result = await db.query(
       `
       SELECT
@@ -258,9 +256,12 @@ router.get('/subcategory-counts', async (req, res) => {
     return res.status(400).json({ error: 'Нужен параметр category' });
   }
 
-  try {
-    await expireReservations(db);
+  const cached = getSubcategoryCounts(category);
+  if (cached) {
+    return res.json({ counts: cached, cached: true });
+  }
 
+  try {
     const result = await db.query(
       `
       SELECT mapped.subcategory, COUNT(*)::int AS count
@@ -291,6 +292,7 @@ router.get('/subcategory-counts', async (req, res) => {
       counts[row.subcategory] = row.count;
     }
 
+    setSubcategoryCounts(category, counts);
     res.json({ counts });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -310,8 +312,6 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    await expireReservations(db);
-
     const result = await db.query(
       `
       SELECT
@@ -442,6 +442,7 @@ router.post('/', requireUserSession, async (req, res) => {
     );
 
     const listing = await fetchListingById(db, insertResult.rows[0].id);
+    invalidateSubcategoryCounts(category);
     res.status(201).json({ item: mapListingRow(listing) });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -579,6 +580,7 @@ router.post('/:id/reserve', requireUserSession, async (req, res) => {
       recipientName: user.name,
       listingId: id,
     });
+    invalidateSubcategoryCounts(listing.category);
     res.json({ item: mapListingRow(updated) });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -667,6 +669,7 @@ router.post('/:id/give', requireUserSession, async (req, res) => {
         dealId,
       });
     }
+    invalidateSubcategoryCounts(listing.category);
     res.json({
       item: mapListingRow(updated),
       deal: recipientId
@@ -728,6 +731,7 @@ router.post('/:id/reactivate', requireUserSession, async (req, res) => {
     );
 
     const updated = await fetchListingById(db, id);
+    invalidateSubcategoryCounts(listing.category);
     res.json({ item: mapListingRow(updated) });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -854,6 +858,7 @@ router.post('/:id/delete', requireUserSession, async (req, res) => {
       [id]
     );
 
+    invalidateSubcategoryCounts(listing.category);
     res.json({ ok: true, message: 'Объявление удалено' });
   } catch (error) {
     res.status(500).json({ error: error.message });

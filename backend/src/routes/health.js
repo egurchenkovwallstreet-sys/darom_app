@@ -6,6 +6,7 @@ const { isRobokassaConfigured } = require('../utils/robokassa');
 const { canUsePlusofonFlash, isPlusofonConfigured } = require('../services/plusofon_flash_service');
 const { canUseMobileId } = require('../services/mobile_id_service');
 const { resolveVerifyProvider } = require('../utils/phone_verify_flow');
+const { getResponseMetrics } = require('../middleware/response_metrics');
 
 const router = express.Router();
 
@@ -76,6 +77,7 @@ router.get('/', async (_req, res) => {
         connected: true,
         time: dbInfo.now,
       },
+      metrics: getResponseMetrics(),
     });
   } catch (error) {
     res.status(503).json({

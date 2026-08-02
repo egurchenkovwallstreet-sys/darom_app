@@ -76,7 +76,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
   void _startPoll() {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(RefreshIntervals.chats, (_) => _refresh(silent: true));
+    _pollTimer = Timer.periodic(RefreshIntervals.chatsList, (_) => _refresh(silent: true));
   }
 
   void _stopPoll() {
