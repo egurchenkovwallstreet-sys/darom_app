@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../l10n/app_localizations.dart';
+import '../l10n/category_localizations.dart';
 import '../data/app_categories.dart';
 import '../services/listings_api.dart';
 import '../services/refresh_intervals.dart';
@@ -44,11 +46,11 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     );
   }
 
-  String get _screenTitle {
-    if (widget.nestedGroup != null) {
-      return '${widget.categoryName} · ${widget.nestedGroup}';
-    }
-    return widget.categoryName;
+  String _screenTitle(AppLocalizations l10n) {
+    return l10n.screenCategoryTitle(
+      widget.categoryName,
+      nestedGroup: widget.nestedGroup,
+    );
   }
 
   @override
@@ -87,18 +89,12 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     }
   }
 
-  static String _listingsLabel(int count) {
-    final mod10 = count % 10;
-    final mod100 = count % 100;
-    if (mod10 == 1 && mod100 != 11) return '$count объявление';
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
-      return '$count объявления';
-    }
-    return '$count объявлений';
-  }
+  static String _listingsLabel(AppLocalizations l10n, int count) =>
+      l10n.listingsCountLabel(count);
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final subcategories = _subcategories;
 
     return MidnightGlowScreen(
@@ -128,7 +124,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _screenTitle,
+                          _screenTitle(l10n),
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -143,7 +139,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                           ),
                         ),
                         Text(
-                          '${subcategories.length} подкатегорий',
+                          l10n.subcategoriesCount(subcategories.length),
                           style: TextStyle(
                             fontSize: 14,
                             color: const Color(0xFFFFFFFF).withOpacity(0.7),
@@ -167,7 +163,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                       const SizedBox(height: 10),
                       ...List.generate(
                         subcategories.length,
-                        (index) => _buildSubcategoryCard(subcategories[index], index),
+                        (index) => _buildSubcategoryCard(l10n, subcategories[index], index),
                       ),
                       const SizedBox(height: 20),
                     ],
@@ -212,7 +208,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     );
   }
 
-  Widget _buildCountBadge(AppSubcategory subcategory) {
+  Widget _buildCountBadge(AppLocalizations l10n, AppSubcategory subcategory) {
     if (_countsLoading && _counts.isEmpty) {
       return SizedBox(
         width: 16,
@@ -238,7 +234,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         ),
       ),
       child: Text(
-        _listingsLabel(count),
+        _listingsLabel(l10n, count),
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
@@ -248,7 +244,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     );
   }
 
-  Widget _buildSubcategoryCard(AppSubcategory subcategory, int index) {
+  Widget _buildSubcategoryCard(AppLocalizations l10n, AppSubcategory subcategory, int index) {
     return GestureDetector(
       onTap: () => _onSubcategoryTap(subcategory),
       child: Container(
@@ -290,7 +286,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    subcategory.name,
+                    l10n.subcategoryLabel(subcategory.name),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -298,7 +294,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  _buildCountBadge(subcategory),
+                  _buildCountBadge(l10n, subcategory),
                 ],
               ),
             ),

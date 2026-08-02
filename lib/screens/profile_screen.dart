@@ -98,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<User> _loadProfile() {
     final phone = widget.phoneNumber;
     if (phone == null || phone.isEmpty) {
-      return Future.error('Нет номера телефона');
+      return Future.error(AppLocalizations.of(context).errNoPhone);
     }
     return _usersApi.fetchProfile(phone: phone);
   }
@@ -133,8 +133,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _uploadingAvatar = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Аватар обновлён'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).avatarUpdated),
           backgroundColor: Color(0xFF00BFFF),
         ),
       );
@@ -151,24 +151,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _deleteAccount(User user) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF001F3F),
-        title: const Text('Удалить аккаунт?', style: TextStyle(color: Colors.white)),
-        content: const Text(
-          'Будут удалены профиль, объявления, чаты и другие персональные данные. '
-          'Это действие необратимо.',
-          style: TextStyle(color: Colors.white70),
+        title: Text(l10n.deleteAccountTitle, style: const TextStyle(color: Colors.white)),
+        content: Text(
+          l10n.deleteAccountBody,
+          style: TextStyle(color: Colors.white.withOpacity(0.9)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Отмена', style: TextStyle(color: Color(0xFF80DEEA))),
+            child: Text(l10n.cancel, style: const TextStyle(color: Color(0xFF80DEEA))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Удалить', style: TextStyle(color: Color(0xFFFF5722))),
+            child: Text(l10n.deleteButton, style: const TextStyle(color: Color(0xFFFF5722))),
           ),
         ],
       ),
@@ -230,6 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildAchievementTile(ProfileAchievement achievement, User user) {
+    final l10n = AppLocalizations.of(context);
     final unlocked = achievement.isUnlocked(user);
     final color = unlocked ? achievement.color : const Color(0xFF607D8B);
     final width = unlocked ? 80.0 : 56.0;
@@ -259,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            achievement.title,
+            l10n.achievementTitle(achievement.title),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: fontSize,
@@ -288,6 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }
 
             if (snapshot.hasError || !snapshot.hasData) {
+              final l10n = AppLocalizations.of(context);
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
@@ -297,7 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const Icon(Icons.cloud_off, size: 48, color: Color(0xFF00BFFF)),
                       const SizedBox(height: 16),
                       Text(
-                        snapshot.error?.toString() ?? 'Не удалось загрузить профиль',
+                        snapshot.error?.toString() ?? l10n.errLoadProfile,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: const Color(0xFFFFFFFF).withOpacity(0.7),
@@ -305,7 +307,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 16),
                       PrimaryActionButton(
-                        label: 'Повторить',
+                        label: l10n.repeatButton,
                         height: 48,
                         fontSize: 16,
                         borderRadius: 24,
@@ -314,7 +316,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 12),
                       PrimaryActionButton(
-                        label: 'Выйти и войти заново',
+                        label: l10n.logoutAndLoginAgain,
                         height: 48,
                         fontSize: 16,
                         borderRadius: 24,
@@ -382,6 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildContent(User user) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
                   Container(
@@ -411,7 +414,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                         Expanded(
                           child: Text(
-                            'Профиль',
+                            l10n.profileTitle,
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -437,7 +440,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             setState(() => _isEditPressed = false);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Редактировать профиль'),
+                                content: Text(l10n.editProfileSoon),
                                 backgroundColor: Color(0xFF00BFFF),
                               ),
                             );
@@ -488,7 +491,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 _buildAvatar(user),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Нажмите на фото, чтобы сменить',
+                                  l10n.tapPhotoToChange,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: const Color(0xFFFFFFFF).withOpacity(0.55),
@@ -527,8 +530,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(color: const Color(0xFFFFC107)),
                                     ),
-                                    child: const Text(
-                                      '⭐ Основатель',
+                                    child: Text(
+                                      l10n.founderBadge,
                                       style: TextStyle(
                                         color: Color(0xFFFFC107),
                                         fontWeight: FontWeight.bold,
@@ -546,8 +549,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(color: const Color(0xFF80DEEA)),
                                     ),
-                                    child: const Text(
-                                      '🤝 Партнёр',
+                                    child: Text(
+                                      l10n.partnerBadge,
                                       style: TextStyle(
                                         color: Color(0xFF80DEEA),
                                         fontWeight: FontWeight.bold,
@@ -569,7 +572,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       Icon(Icons.star, color: Colors.white, size: 16),
                                       SizedBox(width: 5),
                                       Text(
-                                        '${user.donorLevel} • ${user.rating}',
+                                        '${l10n.donorLevelLabel(user.donorLevel)} • ${user.rating}',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
@@ -601,13 +604,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                _buildStatItem(Icons.inventory_2, '${user.activeListings}/${user.listingLimit}', 'Объявления'),
+                                _buildStatItem(Icons.inventory_2, '${user.activeListings}/${user.listingLimit}', l10n.statListings),
                                 Container(
                                   width: 1,
                                   height: 50,
                                   color: Color(0xFF00BFFF).withOpacity(0.3),
                                 ),
-                                _buildStatItem(Icons.handshake, '${user.dealsCount}', 'Сделки'),
+                                _buildStatItem(Icons.handshake, '${user.dealsCount}', l10n.statDeals),
                                 Container(
                                   width: 1,
                                   height: 50,
@@ -616,7 +619,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 _buildStatItem(
                                   Icons.shopping_bag_outlined,
                                   '${user.pickupsUsedThisMonth}/${user.pickupLimit}',
-                                  'Заборы',
+                                  l10n.statPickups,
                                 ),
                               ],
                             ),
@@ -636,7 +639,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  '🏆 Достижения',
+                                  l10n.achievementsTitle,
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -734,7 +737,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
                                     Icons.flag_outlined,
-                                    'Жалобы',
+                                    l10n.adminReports,
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -749,7 +752,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
                                     Icons.bar_chart_outlined,
-                                    'Ежедневная статистика',
+                                    l10n.adminDailyStats,
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -762,7 +765,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
                                     Icons.support_agent_outlined,
-                                    'Обращения пользователей',
+                                    l10n.adminUserRequests,
                                     badgeCount: _adminSupportUnread,
                                     onTap: () async {
                                       await Navigator.push(
@@ -780,7 +783,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
                                     Icons.admin_panel_settings_outlined,
-                                    'Админ-панель',
+                                    l10n.adminPanel,
                                     onTap: () => _openAdminPanel(user.phoneNumber),
                                   ),
                                 ],
@@ -900,7 +903,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           SizedBox(height: 12),
 
                           PrimaryActionButton(
-                            label: 'Выйти',
+                            label: l10n.logoutProfile,
                             height: 55,
                             fontSize: 18,
                             borderRadius: 27,
@@ -956,9 +959,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     return InkWell(
       onTap: onTap ?? () {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('$title — скоро'),
+            content: Text(l10n.comingSoon(title)),
             backgroundColor: Color(0xFF00BFFF),
           ),
         );

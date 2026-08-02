@@ -9,6 +9,7 @@ import '../services/listings_api.dart';
 import '../services/location_service.dart';
 import '../services/refresh_intervals.dart';
 import '../l10n/app_localizations.dart';
+import '../l10n/category_localizations.dart';
 import '../services/locale_service.dart';
 import '../data/app_categories.dart';
 import '../data/map_radius_options.dart';
@@ -178,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _searchResults = [];
         _searchError = error is ListingsApiException
             ? error.message
-            : 'Ошибка поиска — проверьте backend';
+            : _l10n.errSearchBackend;
       });
     }
   }
@@ -273,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _loadingListings = false;
         _listingsError = error is ListingsApiException
             ? error.message
-            : 'Не удалось связаться с сервером. Проверьте интернет или откройте https://darom-app.online/';
+            : _l10n.errServerConnection;
       });
     } finally {
       _listingsLoadInFlight = false;
@@ -904,7 +905,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 7),
               Text(
-                _categories[index],
+                _l10n.categoryLabel(_categories[index]),
                 style: const TextStyle(
                   fontSize: _categoryFontSize,
                   fontWeight: FontWeight.bold,

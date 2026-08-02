@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class AppLocalizations {
   AppLocalizations(this.locale);
@@ -185,6 +185,94 @@ class AppLocalizations {
   String get editProfile => _t('Редактировать', 'Edit');
   String get settingsSection => _t('Настройки', 'Settings');
   String get languageChanged => _t('Язык изменён', 'Language changed');
+
+  // Profile
+  String get profileTitle => _t('Профиль', 'Profile');
+  String get tapPhotoToChange =>
+      _t('Нажмите на фото, чтобы сменить', 'Tap photo to change');
+  String get founderBadge => _t('⭐ Основатель', '⭐ Founder');
+  String get partnerBadge => _t('🤝 Партнёр', '🤝 Partner');
+  String get statListings => _t('Объявления', 'Listings');
+  String get statDeals => _t('Сделки', 'Deals');
+  String get statPickups => _t('Заборы', 'Pickups');
+  String get achievementsTitle => _t('🏆 Достижения', '🏆 Achievements');
+  String get errNoPhone => _t('Нет номера телефона', 'No phone number');
+  String get avatarUpdated => _t('Аватар обновлён', 'Avatar updated');
+  String get deleteAccountTitle => _t('Удалить аккаунт?', 'Delete account?');
+  String get deleteAccountBody => _t(
+        'Будут удалены профиль, объявления, чаты и другие персональные данные. '
+            'Это действие необратимо.',
+        'Your profile, listings, chats and other personal data will be deleted. '
+            'This cannot be undone.',
+      );
+  String get deleteButton => _t('Удалить', 'Delete');
+  String get errLoadProfile =>
+      _t('Не удалось загрузить профиль', 'Could not load profile');
+  String get logoutAndLoginAgain =>
+      _t('Выйти и войти заново', 'Log out and sign in again');
+  String get editProfileSoon =>
+      _t('Редактировать профиль', 'Edit profile');
+  String get adminUserRequests =>
+      _t('Обращения пользователей', 'User requests');
+  String get adminDailyStats =>
+      _t('Ежедневная статистика', 'Daily statistics');
+  String comingSoon(String title) => _t('$title — скоро', '$title — coming soon');
+
+  String donorLevelLabel(String level) {
+    final normalized = level.toLowerCase();
+    if (normalized.contains('нович')) return _t('Новичок', 'Novice');
+    if (normalized.contains('актив')) return _t('Активный', 'Active');
+    if (normalized.contains('щедр')) return _t('Щедрый', 'Generous');
+    if (normalized.contains('благот')) return _t('Благотворитель', 'Philanthropist');
+    if (normalized.contains('добр') || normalized.contains('сердц')) {
+      return _t('Самое доброе сердце', 'Kindest heart');
+    }
+    return level;
+  }
+
+  String achievementTitle(String ruTitle) {
+    switch (ruTitle) {
+      case 'Новичок':
+        return _t('Новичок', 'Novice');
+      case 'Активный':
+        return _t('Активный', 'Active');
+      case 'Щедрый':
+        return _t('Щедрый', 'Generous');
+      case 'Благотворитель':
+        return _t('Благотворитель', 'Philanthropist');
+      case 'Самое доброе сердце':
+        return _t('Самое доброе сердце', 'Kindest heart');
+      default:
+        return ruTitle;
+    }
+  }
+
+  // Categories screen
+  String subcategoriesCount(int n) {
+    if (isEn) return n == 1 ? '1 subcategory' : '$n subcategories';
+    return '$n подкатегорий';
+  }
+
+  String listingsCountLabel(int count) {
+    if (isEn) {
+      return count == 1 ? '1 listing' : '$count listings';
+    }
+    final mod10 = count % 10;
+    final mod100 = count % 100;
+    if (mod10 == 1 && mod100 != 11) return '$count объявление';
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
+      return '$count объявления';
+    }
+    return '$count объявлений';
+  }
+
+  // Home errors
+  String get errSearchBackend =>
+      _t('Ошибка поиска — проверьте backend', 'Search error — check backend');
+  String get errServerConnection => _t(
+        'Не удалось связаться с сервером. Проверьте интернет или откройте https://darom-app.online/',
+        'Could not reach the server. Check your connection or open https://darom-app.online/',
+      );
 
   // Common
   String get cancel => _t('Отмена', 'Cancel');
