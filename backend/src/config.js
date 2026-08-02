@@ -48,7 +48,9 @@ const config = {
   adminEmail: process.env.ADMIN_EMAIL || 'e.gurchenkov@yandex.ru',
   adminEmailMock: process.env.ADMIN_EMAIL_MOCK !== 'false',
   adminEmailSmsFallback: process.env.ADMIN_EMAIL_SMS_FALLBACK !== 'false',
-  pushMock: process.env.PUSH_MOCK !== 'false',
+  pushEnabled: process.env.PUSH_ENABLED === 'true',
+  pushMock:
+    process.env.PUSH_ENABLED !== 'true' || process.env.PUSH_MOCK !== 'false',
   firebase: {
     projectId: process.env.FIREBASE_PROJECT_ID || '',
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
@@ -146,7 +148,9 @@ if (config.adminEmailMock) {
   console.warn('⚠ Admin email: ADMIN_EMAIL_MOCK=false, но SMTP не заполнен — вход в админку может не работать');
 }
 
-if (config.pushMock) {
+if (!config.pushEnabled) {
+  console.log('Push: отключены (PUSH_ENABLED не true — без Google Firebase)');
+} else if (config.pushMock) {
   console.log('Push: тестовый режим (PUSH_MOCK=true или не задан FIREBASE_PROJECT_ID)');
 } else if (config.firebase.projectId && config.firebase.clientEmail && config.firebase.privateKey) {
   console.log(`✓ Firebase push: project ${config.firebase.projectId}`);

@@ -61,9 +61,10 @@ router.get('/', async (_req, res) => {
         ready: config.adminEmailMock || smtpConfigured,
       },
       push: {
+        enabled: config.pushEnabled,
         mock: config.pushMock,
         configured: pushConfigured,
-        ready: config.pushMock || pushConfigured,
+        ready: config.pushEnabled && (config.pushMock || pushConfigured),
       },
       verify: {
         provider: resolveVerifyProvider(),

@@ -5,6 +5,10 @@ const router = express.Router();
 
 // GET /api/config/firebase — публичные ключи для Flutter Web (без секретов)
 router.get('/firebase', (_req, res) => {
+  if (!config.pushEnabled) {
+    return res.json({ configured: false, enabled: false });
+  }
+
   const fb = config.firebase;
   const configured = Boolean(
     fb.projectId && fb.webApiKey && fb.webAppId && fb.messagingSenderId && fb.webVapidKey

@@ -4,7 +4,7 @@ const config = require('../config');
 let messaging = null;
 
 function getMessaging() {
-  if (config.pushMock || !config.firebase.projectId) return null;
+  if (!config.pushEnabled || config.pushMock || !config.firebase.projectId) return null;
   if (messaging) return messaging;
 
   if (!admin.apps.length) {
@@ -22,6 +22,7 @@ function getMessaging() {
 }
 
 async function upsertPushToken(db, userId, token, platform = 'web') {
+  if (!config.pushEnabled) return null;
   const cleanToken = String(token || '').trim();
   if (!cleanToken) return null;
 
@@ -63,9 +64,11 @@ function trimText(text, max = 120) {
 async function sendPushToUser(db, userId, { title, body, type, data = {} }) {
   if (!userId) return { skipped: true, reason: 'no_user' };
 
-  if (config.pushMock || !config.firebase.projectId) {
-    console.log(`[PUSH MOCK] user=${userId} type=${type} ${title}: ${body}`);
-    return { mock: true };
+  if (!config.pushEnabled || config.pushMock || !config.firebase.projectId) {
+    if (config.pushEnabled) {
+      console.log(`[PUSH MOCK] user=${userId} type=${type} ${title}: ${body}`);
+    }
+    return { mock: true, skipped: !config.pushEnabled };
   }
 
   const fcm = getMessaging();

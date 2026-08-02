@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
 import 'darom_http_client.dart';
+import 'push_config.dart';
 import 'push_service_platform.dart'
     if (dart.library.html) 'push_service_web.dart'
     if (dart.library.io) 'push_service_io.dart';
@@ -33,6 +34,7 @@ class PushService {
 
   /// Только после нажатия «Включить» — иначе браузер не показывает запрос.
   Future<PushRegisterResult> requestPermissionAndRegister({required String phone}) async {
+    if (!pushNotificationsEnabled) return PushRegisterResult.notConfigured;
     lastErrorMessage = null;
     final normalizedPhone = phone.trim();
     if (normalizedPhone.isEmpty) {
@@ -75,6 +77,7 @@ class PushService {
 
   /// Без запроса разрешения — если пользователь уже разрешил раньше.
   Future<PushRegisterResult> registerIfAlreadyAuthorized({required String phone}) async {
+    if (!pushNotificationsEnabled) return PushRegisterResult.notConfigured;
     lastErrorMessage = null;
     final normalizedPhone = phone.trim();
     if (normalizedPhone.isEmpty) {
@@ -118,6 +121,7 @@ class PushService {
   }
 
   Future<AuthorizationStatus?> getPermissionStatus() async {
+    if (!pushNotificationsEnabled) return null;
     if (kIsWeb) {
       return getWebPermissionStatus();
     }

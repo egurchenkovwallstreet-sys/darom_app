@@ -472,6 +472,10 @@ router.post('/avatar', requireUserSession, upload.single('avatar'), async (req, 
 
 // POST /api/users/push-token { phone, token, platform? }
 router.post('/push-token', requireUserSession, async (req, res) => {
+  if (!config.pushEnabled) {
+    return res.status(503).json({ error: 'Push-уведомления отключены' });
+  }
+
   const { phone, token, platform } = req.body;
 
   if (!phone || !token) {

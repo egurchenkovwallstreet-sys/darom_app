@@ -1,8 +1,6 @@
 import 'dart:async';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'add_listing_screen.dart';
 import 'chats_screen.dart';
@@ -10,11 +8,9 @@ import 'favorites_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
 import '../services/chats_api.dart';
-import '../services/push_service.dart';
 import '../services/refresh_intervals.dart';
 import '../utils/responsive_layout.dart';
 import '../widgets/midnight_glow_screen.dart';
-import '../widgets/push_permission_dialog.dart';
 import '../widgets/responsive_page_frame.dart';
 
 /// Главная оболочка приложения с нижним меню на всех вкладках.
@@ -37,15 +33,12 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  static const _pushPromptDismissedKey = 'push_prompt_dismissed_v1';
-
   late int _currentIndex;
   final Set<int> _visitedTabs = {0};
   final ChatsApi _chatsApi = ChatsApi();
   int _unreadChatCount = 0;
   Timer? _unreadPollTimer;
   bool _unreadLoadInFlight = false;
-  bool _pushSetupStarted = false;
 
   @override
   void initState() {
@@ -53,77 +46,6 @@ class _MainShellState extends State<MainShell> {
     _currentIndex = widget.initialIndex;
     _refreshUnreadCount();
     _unreadPollTimer = Timer.periodic(RefreshIntervals.chats, (_) => _refreshUnreadCount());
-    WidgetsBinding.instance.addPostFrameCallback((_) => _setupPushNotifications());
-  }
-
-  Future<void> _setupPushNotifications() async {
-    if (_pushSetupStarted) return;
-    _pushSetupStarted = true;
-
-    final status = await PushService.instance.getPermissionStatus();
-    if (status == AuthorizationStatus.authorized ||
-        status == AuthorizationStatus.provisional) {
-      await PushService.instance.registerIfAlreadyAuthorized(phone: widget.phoneNumber);
-      return;
-    }
-
-    if (status == AuthorizationStatus.denied) {
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(_pushPromptDismissedKey) == true) {
-      return;
-    }
-
-    if (!mounted) return;
-    final enable = await showPushPermissionDialog(context);
-    if (!mounted) return;
-
-    if (enable == true) {
-      final result = await PushService.instance.requestPermissionAndRegister(
-        phone: widget.phoneNumber,
-      );
-      if (!mounted) return;
-      _showPushResultSnackBar(result);
-      return;
-    }
-
-    await prefs.setBool(_pushPromptDismissedKey, true);
-  }
-
-  void _showPushResultSnackBar(PushRegisterResult result) {
-    final messenger = ScaffoldMessenger.of(context);
-    switch (result) {
-      case PushRegisterResult.success:
-      case PushRegisterResult.alreadyRegistered:
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Уведомления включены'),
-            backgroundColor: Color(0xFF00BFFF),
-          ),
-        );
-      case PushRegisterResult.denied:
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Уведомления выключены. Включите их в настройках браузера для darom-app.online',
-            ),
-            backgroundColor: Color(0xFFFF5722),
-            duration: Duration(seconds: 6),
-          ),
-        );
-      case PushRegisterResult.notConfigured:
-      case PushRegisterResult.failed:
-        final detail = _friendlyPushError(PushService.lastErrorMessage);
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(detail),
-            backgroundColor: Color(0xFFFF5722),
-            duration: Duration(seconds: 8),
-          ),
-        );
-    }
   }
 
   @override
@@ -145,19 +67,6 @@ class _MainShellState extends State<MainShell> {
     } finally {
       _unreadLoadInFlight = false;
     }
-  }
-
-  String _friendlyPushError(String? raw) {
-    final text = raw ?? '';
-    final lower = text.toLowerCase();
-    if (text.isEmpty) {
-      return 'Не удалось включить уведомления. Попробуйте в профиле → Уведомления';
-    }
-    if (lower.contains('minified') || lower.contains('subtype') || lower.contains('typeerror')) {
-      return 'Ошибка push на этом браузере. На iPhone: Safari → Поделиться → «На экран Домой», '
-          'запускайте с иконки и снова Профиль → Уведомления';
-    }
-    return 'Не удалось включить уведомления: $text';
   }
 
   void _onTabTap(int index) {
