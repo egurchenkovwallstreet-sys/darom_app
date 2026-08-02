@@ -8,6 +8,7 @@ import 'favorites_screen.dart';
 import 'home_screen.dart';
 import 'onboarding_screen.dart';
 import 'profile_screen.dart';
+import '../l10n/app_localizations.dart';
 import '../services/auth_api.dart';
 import '../services/chats_api.dart';
 import '../services/refresh_intervals.dart';
@@ -109,8 +110,8 @@ class _MainShellState extends State<MainShell> {
         await _usersApi.acceptPrivacyConsent(phone: widget.phoneNumber);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Согласие на обработку ПДн сохранено'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).privacyConsentSaved),
             backgroundColor: Color(0xFF00BFFF),
           ),
         );
@@ -121,7 +122,9 @@ class _MainShellState extends State<MainShell> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              error is UsersApiException ? error.message : 'Не удалось сохранить согласие',
+              error is UsersApiException
+                  ? error.message
+                  : AppLocalizations.of(context).errPrivacyConsentSave,
             ),
             backgroundColor: const Color(0xFFFF5722),
           ),
@@ -202,10 +205,11 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final l10n = AppLocalizations.of(context);
 
     return MidnightGlowScreen(
-      bottomNavigationBar: isDesktop ? null : _buildMobileBottomNav(context),
-      child: isDesktop ? _buildDesktopBody(context) : _buildMobileBody(),
+      bottomNavigationBar: isDesktop ? null : _buildMobileBottomNav(context, l10n),
+      child: isDesktop ? _buildDesktopBody(context, l10n) : _buildMobileBody(),
     );
   }
 
@@ -216,7 +220,7 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  Widget _buildDesktopBody(BuildContext context) {
+  Widget _buildDesktopBody(BuildContext context, AppLocalizations l10n) {
     return SafeArea(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -225,6 +229,7 @@ class _MainShellState extends State<MainShell> {
             currentIndex: _currentIndex,
             unreadChatCount: _unreadChatCount,
             onTabTap: _onTabTap,
+            l10n: l10n,
           ),
           Expanded(
             child: ResponsivePageFrame(
@@ -239,7 +244,7 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  Widget _buildMobileBottomNav(BuildContext context) {
+  Widget _buildMobileBottomNav(BuildContext context, AppLocalizations l10n) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Container(
@@ -258,13 +263,13 @@ class _MainShellState extends State<MainShell> {
           children: [
             _NavItem(
               icon: Icons.home_rounded,
-              label: 'Главная',
+              label: l10n.navHome,
               selected: _currentIndex == 0,
               onTap: () => _onTabTap(0),
             ),
             _NavItem(
               icon: Icons.favorite_rounded,
-              label: 'Избранное',
+              label: l10n.navFavorites,
               selected: _currentIndex == 1,
               onTap: () => _onTabTap(1),
             ),
@@ -274,14 +279,14 @@ class _MainShellState extends State<MainShell> {
             ),
             _NavItem(
               icon: Icons.chat_bubble_rounded,
-              label: 'Чаты',
+              label: l10n.navChats,
               selected: _currentIndex == 3,
               badgeCount: _unreadChatCount,
               onTap: () => _onTabTap(3),
             ),
             _NavItem(
               icon: Icons.person_rounded,
-              label: 'Профиль',
+              label: l10n.navProfile,
               selected: _currentIndex == 4,
               onTap: () => _onTabTap(4),
             ),
@@ -297,11 +302,13 @@ class _DesktopSidebar extends StatelessWidget {
     required this.currentIndex,
     required this.unreadChatCount,
     required this.onTabTap,
+    required this.l10n,
   });
 
   final int currentIndex;
   final int unreadChatCount;
   final ValueChanged<int> onTabTap;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -358,13 +365,13 @@ class _DesktopSidebar extends StatelessWidget {
           const SizedBox(height: 24),
           _DesktopNavTile(
             icon: Icons.home_rounded,
-            label: 'Главная',
+            label: l10n.navHome,
             selected: currentIndex == 0,
             onTap: () => onTabTap(0),
           ),
           _DesktopNavTile(
             icon: Icons.favorite_rounded,
-            label: 'Избранное',
+            label: l10n.navFavorites,
             selected: currentIndex == 1,
             onTap: () => onTabTap(1),
           ),
@@ -389,13 +396,13 @@ class _DesktopSidebar extends StatelessWidget {
                     ),
                     border: Border.all(color: Colors.white.withOpacity(0.35)),
                   ),
-                  child: const Column(
+                  child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.add_rounded, color: Colors.white, size: 26),
                       SizedBox(height: 6),
                       Text(
-                        'Добавить\nобъявление',
+                        l10n.navAddListing,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -412,14 +419,14 @@ class _DesktopSidebar extends StatelessWidget {
           ),
           _DesktopNavTile(
             icon: Icons.chat_bubble_rounded,
-            label: 'Чаты',
+            label: l10n.navChats,
             selected: currentIndex == 3,
             badgeCount: unreadChatCount,
             onTap: () => onTabTap(3),
           ),
           _DesktopNavTile(
             icon: Icons.person_rounded,
-            label: 'Профиль',
+            label: l10n.navProfile,
             selected: currentIndex == 4,
             onTap: () => onTabTap(4),
           ),
@@ -680,7 +687,7 @@ class _NavAddItem extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 2),
               child: Text(
-                'Добавить',
+                l10n.navAdd,
                 style: TextStyle(
                   fontSize: 10,
                   color: accent,

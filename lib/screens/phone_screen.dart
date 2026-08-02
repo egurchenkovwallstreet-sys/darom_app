@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../l10n/app_localizations.dart';
 import '../services/auth_api.dart';
 import '../widgets/auth_form_scroll.dart';
 import '../widgets/legal_consent_checkboxes.dart';
@@ -35,12 +36,13 @@ class _PhoneScreenState extends State<PhoneScreen> {
   }
 
   Future<void> _continue() async {
+    final l10n = AppLocalizations.of(context);
     if (_isLoading) return;
 
     if (!_offerAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Примите условия оферты, чтобы продолжить'),
+        SnackBar(
+          content: Text(l10n.errAcceptOffer),
           backgroundColor: Color(0xFFFF5722),
         ),
       );
@@ -49,8 +51,8 @@ class _PhoneScreenState extends State<PhoneScreen> {
 
     if (!_privacyAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Дайте согласие на обработку персональных данных'),
+        SnackBar(
+          content: Text(l10n.errAcceptPrivacy),
           backgroundColor: Color(0xFFFF5722),
         ),
       );
@@ -60,8 +62,8 @@ class _PhoneScreenState extends State<PhoneScreen> {
     final raw = _phoneController.text.replaceAll(RegExp(r'\D'), '');
     if (raw.length < 10) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Введите корректный номер'),
+        SnackBar(
+          content: Text(l10n.errInvalidPhone),
           backgroundColor: Color(0xFFFF5722),
         ),
       );
@@ -111,11 +113,13 @@ class _PhoneScreenState extends State<PhoneScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return MidnightGlowScreen(
       child: AuthFormScroll(
-        title: 'Введите номер телефона',
-        subtitleWidget: _PhoneNumberWarning(),
-        compactSubtitle: 'Введите реальный номер и нажмите «Продолжить»',
+        title: l10n.phoneTitle,
+        subtitleWidget: _PhoneNumberWarning(l10n: l10n),
+        compactSubtitle: l10n.phoneCompactSubtitle,
         focusNode: _phoneFocus,
         formKey: _formKey,
         leading: Container(
@@ -177,7 +181,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
               fontWeight: FontWeight.bold,
             ),
             decoration: InputDecoration(
-              hintText: 'Номер телефона',
+              hintText: l10n.phoneHint,
               hintStyle: TextStyle(
                 color: const Color(0xFFFFFFFF).withOpacity(0.4),
                 fontSize: 18,
@@ -203,13 +207,13 @@ class _PhoneScreenState extends State<PhoneScreen> {
             ),
             const SizedBox(height: 8),
             PrimaryActionButton(
-              label: 'Продолжить',
+              label: l10n.continueButton,
               loading: _isLoading,
               onPressed: _continue,
             ),
             const SizedBox(height: 8),
             PrimaryActionButton(
-              label: 'Я партнёр / блогер',
+              label: l10n.partnerLink,
               height: 55,
               fontSize: 18,
               borderRadius: 27,
@@ -234,6 +238,10 @@ class _PhoneScreenState extends State<PhoneScreen> {
 
 /// Предупреждение о реальном номере — компактно, контрастно, тот же шрифт приложения.
 class _PhoneNumberWarning extends StatelessWidget {
+  const _PhoneNumberWarning({required this.l10n});
+
+  final AppLocalizations l10n;
+
   static const _baseStyle = TextStyle(
     fontSize: 14,
     height: 1.15,
@@ -272,20 +280,10 @@ class _PhoneNumberWarning extends StatelessWidget {
       child: Text.rich(
         TextSpan(
           style: _baseStyle,
-          children: const [
-            TextSpan(
-              text:
-                  'Укажите свой настоящий номер — тот, которым вы пользуетесь сейчас.\n',
-            ),
-            TextSpan(
-              text:
-                  'При первом объявлении или сообщении в чате может потребоваться бесплатное подтверждение номера.\n',
-            ),
-            TextSpan(
-              text:
-                  '⚠️ Если указать чужой или неактуальный номер, восстановить доступ к аккаунту может быть невозможно.',
-              style: _alertStyle,
-            ),
+          children: [
+            TextSpan(text: l10n.phoneWarningLine1),
+            TextSpan(text: l10n.phoneWarningLine2),
+            TextSpan(text: l10n.phoneWarningLine3, style: _alertStyle),
           ],
         ),
         textAlign: TextAlign.center,

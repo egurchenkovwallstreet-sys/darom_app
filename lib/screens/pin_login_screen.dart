@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/user.dart';
 import '../services/auth_api.dart';
 import '../services/session_service.dart';
@@ -45,9 +46,10 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
   Future<void> _login() async {
     if (_isLoading) return;
 
+    final l10n = AppLocalizations.of(context);
     final pin = PinCodeFields.readCode(_controllers);
     if (pin.length < 4) {
-      _showError('Введите 4 цифры пароля');
+      _showError(l10n.errPinFourDigits);
       return;
     }
 
@@ -106,12 +108,13 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return MidnightGlowScreen(
       child: AuthFormScroll(
-        title: 'Введите пароль',
-        subtitle: widget.infoMessage ??
-            '4 цифры, которые вы задали при регистрации',
-        compactSubtitle: '4 цифры для входа',
+        title: l10n.pinTitle,
+        subtitle: widget.infoMessage ?? l10n.pinSubtitle,
+        compactSubtitle: l10n.pinCompactSubtitle,
         focusNode: _pinFocus,
         formKey: _formKey,
         leading: const Icon(Icons.lock, size: 72, color: Color(0xFF00BFFF)),
@@ -127,7 +130,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
             TextButton(
               onPressed: () => setState(() => _obscure = !_obscure),
               child: Text(
-                _obscure ? 'Показать цифры' : 'Скрыть цифры',
+                _obscure ? l10n.showPinDigits : l10n.hidePinDigits,
                 style: const TextStyle(color: Color(0xFF00BFFF)),
               ),
             ),
@@ -136,17 +139,17 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
         footer: Column(
           children: [
             PrimaryActionButton(
-              label: 'Войти',
+              label: l10n.loginButton,
               loading: _isLoading,
               onPressed: _login,
             ),
             const SizedBox(height: 12),
             TextButton(
               onPressed: _isLoading ? null : _resetPinViaMobileId,
-              child: const Text(
-                'Забыли пароль? Подтвердить номер',
+              child: Text(
+                l10n.forgotPinReset,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
+                style: const TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
               ),
             ),
           ],

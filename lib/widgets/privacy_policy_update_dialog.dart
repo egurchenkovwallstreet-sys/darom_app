@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../data/legal_consent.dart';
+import '../l10n/app_localizations.dart';
 import '../screens/cookie_policy_screen.dart';
 import '../screens/privacy_policy_screen.dart';
 
-/// Блокирующий диалог повторного согласия на обработку ПДн (152-ФЗ).
+/// Блокирующий диалог повторного согласия на обработку ПДn (152-ФЗ).
 Future<bool?> showPrivacyPolicyUpdateDialog(BuildContext context) {
+  final l10n = AppLocalizations.of(context);
+  final policyDate = _formatPolicyDate(LegalConsent.privacyPolicyVersion);
+
   return showDialog<bool>(
     context: context,
     barrierDismissible: false,
@@ -15,14 +19,14 @@ Future<bool?> showPrivacyPolicyUpdateDialog(BuildContext context) {
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: Color(0xFF00BFFF), width: 2),
       ),
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.privacy_tip_outlined, color: Color(0xFF00BFFF)),
-          SizedBox(width: 8),
+          const Icon(Icons.privacy_tip_outlined, color: Color(0xFF00BFFF)),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Обновилась политика ПДн',
-              style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 18),
+              l10n.privacyUpdateTitle,
+              style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 18),
             ),
           ),
         ],
@@ -32,14 +36,12 @@ Future<bool?> showPrivacyPolicyUpdateDialog(BuildContext context) {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Оператор обновил политику обработки персональных данных '
-            '(ред. ${_formatPolicyDate(LegalConsent.privacyPolicyVersion)}). '
-            'Ознакомьтесь с документами и подтвердите согласие, чтобы продолжить пользоваться сервисом.',
+            l10n.privacyUpdateBody(policyDate),
             style: TextStyle(color: Colors.white.withOpacity(0.9), height: 1.45),
           ),
           const SizedBox(height: 12),
           _DocLink(
-            label: 'Политика ПДн',
+            label: l10n.privacyPolicyLink,
             onTap: () {
               Navigator.push(
                 context,
@@ -48,7 +50,7 @@ Future<bool?> showPrivacyPolicyUpdateDialog(BuildContext context) {
             },
           ),
           _DocLink(
-            label: 'Политика cookie',
+            label: l10n.cookiePolicyLink,
             onTap: () {
               Navigator.push(
                 context,
@@ -61,16 +63,16 @@ Future<bool?> showPrivacyPolicyUpdateDialog(BuildContext context) {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text(
-            'Выйти из аккаунта',
-            style: TextStyle(color: Color(0xFF80DEEA)),
+          child: Text(
+            l10n.logoutButton,
+            style: const TextStyle(color: Color(0xFF80DEEA)),
           ),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text(
-            'Принимаю',
-            style: TextStyle(color: Color(0xFF00BFFF), fontWeight: FontWeight.w600),
+          child: Text(
+            l10n.acceptButton,
+            style: const TextStyle(color: Color(0xFF00BFFF), fontWeight: FontWeight.w600),
           ),
         ),
       ],

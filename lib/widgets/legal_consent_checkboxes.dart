@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../data/legal_consent.dart';
+import '../l10n/app_localizations.dart';
 import '../screens/privacy_policy_screen.dart';
 import '../screens/public_offer_screen.dart';
 
-/// Чекбоксы оферты и согласия на обработку ПДн (156-ФЗ — отдельно от оферты).
+/// Чекбоксы оферты и согласия на обработку ПДn (156-ФЗ — отдельно от оферты).
 class LegalConsentCheckboxes extends StatelessWidget {
   const LegalConsentCheckboxes({
     super.key,
@@ -23,6 +24,8 @@ class LegalConsentCheckboxes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -37,8 +40,8 @@ class LegalConsentCheckboxes extends StatelessWidget {
             value: offerAccepted,
             enabled: enabled,
             onChanged: onOfferChanged,
-            label: 'Принимаю условия пользовательского соглашения (оферты)',
-            linkLabel: 'Читать оферту',
+            label: l10n.offerCheckboxLabel,
+            linkLabel: l10n.readOfferLink,
             onLink: () {
               Navigator.push(
                 context,
@@ -51,10 +54,8 @@ class LegalConsentCheckboxes extends StatelessWidget {
             value: privacyAccepted,
             enabled: enabled,
             onChanged: onPrivacyChanged,
-            label:
-                'Даю согласие на обработку персональных данных '
-                '(ред. ${LegalConsent.privacyPolicyVersion})',
-            linkLabel: 'Политика ПДн',
+            label: l10n.privacyCheckboxLabel(LegalConsent.privacyPolicyVersion),
+            linkLabel: l10n.readPrivacyLink,
             onLink: () {
               Navigator.push(
                 context,

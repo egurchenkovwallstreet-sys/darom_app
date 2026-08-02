@@ -3,6 +3,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import '../data/profile_achievements.dart';
 import '../models/user.dart';
+import '../l10n/app_localizations.dart';
+import '../services/locale_service.dart';
+import '../widgets/language_picker.dart';
 import '../services/auth_api.dart';
 import '../services/session_service.dart';
 import '../services/support_api.dart';
@@ -689,8 +692,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Column(
                               children: [
                                 _buildSettingsItem(
+                                  Icons.language,
+                                  AppLocalizations.of(context).languageTitle,
+                                  subtitle: LocaleService.instance.languageLabel,
+                                  onTap: () => showLanguagePickerDialog(context),
+                                ),
+                                Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                _buildSettingsItem(
                                   Icons.inventory_2_outlined,
-                                  'Мои объявления',
+                                  AppLocalizations.of(context).myListings,
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -707,7 +717,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
                                     Icons.analytics_outlined,
-                                    'Статистика партнёра',
+                                    AppLocalizations.of(context).partnerStats,
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -777,7 +787,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.support_agent_outlined,
-                                  'Служба поддержки',
+                                  AppLocalizations.of(context).support,
                                   badgeCount: _supportUnread,
                                   onTap: () async {
                                     await Navigator.push(
@@ -794,7 +804,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.policy_outlined,
-                                  'Публичная оферта',
+                                  AppLocalizations.of(context).publicOffer,
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -807,7 +817,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.privacy_tip_outlined,
-                                  'Политика персональных данных',
+                                  AppLocalizations.of(context).privacyPolicyMenu,
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -820,7 +830,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.article_outlined,
-                                  'Политика cookie',
+                                  AppLocalizations.of(context).cookiePolicyMenu,
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -833,7 +843,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.folder_shared_outlined,
-                                  'Мои персональные данные',
+                                  AppLocalizations.of(context).myPersonalData,
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -848,7 +858,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.info,
-                                  'О приложении',
+                                  AppLocalizations.of(context).aboutApp,
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -870,7 +880,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           SizedBox(height: 12),
 
                           PrimaryActionButton(
-                            label: 'Удалить аккаунт',
+                            label: AppLocalizations.of(context).deleteAccount,
                             height: 50,
                             fontSize: 16,
                             borderRadius: 25,
@@ -942,6 +952,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String title, {
     VoidCallback? onTap,
     int badgeCount = 0,
+    String? subtitle,
   }) {
     return InkWell(
       onTap: onTap ?? () {
@@ -959,13 +970,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Icon(icon, color: Color(0xFF00BFFF), size: 24),
             SizedBox(width: 15),
             Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFFFFFFFF),
-                  fontWeight: FontWeight.w500,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFFFFFFFF),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF80DEEA).withOpacity(0.9),
+                      ),
+                    ),
+                ],
               ),
             ),
             if (badgeCount > 0) ...[

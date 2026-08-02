@@ -8,6 +8,8 @@ import '../services/favorites_api.dart';
 import '../services/listings_api.dart';
 import '../services/location_service.dart';
 import '../services/refresh_intervals.dart';
+import '../l10n/app_localizations.dart';
+import '../services/locale_service.dart';
 import '../data/app_categories.dart';
 import '../data/map_radius_options.dart';
 import '../utils/instant_on_web.dart';
@@ -73,6 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _lastSearchQuery;
   Timer? _listingsPollTimer;
   bool _listingsLoadInFlight = false;
+
+  AppLocalizations get _l10n => AppLocalizations(LocaleService.instance.locale);
 
   static const _searchFieldBorder = OutlineInputBorder(
     borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -141,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final query = _searchController.text.trim();
     if (query.length < 2) {
       setState(() {
-        _searchError = 'Введите минимум 2 символа';
+        _searchError = _l10n.searchMinChars;
         _showSearchResults = true;
         _searchResults = [];
       });
@@ -222,13 +226,13 @@ class _HomeScreenState extends State<HomeScreen> {
       case GeoLocationStatus.ok:
         return null;
       case GeoLocationStatus.denied:
-        return 'Разрешите доступ к геолокации в браузере — пока показан центр Москвы';
+        return _l10n.locationDenied;
       case GeoLocationStatus.notSecure:
-        return 'Геолокация работает только по HTTPS — показан центр Москвы';
+        return _l10n.locationNotSecure;
       case GeoLocationStatus.timeout:
-        return 'Не удалось определить местоположение — показан центр Москвы';
+        return _l10n.locationTimeout;
       case GeoLocationStatus.unavailable:
-        return 'Геолокация недоступна — показан центр Москвы';
+        return _l10n.locationUnavailable;
     }
   }
 
@@ -352,6 +356,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildContent() {
+    final l10n = AppLocalizations.of(context);
+
     return Column(
                 children: [
                   Padding(
@@ -372,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         isDense: true,
                         filled: true,
                         fillColor: const Color(0xFF001F3F).withOpacity(0.9),
-                        hintText: 'Поиск: название или описание...',
+                        hintText: l10n.searchHint,
                         hintStyle: TextStyle(
                           color: const Color(0xFFFFFFFF).withOpacity(0.45),
                           fontSize: 13,
@@ -415,8 +421,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           alignment: Alignment.centerLeft,
                           child: Text(
                             _searchResults.isEmpty
-                                ? 'По запросу «$_lastSearchQuery» ничего не найдено'
-                                : 'Найдено: ${_searchResults.length}',
+                                ? l10n.searchNothingFound(_lastSearchQuery!)
+                                : l10n.searchFoundCount(_searchResults.length),
                             style: TextStyle(
                               color: const Color(0xFF00BFFF).withOpacity(0.95),
                               fontWeight: FontWeight.w600,
@@ -459,7 +465,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        '🗺️ Карта',
+                                        l10n.tabMap,
                                         style: TextStyle(
                                           color: !_showListView
                                               ? Colors.white
@@ -493,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        '📋 Список',
+                                        l10n.tabList,
                                         style: TextStyle(
                                           color: _showListView
                                               ? Colors.white
@@ -535,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             children: [
                               const Text(
-                                'Радиус:',
+                        l10n.radiusLabel,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
@@ -636,7 +642,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           TextButton(
                             onPressed: _loadingLocation ? null : _retryLocation,
                             child: const Text(
-                              'Повторить',
+                              l10n.repeatButton,
                               style: TextStyle(
                                 color: Color(0xFF00BFFF),
                                 fontSize: 12,
@@ -692,7 +698,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              'Категории',
+                              l10n.categories,
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -723,7 +729,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMapPreview() {
     if (_loadingLocation) {
-      return _buildMapPlaceholder('Определяем местоположение...');
+      return _buildMapPlaceholder(_l10n.loadingLocation);
     }
 
     return GestureDetector(
@@ -758,7 +764,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icon(Icons.fullscreen_rounded, color: Color(0xFF00BFFF), size: 16),
                   SizedBox(width: 4),
                   Text(
-                    'Открыть',
+                    _l10n.openButton,
                     style: TextStyle(
                       color: Color(0xFF00BFFF),
                       fontSize: 11,
@@ -802,9 +808,9 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 8),
           TextButton(
             onPressed: () => _openListing(listing),
-            child: const Text(
-              'Открыть',
-              style: TextStyle(color: Color(0xFF00BFFF), fontWeight: FontWeight.bold),
+            child: Text(
+              _l10n.openButton,
+              style: const TextStyle(color: Color(0xFF00BFFF), fontWeight: FontWeight.bold),
             ),
           ),
           IconButton(
@@ -818,14 +824,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildNearbyListScroll() {
     if (_loadingListings) {
-      return _buildMapPlaceholder('Загружаем объявления рядом...');
+      return _buildMapPlaceholder(_l10n.loadingListings);
     }
 
     if (_nearbyListings.isEmpty) {
       return _buildMapPlaceholder(
         _isAllListingsMode
-            ? 'Объявлений на карте пока нет'
-            : 'В радиусе ${_radiusLabels[_radiusIndex]} объявлений нет',
+            ? _l10n.noListingsOnMap
+            : _l10n.noListingsInRadius(_radiusLabels[_radiusIndex]),
       );
     }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../l10n/app_localizations.dart';
 import '../utils/instant_on_web.dart';
 import '../utils/responsive_layout.dart';
 import '../widgets/midnight_glow_screen.dart';
@@ -19,30 +20,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Map<String, dynamic>> _pages = [
+  List<Map<String, dynamic>> _pages(AppLocalizations l10n) => [
     {
       'icon': Icons.card_giftcard,
       'color': Color(0xFF00BFFF),
       'borderColor': Color(0xFF008C8C),
-      'title': 'Добро начинается с одной вещи',
-      'description':
-          'В каждом доме лежит то, что может обрадовать другого человека — «Даром» делает такой жест простым и близким.',
+      'title': l10n.onboardingTitle1,
+      'description': l10n.onboardingDesc1,
     },
     {
       'icon': Icons.favorite,
       'color': Color(0xFF008C8C),
       'borderColor': Color(0xFF00BFFF),
-      'title': 'Помогать — проще, чем кажется',
-      'description':
-          'Не нужно быть богатым или искать, куда нести вещи: достаточно одного доброго «возьмите, пусть послужит» — и вы уже меняете чей-то день.',
+      'title': l10n.onboardingTitle2,
+      'description': l10n.onboardingDesc2,
     },
     {
       'icon': Icons.volunteer_activism,
       'color': Color(0xFF00BFFF),
       'borderColor': Color(0xFF008C8C),
-      'title': 'Подарите радость — она рядом',
-      'description':
-          'Отдайте лишнее или заберите нужное у соседа — бесплатно, по-человечески, и мир станет чуть теплее.',
+      'title': l10n.onboardingTitle3,
+      'description': l10n.onboardingDesc3,
     },
   ];
 
@@ -54,6 +52,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final pages = _pages(l10n);
+
     return MidnightGlowScreen(
       child: SafeArea(
         child: ResponsivePageFrame(
@@ -63,7 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 onPageChanged: (int page) {
                   setState(() {
                     _currentPage = page;
@@ -71,11 +72,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
                 itemBuilder: (context, index) {
                   return _buildVolumetricPage(
-                    icon: _pages[index]['icon'],
-                    iconColor: _pages[index]['color'],
-                    borderColor: _pages[index]['borderColor'],
-                    title: _pages[index]['title'],
-                    description: _pages[index]['description'],
+                    icon: pages[index]['icon'],
+                    iconColor: pages[index]['color'],
+                    borderColor: pages[index]['borderColor'],
+                    title: pages[index]['title'],
+                    description: pages[index]['description'],
                   );
                 },
               ),
@@ -83,7 +84,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                _pages.length,
+                pages.length,
                 (index) => GestureDetector(
                   onTap: () {
                     _pageController.jumpToPage(index);
@@ -128,10 +129,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             SizedBox(height: 30),
             PrimaryActionButton(
               key: const ValueKey('onboarding-primary-button'),
-              label: _currentPage < _pages.length - 1 ? 'Далее' : 'Начать',
+              label: _currentPage < pages.length - 1 ? l10n.nextButton : l10n.startButton,
               padding: const EdgeInsets.symmetric(horizontal: 40),
               onPressed: () {
-                if (_currentPage < _pages.length - 1) {
+                if (_currentPage < pages.length - 1) {
                   _pageController.nextPage(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
@@ -144,7 +145,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 }
               },
             ),
-            if (_currentPage == _pages.length - 1) ...[
+            if (_currentPage == pages.length - 1) ...[
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () {
@@ -155,8 +156,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   );
                 },
-                child: const Text(
-                  'Я партнёр / блогер',
+                child: Text(
+                  l10n.partnerLink,
                   style: TextStyle(
                     color: Color(0xFF80DEEA),
                     fontSize: 15,

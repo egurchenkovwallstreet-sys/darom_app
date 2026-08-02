@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../services/locale_service.dart';
 import '../services/session_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/language_picker.dart';
 import 'main_shell.dart';
 import 'onboarding_screen.dart';
 
@@ -15,22 +17,30 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
-  late final Future<SessionData?> _sessionFuture;
+  late final Future<_BootstrapData> _bootstrapFuture;
 
   @override
   void initState() {
     super.initState();
-    _sessionFuture = _loadSession();
+    _bootstrapFuture = _bootstrap();
   }
 
-  Future<SessionData?> _loadSession() {
-    return SessionService.load().catchError((_) => null);
+  Future<_BootstrapData> _bootstrap() async {
+    await LocaleService.instance.load();
+    final session = await SessionService.load().catchError((_) => null);
+    if (session != null && !LocaleService.instance.hasChosenLocale) {
+      await LocaleService.instance.ensureDefaultForExistingUser();
+    }
+    return _BootstrapData(
+      session: session,
+      showLanguageWelcome: session == null && !LocaleService.instance.hasChosenLocale,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<SessionData?>(
-      future: _sessionFuture,
+    return FutureBuilder<_BootstrapData>(
+      future: _bootstrapFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return MidnightGlowScreen(
@@ -41,7 +51,16 @@ class _AuthGateState extends State<AuthGate> {
           );
         }
 
-        final session = snapshot.data;
+        final data = snapshot.data;
+        if (data == null) {
+          return const OnboardingScreen();
+        }
+
+        if (data.showLanguageWelcome) {
+          return const LanguageWelcomeScreen();
+        }
+
+        final session = data.session;
         if (session != null) {
           return MainShell(
             userName: session.name,
@@ -54,4 +73,14 @@ class _AuthGateState extends State<AuthGate> {
       },
     );
   }
+}
+
+class _BootstrapData {
+  const _BootstrapData({
+    required this.session,
+    required this.showLanguageWelcome,
+  });
+
+  final SessionData? session;
+  final bool showLanguageWelcome;
 }
