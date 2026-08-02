@@ -274,6 +274,7 @@ class _MainShellState extends State<MainShell> {
               onTap: () => _onTabTap(1),
             ),
             _NavAddItem(
+              l10n: l10n,
               selected: _currentIndex == 2,
               onTap: () => _onTabTap(2),
             ),
@@ -632,6 +633,7 @@ class _NavAddItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final accent = selected ? const Color(0xFF00BFFF) : const Color(0xFF80DEEA);
 
     return Expanded(
