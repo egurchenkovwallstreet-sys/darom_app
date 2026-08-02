@@ -819,7 +819,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
-                                  Icons.cookie_outlined,
+                                  Icons.article_outlined,
                                   'Политика cookie',
                                   onTap: () {
                                     Navigator.push(

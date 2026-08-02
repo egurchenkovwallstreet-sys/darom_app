@@ -10,6 +10,8 @@ import 'package:darom_app/theme/app_colors.dart';
 import 'package:darom_app/screens/public_offer_screen.dart';
 import 'package:darom_app/screens/privacy_policy_screen.dart';
 import 'package:darom_app/widgets/payment_flow.dart';
+import 'package:darom_app/utils/hide_web_splash_stub.dart'
+    if (dart.library.html) 'package:darom_app/utils/hide_web_splash_web.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +20,7 @@ Future<void> main() async {
   unawaited(SessionService.migrateToTokenSessionIfNeeded());
   unawaited(SessionService.migrateToHttpOnlyCookieIfNeeded());
   runApp(const DaromApp());
+  hideWebSplashAfterFirstFrame();
 }
 
 class DaromApp extends StatelessWidget {

@@ -1237,4 +1237,87 @@ curl -s https://darom-app.online/api/health | head -c 800
 
 ---
 
+## 📋 Резюме 02.08.2026 — аудит безопасности J-H + 152-ФЗ + отключение push ✅
+
+> **Коммиты:** `10cd808` (J-H security) → `8a52766` (push off).  
+> **Прод:** backend VNC `git pull` + `pm2 restart`; Flutter — `git push` → GitHub Actions.  
+> **Health (02.08.2026):** `security.stage:"J-H"`, `push.enabled:false`, `push.mock:true`, `push.ready:false` ✅
+
+### 1. Аудит безопасности (этап J-H) — ✅ `10cd808`
+
+По запросу владельца проведён аудит; исправлены пункты **1, 4, 5, 6, 7, 8, 9** (не трогали «захват номера» при регистрации и полный рефакторинг localStorage).
+
+| # | Что исправлено | Файлы / поведение |
+|---|----------------|-------------------|
+| 1 | Блок смены **имени** при установленном PIN | `backend/src/routes/users.js` → 409 |
+| 4 | **HttpOnly cookie** сессии (`darom_session`) на Web | `session_cookie.js`, `user_auth.js`, `auth.js`, Flutter `session_service.dart`, `darom_http_client*.dart` |
+| 5 | Токен verify-сессии — в **заголовке** `X-Verify-Session-Token`, не в URL | `verify_session_token.js`, `auth_api.dart`, `admin_api.dart` |
+| 6 | Rate limit на **admin verify** | `rate_limit.js`, `admin.js` |
+| 7 | Rate limit на **deploy** endpoints (5/час) | `deploy_web.js`, `deploy_backend.js` |
+| 8 | Убран fallback-секрет Робокассы | `robokassa.js` |
+| 9 | Health без лишних секретов | `health.js`; `security_version.js` → **J-H** |
+
+**Деплой J-H на сервере:** VNC → `git pull` (при конфликте `package-lock.json` — `git reset --hard origin/main`) → `npm install` → `pm2 restart darom-api --update-env`.  
+**Проверка:** `curl -s https://darom-app.online/api/health` → `"security":{"stage":"J-H",...}`.
+
+**Остаётся открытым (не закрывали в J-H):**
+- «Захват» номера при регистрации (по ТЗ)
+- Admin token в localStorage
+- AuthGate без проверки сессии на сервере при старте
+- S3 фото public-read; удаление аккаунта не чистит S3
+- Sightengine не подключён
+- 2FA не на GitHub / Timeweb / Reg.ru / Cloudflare
+
+### 2. Аудит 152-ФЗ (правовой) — зафиксировано, частично закрыто
+
+| Риск | Статус после чата |
+|------|-------------------|
+| Трансграничная передача через **Google Firebase** (push) | ✅ **снят** — push отключён (см. §3) |
+| Уведомление Роскомнадзора (реестр операторов ПДн) | ⏳ организационно — не подавалось |
+| Полные реквизиты ИП в политике (ИНН/ОГРНИП есть в оферте, не в privacy) | ⏳ |
+| Старые пользователи без `privacy_consent_at` | ⏳ |
+| Договоры с обработчиками (Timeweb, Yandex, Plusofon…) | ⏳ организационно |
+
+**Решение по Firebase:** **вариант 1** — полное отключение push (`PUSH_ENABLED` не `true`); оповещения о сообщениях — **внутри приложения** (вкладка «Чаты», badge на нижнем меню, polling ~1 с).
+
+### 3. Отключение push-уведомлений — ✅ `8a52766`
+
+**Причина:** соответствие 152-ФЗ (без трансграничной передачи через Google Firebase).
+
+| Компонент | Изменение |
+|-----------|-----------|
+| **Flutter** | `lib/services/push_config.dart` — `pushNotificationsEnabled = false`; убран диалог после входа (`main_shell.dart`); убран пункт **Профиль → Уведомления**; `push_service.dart` — ранний выход без Firebase |
+| **Web** | `web/index.html` — убран `<script push_helper.js>` (не грузится gstatic/Firebase) |
+| **Политика ПДн** | `lib/data/privacy_policy.dart` — убраны push-токен и Google Firebase; вместо push — оповещения внутри приложения |
+| **Backend** | `PUSH_ENABLED` — только `true` включает push (по умолчанию **выкл.**); `pushMock: true` если push выкл.; `/api/config/firebase` → `{ configured: false }`; `POST /api/users/push-token` → 503; `push_service.js` — не шлёт FCM |
+| **Health** | `"push": { "enabled": false, "mock": true, "configured": true, "ready": false }` — **configured:true** = ключи FIREBASE_* ещё в `.env`, но **не используются** |
+
+**Сервер (VNC, 02.08.2026):**
+```bash
+cd /opt/darom_app && git pull
+cd backend && npm install
+nano backend/.env   # убрать PUSH_MOCK=false; не ставить PUSH_ENABLED=true
+pm2 restart darom-api --update-env
+```
+
+**Проверка ✅ (02.08.2026, владелец):**
+- `pm2` → `darom-api` **online**
+- https://darom-app.online/api/health → `push.enabled:false` ✅
+
+**Что НЕ отключали:** polling чатов (`RefreshIntervals.chats`), badge непрочитанных на вкладке «Чаты».
+
+**Ключевые файлы:**
+- `lib/services/push_config.dart`, `lib/services/push_service.dart`
+- `lib/screens/main_shell.dart`, `lib/screens/profile_screen.dart`
+- `lib/data/privacy_policy.dart`, `web/index.html`
+- `backend/src/config.js`, `routes/config.js`, `routes/users.js`, `routes/health.js`, `services/push_service.js`
+
+**Повторное включение push (если когда-либо понадобится):** `PUSH_ENABLED=true` + `PUSH_MOCK=false` + ключи Firebase в `.env` + вернуть UI и `push_helper.js` — см. `deploy/FIREBASE.md`. С учётом 152-ФЗ — только после уведомления РКН и локализации данных.
+
+### 4. Безопасность — напоминание
+
+- Скриншоты `.env` с ключами (Firebase, SMS, Robokassa) **не публиковать**; при утечке — перевыпуск ключей в кабинетах сервисов.
+
+---
+
 *Обновляй этот файл после каждого завершённого этапа.*

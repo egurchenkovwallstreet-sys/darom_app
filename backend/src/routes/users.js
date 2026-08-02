@@ -99,6 +99,8 @@ async function formatUserWithStats(db, row, { includePhone = false } = {}) {
 
   if (includePhone) {
     user.phone = row.phone;
+    user.privacy_consent_at = row.privacy_consent_at ?? null;
+    user.privacy_policy_version = row.privacy_policy_version ?? null;
     const adminUser = await getAdminUserByPhone(db, row.phone);
     user.can_access_admin_panel = Boolean(adminUser);
     user.is_super_admin = adminUser?.role === 'super_admin';
@@ -576,6 +578,44 @@ router.get('/personal-data', requireUserSession, async (req, res) => {
         'PIN-код хранится только в виде хеша. Геолокация устройства в профиле не сохраняется. '
         + 'Для удаления всех данных используйте «Удалить аккаунт» в профиле.',
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/users/privacy-consent { phone, privacy_policy_version } — повторное согласие на ПДн
+router.post('/privacy-consent', requireUserSession, async (req, res) => {
+  const { phone, privacy_policy_version: privacyPolicyVersion } = req.body;
+
+  if (!phone) {
+    return res.status(400).json({ error: 'Нужен phone' });
+  }
+
+  if (!rejectMismatchedPhone(req, res, phone)) {
+    return;
+  }
+
+  try {
+    const normalizedPhone = normalizePhone(phone);
+    const user = await fetchUserByPhone(normalizedPhone);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const resolvedVersion = privacyPolicyVersion || LEGAL_VERSIONS.privacyPolicy;
+
+    await db.query(
+      `
+      UPDATE users
+      SET privacy_consent_at = NOW(), privacy_policy_version = $2
+      WHERE phone = $1
+      `,
+      [normalizedPhone, resolvedVersion]
+    );
+
+    const updated = await fetchUserByPhone(normalizedPhone);
+    res.json({ user: await formatUserWithStats(db, updated, { includePhone: true }) });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

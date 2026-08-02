@@ -569,3 +569,77 @@ Webhook Mobile ID (`/api/auth/mobile-id/webhook`) **сохранён** для р
 5. `git push` — автодеплой Flutter Web (GitHub Actions)
 
 Подробно: `deploy/PLUSOFON.md`, резюме: `docs/PROGRESS.md` → **26.07.2026**.
+
+---
+
+## 14. Обновление 02.08.2026 — безопасность J-H, 152-ФЗ, отключение push
+
+> Резюме для нового чата: `docs/PROGRESS.md` → **02.08.2026**.  
+> Коммиты: `10cd808` (J-H), `8a52766` (push off).
+
+### 14.1 Этап J-H — усиление безопасности ✅
+
+| Флаг в `/api/health` → `security` | Значение |
+|-----------------------------------|----------|
+| `stage` | **J-H** |
+| `sessionHttpOnlyCookie` | true |
+| `verifySessionTokenHeader` | true |
+| `adminAuthVerifyRateLimit` | true |
+| `deployRateLimit` | true |
+| `robokassaNoRedirectSecretFallback` | true |
+| `registrationPinRequiredForUpdate` | true |
+
+**Суть:** HttpOnly cookie сессии на Web; verify-токен в заголовке; rate limits admin/deploy; блок смены имени при PIN; health без лишних данных.
+
+### 14.2 Push-уведомления — ⏸ отключены (02.08.2026)
+
+> **Было (§7.3, 28.06.2026):** Firebase FCM, диалог «Включить», Профиль → Уведомления, `push_helper.js`, iPhone PWA ✅.  
+> **Стало (02.08.2026):** push **выключен** для соответствия **152-ФЗ** (без Google Firebase / трансграничной передачи).
+
+| Аспект | Статус |
+|--------|--------|
+| Firebase FCM (сервер + клиент) | ⏸ **не используется** |
+| Диалог «Уведомления» после входа | ⏸ убран |
+| Профиль → «Уведомления» | ⏸ убран |
+| `web/push_helper.js` в `index.html` | ⏸ не подключается |
+| Оповещение о новых сообщениях | ✅ **в приложении**: вкладка «Чаты», badge на нижнем меню, polling ~1 с |
+| Health `push.enabled` | **false** |
+| Health `push.ready` | **false** |
+
+**Переменные `.env` (backend):**
+
+```env
+# Push выключен по умолчанию. Включение только явно:
+# PUSH_ENABLED=true
+# PUSH_MOCK=false
+# + все FIREBASE_* (см. deploy/FIREBASE.md)
+```
+
+Ключи `FIREBASE_*` могут оставаться в `.env` (`push.configured:true`), но при `PUSH_ENABLED` ≠ `true` **отправка и регистрация токенов не выполняются**.
+
+**Политика ПДн:** убраны push-токен и Google Firebase; цель — «оповещение о сообщениях внутри приложения».
+
+**Файлы (отключение):** `lib/services/push_config.dart`, `main_shell.dart`, `profile_screen.dart`, `privacy_policy.dart`, `web/index.html`, `backend/src/config.js`, `routes/config.js`, `routes/users.js`, `services/push_service.js`.
+
+**Повторное включение:** только после правовой проработки 152-ФЗ (уведомление РКН, локализация). Инструкция по Firebase сохранена: `deploy/FIREBASE.md`.
+
+### 14.3 152-ФЗ — открытые организационные пункты
+
+| Пункт | Статус |
+|-------|--------|
+| Трансграничная передача (Firebase push) | ✅ снято отключением push |
+| Уведомление Роскомнадзора | ⏳ |
+| ИНН/ОГРНИП в политике конфиденциальности | ⏳ (есть в публичной оферте) |
+| Согласие `privacy_consent_at` у старых пользователей | ⏳ |
+| Договоры с обработчиками (Timeweb, Yandex, Plusofon, SMS.ru, Робокassa) | ⏳ |
+
+### 14.4 Таблица стека (дополнение к §3, не замена)
+
+| Компонент | Было в §3 | Актуально 02.08.2026 |
+|-----------|-----------|----------------------|
+| Чат / Push | Firebase FCM ✅ | Чат ✅; **Push ⏸ отключён**; см. §14.2 |
+| Профиль → «Уведомления» | ✅ | ⏸ пункт убран из UI |
+
+---
+
+*Конец дополнения 02.08.2026. Исторические разделы (§7.3 Firebase и др.) сохранены для справки.*

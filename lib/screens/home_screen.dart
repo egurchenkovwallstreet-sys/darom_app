@@ -10,11 +10,8 @@ import '../services/location_service.dart';
 import '../services/refresh_intervals.dart';
 import '../data/app_categories.dart';
 import '../data/map_radius_options.dart';
-import '../services/users_api.dart';
 import '../utils/instant_on_web.dart';
 import '../utils/map_marker_spread.dart';
-import '../utils/responsive_layout.dart';
-import '../widgets/avatar_image.dart';
 import '../widgets/listing_tile_card.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/osm_map_widget.dart';
@@ -44,6 +41,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const double _blockGap = 3.8;
+
   int _radiusIndex = 2;
   int _pressedRadiusIndex = -1;
   int _pressedCategoryIndex = -1;
@@ -53,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final LocationService _locationService = LocationService();
   final ListingsApi _listingsApi = ListingsApi();
-  final UsersApi _usersApi = UsersApi();
   GeoPosition _position = GeoPosition.moscow;
   List<Listing> _nearbyListings = [];
   bool _loadingLocation = true;
@@ -70,7 +68,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showSearchResults = false;
   String? _searchError;
   String? _lastSearchQuery;
-  String? _avatarUrl;
   Timer? _listingsPollTimer;
   bool _listingsLoadInFlight = false;
 
@@ -90,7 +87,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _initLocationAndListings();
     _loadFavoriteIds();
-    _loadAvatar();
     if (widget.isActiveTab) {
       _startListingsPoll();
     }
@@ -121,21 +117,12 @@ class _HomeScreenState extends State<HomeScreen> {
     _listingsPollTimer = null;
   }
 
-  Future<void> _loadAvatar() async {
-    try {
-      final user = await _usersApi.fetchProfile(phone: widget.phoneNumber);
-      if (!mounted) return;
-      setState(() => _avatarUrl = user.avatarUrl);
-    } catch (_) {}
-  }
-
   @override
   void dispose() {
     _stopListingsPoll();
     _searchController.dispose();
     _favoritesApi.dispose();
     _listingsApi.dispose();
-    _usersApi.dispose();
     super.dispose();
   }
 
@@ -362,108 +349,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildContent() {
-    final isDesktop = ResponsiveLayout.isDesktop(context);
-    final mapPreviewHeight = isDesktop ? 360.0 : 130.0;
-
     return Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                    child: Row(
-                      children: [
-                        AvatarImage(
-                          url: _avatarUrl,
-                          size: 42,
-                          borderWidth: 2,
-                        )
-                            .animate(
-                              onPlay: (controller) => controller.repeat(reverse: true),
-                            )
-                            .animate()
-                            .scale(
-                              duration: Duration(seconds: 2),
-                              curve: Curves.easeInOut,
-                            )
-                            .then()
-                            .scale(
-                              duration: Duration(seconds: 2),
-                              curve: Curves.easeInOut,
-                            ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              animateUnlessWeb(
-                                Text(
-                                  'Привет, ${widget.userName}!',
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFFFFFFF),
-                                  ),
-                                ),
-                                (child) => child
-                                    .animate(
-                                      delay: Duration(milliseconds: 200),
-                                    )
-                                    .fadeIn(duration: Duration(milliseconds: 800))
-                                    .slideX(begin: -0.3, end: 0),
-                              ),
-                              animateUnlessWeb(
-                                Text(
-                                  'Что ищешь?',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFFFFFFFF).withOpacity(0.7),
-                                  ),
-                                ),
-                                (child) => child
-                                    .animate(
-                                      delay: Duration(milliseconds: 400),
-                                    )
-                                    .fadeIn(duration: Duration(milliseconds: 800))
-                                    .slideX(begin: -0.3, end: 0),
-                              ),
-                            ],
-                          ),
-                        ),
-                        animateUnlessWeb(
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Color(0xFF00BFFF),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.favorite, color: Colors.white, size: 14),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Новичок',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          (child) => child
-                              .animate(
-                                delay: Duration(milliseconds: 600),
-                              )
-                              .fadeIn(duration: Duration(milliseconds: 800))
-                              .scale(begin: Offset(0.8, 0.8), end: Offset(1.0, 1.0)),
-                        ),
-                      ],
-                    ),
-                  ),
-
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                     child: TextField(
                       controller: _searchController,
                       style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 14),
@@ -626,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         .fadeIn(duration: Duration(milliseconds: 800))
                         .slideY(begin: -0.3, end: 0),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: _blockGap),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -725,229 +614,240 @@ class _HomeScreenState extends State<HomeScreen> {
                         .fadeIn(duration: Duration(milliseconds: 800))
                         .slideY(begin: -0.3, end: 0),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: _blockGap),
 
-                  if (!isDesktop)
+                  if (_locationHint != null)
                     Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                    child: Row(
-                      children: [
-                        const Text(
-                          '📦 Категории',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFFFFFFF),
-                          ),
-                        ),
-                        const Spacer(),
-                        Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: const Color(0xFF00BFFF).withOpacity(0.9),
-                          size: 22,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          'листайте',
-                          style: TextStyle(
-                            color: const Color(0xFF00BFFF).withOpacity(0.85),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
                         children: [
-                          if (_locationHint != null)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      _locationHint!,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFFFFFFFF).withOpacity(0.6),
-                                      ),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: _loadingLocation ? null : _retryLocation,
-                                    child: const Text(
-                                      'Повторить',
-                                      style: TextStyle(
-                                        color: Color(0xFF00BFFF),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                          Expanded(
+                            child: Text(
+                              _locationHint!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFFFFFFFF).withOpacity(0.6),
                               ),
-                            ),
-                          if (_listingsError != null)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                              child: Text(
-                                _listingsError!,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFFFF5722),
-                                ),
-                              ),
-                            ),
-
-                          if (isDesktop && !_showListView) _buildDesktopCategoriesRow(),
-
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: _showListView
-                                ? _buildNearbyList()
-                                : SizedBox(
-                                    height: mapPreviewHeight,
-                                    child: _loadingLocation
-                                        ? _buildMapPlaceholder('Определяем местоположение...')
-                                        : GestureDetector(
-                                            onTap: _openFullMap,
-                                            child: Stack(
-                                              fit: StackFit.expand,
-                                              children: [
-                                                AbsorbPointer(
-                                                  child: OsmMapWidget(
-                                                    centerLat: _position.lat,
-                                                    centerLng: _position.lng,
-                                                    zoom: MapRadiusOptions.zoomForIndex(_radiusIndex),
-                                                    radiusKm: _isAllListingsMode ? null : _currentRadiusKm,
-                                                    markers: _mapMarkers,
-                                                    isApproximateLocation: _locationHint != null,
-                                                    interactive: false,
-                                                  ),
-                                                ),
-                                                Positioned(
-                                                  right: 8,
-                                                  top: 8,
-                                                  child: Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                      color: const Color(0xFF001F3F).withOpacity(0.88),
-                                                      borderRadius: BorderRadius.circular(10),
-                                                      border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
-                                                    ),
-                                                    child: const Row(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        Icon(Icons.fullscreen_rounded, color: Color(0xFF00BFFF), size: 16),
-                                                        SizedBox(width: 4),
-                                                        Text(
-                                                          'Открыть',
-                                                          style: TextStyle(
-                                                            color: Color(0xFF00BFFF),
-                                                            fontSize: 11,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                  ),
-                          ),
-                          if (_selectedListing != null && !_showListView)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF001F3F).withOpacity(0.9),
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: const Color(0xFF00BFFF), width: 2),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.card_giftcard,
-                                      color: Color(0xFF00BFFF),
-                                      size: 22,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        _selectedListing!.title,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: Color(0xFFFFFFFF),
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    TextButton(
-                                      onPressed: () => _openListing(_selectedListing!),
-                                      child: const Text(
-                                        'Открыть',
-                                        style: TextStyle(
-                                          color: Color(0xFF00BFFF),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.close, color: Color(0xFF80DEEA), size: 20),
-                                      onPressed: () => setState(() => _selectedMarkerId = null),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          if (_loadingListings && !_showListView)
-                            const Padding(
-                              padding: EdgeInsets.only(top: 4),
-                              child: SizedBox(
-                                height: 18,
-                                width: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Color(0xFF00BFFF),
-                                ),
-                              ),
-                            ),
-                          const SizedBox(height: 8),
-
-                          if (!isDesktop)
-                            GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 4,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              childAspectRatio: 0.9,
-                            ),
-                            itemCount: _categories.length,
-                            itemBuilder: (context, index) => _buildCategoryTile(
-                              index,
-                              compact: false,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: _loadingLocation ? null : _retryLocation,
+                            child: const Text(
+                              'Повторить',
+                              style: TextStyle(
+                                color: Color(0xFF00BFFF),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
+                    ),
+                  if (_listingsError != null) ...[
+                    SizedBox(height: _blockGap),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        _listingsError!,
+                        style: const TextStyle(fontSize: 12, color: Color(0xFFFF5722)),
+                      ),
+                    ),
+                  ],
+                  SizedBox(height: _blockGap),
+
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: _showListView ? _buildNearbyListScroll() : _buildMapPreview(),
+                          ),
+                        ),
+                        if (_selectedListing != null && !_showListView) ...[
+                          SizedBox(height: _blockGap),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: _buildSelectedListingCard(),
+                          ),
+                        ],
+                        if (_loadingListings && !_showListView) ...[
+                          SizedBox(height: _blockGap),
+                          const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFF00BFFF),
+                            ),
+                          ),
+                        ],
+                        SizedBox(height: _blockGap),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Категории',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFFFFFFF),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: _blockGap),
+                        SizedBox(
+                          height: 36,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _categories.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: _blockGap),
+                            itemBuilder: (context, index) => _buildCategoryChip(index),
+                          ),
+                        ),
+                        SizedBox(height: _blockGap),
+                      ],
                     ),
                   ),
                   ],
                 ],
+    );
+  }
+
+  Widget _buildMapPreview() {
+    if (_loadingLocation) {
+      return _buildMapPlaceholder('Определяем местоположение...');
+    }
+
+    return GestureDetector(
+      onTap: _openFullMap,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          AbsorbPointer(
+            child: OsmMapWidget(
+              centerLat: _position.lat,
+              centerLng: _position.lng,
+              zoom: MapRadiusOptions.zoomForIndex(_radiusIndex),
+              radiusKm: _isAllListingsMode ? null : _currentRadiusKm,
+              markers: _mapMarkers,
+              isApproximateLocation: _locationHint != null,
+              interactive: false,
+            ),
+          ),
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF001F3F).withOpacity(0.88),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.fullscreen_rounded, color: Color(0xFF00BFFF), size: 16),
+                  SizedBox(width: 4),
+                  Text(
+                    'Открыть',
+                    style: TextStyle(
+                      color: Color(0xFF00BFFF),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectedListingCard() {
+    final listing = _selectedListing!;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF001F3F).withOpacity(0.9),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.card_giftcard, color: Color(0xFF00BFFF), size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              listing.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFFFFFFFF),
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => _openListing(listing),
+            child: const Text(
+              'Открыть',
+              style: TextStyle(color: Color(0xFF00BFFF), fontWeight: FontWeight.bold),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Color(0xFF80DEEA), size: 20),
+            onPressed: () => setState(() => _selectedMarkerId = null),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNearbyListScroll() {
+    if (_loadingListings) {
+      return _buildMapPlaceholder('Загружаем объявления рядом...');
+    }
+
+    if (_nearbyListings.isEmpty) {
+      return _buildMapPlaceholder(
+        _isAllListingsMode
+            ? 'Объявлений на карте пока нет'
+            : 'В радиусе ${_radiusLabels[_radiusIndex]} объявлений нет',
+      );
+    }
+
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: _nearbyListings.take(8).map((listing) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: _blockGap),
+          child: ListingTileCard(
+            listing: listing,
+            phoneNumber: widget.phoneNumber,
+            isFavorite: _favoriteIds.contains(listing.id),
+            onFavoriteChanged: (isFavorite) {
+              setState(() {
+                if (isFavorite) {
+                  _favoriteIds.add(listing.id);
+                } else {
+                  _favoriteIds.remove(listing.id);
+                }
+              });
+            },
+            onTap: () => _openListing(listing),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -965,30 +865,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDesktopCategoriesRow() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-      child: Row(
-        children: List.generate(_categories.length, (index) {
-          return Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: index == 0 ? 0 : 3,
-                right: index == _categories.length - 1 ? 0 : 3,
-              ),
-              child: _buildCategoryTile(index, compact: true),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget _buildCategoryTile(int index, {required bool compact}) {
-    final iconSize = compact ? 22.0 : 24.0;
-    final fontSize = compact ? 12.0 : 10.0;
-    final tileHeight = compact ? 58.0 : null;
-
+  Widget _buildCategoryChip(int index) {
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressedCategoryIndex = index),
       onTapUp: (_) {
@@ -997,54 +874,31 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       onTapCancel: () => setState(() => _pressedCategoryIndex = -1),
       child: AnimatedScale(
-        scale: _pressedCategoryIndex == index ? 1.06 : 1.0,
+        scale: _pressedCategoryIndex == index ? 1.04 : 1.0,
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOut,
-        child: SizedBox(
-          height: tileHeight,
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: compact ? 2 : 4,
-              vertical: compact ? 4 : 6,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFF001F3F).withOpacity(0.85),
-              borderRadius: BorderRadius.circular(compact ? 8 : 12),
-              border: Border.all(
-                color: AppColors.categoryIcon,
-                width: compact ? 1.2 : 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.categoryIcon.withOpacity(compact ? 0.2 : 0.3),
-                  blurRadius: compact ? 3 : 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  _categoryIcons[index],
-                  size: iconSize,
+        child: Container(
+          height: 36,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF001F3F).withOpacity(0.85),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppColors.categoryIcon, width: 1.5),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(_categoryIcons[index], size: 18, color: AppColors.categoryIcon),
+              const SizedBox(width: 6),
+              Text(
+                _categories[index],
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
                   color: AppColors.categoryIcon,
                 ),
-                SizedBox(height: compact ? 2 : 3),
-                Text(
-                  _categories[index],
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.categoryIcon,
-                    height: 1.05,
-                  ),
-                  maxLines: compact ? 2 : 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1129,49 +983,6 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(color: Color(0xFFFFFFFF).withOpacity(0.8)),
         ),
       ),
-    );
-  }
-
-  Widget _buildNearbyList() {
-    if (_loadingListings) {
-      return SizedBox(
-        height: 120,
-        child: _buildMapPlaceholder('Загружаем объявления рядом...'),
-      );
-    }
-
-    if (_nearbyListings.isEmpty) {
-      return SizedBox(
-        height: 120,
-        child: _buildMapPlaceholder(
-          _isAllListingsMode
-              ? 'Объявлений на карте пока нет'
-              : 'В радиусе ${_radiusLabels[_radiusIndex]} объявлений нет',
-        ),
-      );
-    }
-
-    return Column(
-      children: _nearbyListings.take(8).map((listing) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: ListingTileCard(
-            listing: listing,
-            phoneNumber: widget.phoneNumber,
-            isFavorite: _favoriteIds.contains(listing.id),
-            onFavoriteChanged: (isFavorite) {
-              setState(() {
-                if (isFavorite) {
-                  _favoriteIds.add(listing.id);
-                } else {
-                  _favoriteIds.remove(listing.id);
-                }
-              });
-            },
-            onTap: () => _openListing(listing),
-          ),
-        );
-      }).toList(),
     );
   }
 }

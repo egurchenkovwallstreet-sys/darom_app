@@ -6,11 +6,16 @@ import 'add_listing_screen.dart';
 import 'chats_screen.dart';
 import 'favorites_screen.dart';
 import 'home_screen.dart';
+import 'onboarding_screen.dart';
 import 'profile_screen.dart';
+import '../services/auth_api.dart';
 import '../services/chats_api.dart';
 import '../services/refresh_intervals.dart';
+import '../services/session_service.dart';
+import '../services/users_api.dart';
 import '../utils/responsive_layout.dart';
 import '../widgets/midnight_glow_screen.dart';
+import '../widgets/privacy_policy_update_dialog.dart';
 import '../widgets/responsive_page_frame.dart';
 
 /// Главная оболочка приложения с нижним меню на всех вкладках.
@@ -36,9 +41,13 @@ class _MainShellState extends State<MainShell> {
   late int _currentIndex;
   final Set<int> _visitedTabs = {0};
   final ChatsApi _chatsApi = ChatsApi();
+  final UsersApi _usersApi = UsersApi();
+  final AuthApi _authApi = AuthApi();
   int _unreadChatCount = 0;
   Timer? _unreadPollTimer;
   bool _unreadLoadInFlight = false;
+  bool _privacyCheckStarted = false;
+  bool _privacyDialogOpen = false;
 
   @override
   void initState() {
@@ -46,12 +55,15 @@ class _MainShellState extends State<MainShell> {
     _currentIndex = widget.initialIndex;
     _refreshUnreadCount();
     _unreadPollTimer = Timer.periodic(RefreshIntervals.chats, (_) => _refreshUnreadCount());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkPrivacyConsent());
   }
 
   @override
   void dispose() {
     _unreadPollTimer?.cancel();
     _chatsApi.dispose();
+    _usersApi.dispose();
+    _authApi.dispose();
     super.dispose();
   }
 
@@ -67,6 +79,69 @@ class _MainShellState extends State<MainShell> {
     } finally {
       _unreadLoadInFlight = false;
     }
+  }
+
+  Future<void> _checkPrivacyConsent() async {
+    if (_privacyCheckStarted || _privacyDialogOpen || !mounted) return;
+    _privacyCheckStarted = true;
+
+    try {
+      final user = await _usersApi.fetchProfile(phone: widget.phoneNumber);
+      if (!mounted || user.hasCurrentPrivacyConsent) return;
+      await _showPrivacyConsentDialog();
+    } catch (_) {
+      // Не блокируем приложение при ошибке сети — проверим при следующем входе.
+    }
+  }
+
+  Future<void> _showPrivacyConsentDialog() async {
+    if (_privacyDialogOpen || !mounted) return;
+    _privacyDialogOpen = true;
+
+    final accepted = await showPrivacyPolicyUpdateDialog(context);
+    if (!mounted) {
+      _privacyDialogOpen = false;
+      return;
+    }
+
+    if (accepted == true) {
+      try {
+        await _usersApi.acceptPrivacyConsent(phone: widget.phoneNumber);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Согласие на обработку ПДн сохранено'),
+            backgroundColor: Color(0xFF00BFFF),
+          ),
+        );
+      } catch (error) {
+        if (!mounted) return;
+        _privacyCheckStarted = false;
+        _privacyDialogOpen = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              error is UsersApiException ? error.message : 'Не удалось сохранить согласие',
+            ),
+            backgroundColor: const Color(0xFFFF5722),
+          ),
+        );
+        await _showPrivacyConsentDialog();
+        return;
+      }
+    } else {
+      await _authApi.logout();
+      await SessionService.clear();
+      if (!mounted) return;
+      _privacyDialogOpen = false;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+        (_) => false,
+      );
+      return;
+    }
+
+    _privacyDialogOpen = false;
   }
 
   void _onTabTap(int index) {

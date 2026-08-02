@@ -1,3 +1,5 @@
+import '../data/legal_consent.dart';
+
 class User {
   final String id;
   final String name;
@@ -21,6 +23,8 @@ class User {
   final bool canAccessAdminPanel;
   final bool isSuperAdmin;
   final bool realPhoneVerified;
+  final DateTime? privacyConsentAt;
+  final String? privacyPolicyVersion;
 
   const User({
     required this.id,
@@ -45,7 +49,14 @@ class User {
     this.canAccessAdminPanel = false,
     this.isSuperAdmin = false,
     this.realPhoneVerified = false,
+    this.privacyConsentAt,
+    this.privacyPolicyVersion,
   });
+
+  bool get hasCurrentPrivacyConsent => LegalConsent.isPrivacyConsentCurrent(
+        privacyPolicyVersion: privacyPolicyVersion,
+        privacyConsentAt: privacyConsentAt,
+      );
 
   int get dealsCount => itemsGiven + itemsTaken;
 
@@ -73,7 +84,15 @@ class User {
       canAccessAdminPanel: json['can_access_admin_panel'] as bool? ?? false,
       isSuperAdmin: json['is_super_admin'] as bool? ?? false,
       realPhoneVerified: json['real_phone_verified'] as bool? ?? false,
+      privacyConsentAt: _parseDateTime(json['privacy_consent_at']),
+      privacyPolicyVersion: json['privacy_policy_version'] as String?,
     );
+  }
+
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    return DateTime.tryParse(value.toString());
   }
 
   static double _toDouble(dynamic value) {

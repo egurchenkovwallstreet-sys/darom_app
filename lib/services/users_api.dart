@@ -133,6 +133,30 @@ class UsersApi {
     }
   }
 
+  /// Повторное согласие на обработку ПДн (новая редакция политики).
+  Future<User> acceptPrivacyConsent({required String phone}) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/users/privacy-consent');
+
+    final response = await _client
+        .post(
+          uri,
+          headers: await jsonAuthHeaders(),
+          body: jsonEncode({
+            'phone': phone,
+            'privacy_policy_version': LegalConsent.privacyPolicyVersion,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      throw UsersApiException(body['error'] as String? ?? 'Не удалось сохранить согласие');
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return User.fromJson(data['user'] as Map<String, dynamic>);
+  }
+
   Future<User> activateSuperDonor({required String phone}) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/users/super-donor');
 
