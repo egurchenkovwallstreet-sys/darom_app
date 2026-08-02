@@ -42,6 +42,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const double _blockGap = 3.8;
+  static const double _categoryChipHeight = 43.2; // 36 + 20%
+  static const double _categoryIconSize = 21.6; // 18 + 20%
+  static const double _categoryFontSize = 14.0;
 
   int _radiusIndex = 2;
   int _pressedRadiusIndex = -1;
@@ -700,7 +703,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         SizedBox(height: _blockGap),
                         SizedBox(
-                          height: 36,
+                          height: _categoryChipHeight,
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -878,8 +881,8 @@ class _HomeScreenState extends State<HomeScreen> {
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOut,
         child: Container(
-          height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          height: _categoryChipHeight,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: const Color(0xFF001F3F).withOpacity(0.85),
             borderRadius: BorderRadius.circular(6),
@@ -888,14 +891,19 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(_categoryIcons[index], size: 18, color: AppColors.categoryIcon),
-              const SizedBox(width: 6),
+              Icon(
+                _categoryIcons[index],
+                size: _categoryIconSize,
+                color: AppColors.categoryIcon,
+              ),
+              const SizedBox(width: 7),
               Text(
                 _categories[index],
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: _categoryFontSize,
                   fontWeight: FontWeight.bold,
                   color: AppColors.categoryIcon,
+                  height: 1.1,
                 ),
               ),
             ],
