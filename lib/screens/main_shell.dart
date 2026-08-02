@@ -274,7 +274,6 @@ class _MainShellState extends State<MainShell> {
               onTap: () => _onTabTap(1),
             ),
             _NavAddItem(
-              l10n: l10n,
               selected: _currentIndex == 2,
               onTap: () => _onTabTap(2),
             ),

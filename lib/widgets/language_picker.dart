@@ -4,7 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../services/locale_service.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
-import 'onboarding_screen.dart';
+import '../screens/onboarding_screen.dart';
 
 /// Первый экран для новых пользователей — выбор языка интерфейса.
 class LanguageWelcomeScreen extends StatefulWidget {

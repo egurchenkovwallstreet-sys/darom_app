@@ -24,7 +24,7 @@ class LocaleService extends ChangeNotifier {
     final code = await readString(_keyLocale);
     _hasChosenLocale = await readString(_keyChosen) == '1';
     if (code == 'en' || code == 'ru') {
-      _locale = Locale(code);
+      _locale = Locale(code!);
     }
     _loaded = true;
     notifyListeners();

@@ -540,7 +540,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Row(
                             children: [
-                              const Text(
+                              Text(
                         l10n.radiusLabel,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -641,7 +641,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           TextButton(
                             onPressed: _loadingLocation ? null : _retryLocation,
-                            child: const Text(
+                            child: Text(
                               l10n.repeatButton,
                               style: TextStyle(
                                 color: Color(0xFF00BFFF),
@@ -758,11 +758,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.fullscreen_rounded, color: Color(0xFF00BFFF), size: 16),
-                  SizedBox(width: 4),
+                  const Icon(Icons.fullscreen_rounded, color: Color(0xFF00BFFF), size: 16),
+                  const SizedBox(width: 4),
                   Text(
                     _l10n.openButton,
                     style: TextStyle(
