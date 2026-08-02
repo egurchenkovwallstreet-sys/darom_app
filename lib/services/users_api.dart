@@ -149,8 +149,16 @@ class UsersApi {
         .timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
-      throw UsersApiException(body['error'] as String? ?? 'Не удалось сохранить согласие');
+      String message = 'Не удалось сохранить согласие';
+      try {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        message = body['error'] as String? ?? message;
+      } catch (_) {
+        if (response.statusCode == 404) {
+          message = 'Сервер ещё не обновлён. Подождите деплой backend или обновите сервер (см. инструкцию)';
+        }
+      }
+      throw UsersApiException(message);
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
