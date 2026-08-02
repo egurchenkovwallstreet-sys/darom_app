@@ -21,6 +21,7 @@ import 'support_screen.dart';
 import 'about_app_screen.dart';
 import 'public_offer_screen.dart';
 import 'privacy_policy_screen.dart';
+import 'cookie_policy_screen.dart';
 import 'personal_data_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -812,6 +813,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => const PrivacyPolicyScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                _buildSettingsItem(
+                                  Icons.cookie_outlined,
+                                  'Политика cookie',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const CookiePolicyScreen(),
                                       ),
                                     );
                                   },
