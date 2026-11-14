@@ -358,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return MidnightGlowScreen(child: content);
   }
 
-  double get _scrollBottomPadding => widget.inShell ? 100 : 24;
+  double get _scrollBottomPadding => widget.inShell ? 118 : 24;
 
   Widget _buildContent() {
     final l10n = AppLocalizations.of(context);

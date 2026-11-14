@@ -256,21 +256,23 @@ class _MainShellState extends State<MainShell> {
   }
 
   Widget _buildMobileBottomNav(BuildContext context, AppLocalizations l10n) {
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final bottomPad = bottomInset > 0 ? bottomInset + 6 : 14.0;
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPad),
-      child: GlassSurface(
-        borderRadius: 28,
-        blurSigma: 18,
-        fillOpacity: 0.32,
-        padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
-        child: SizedBox(
-          height: 62,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+        child: GlassSurface(
+          borderRadius: 28,
+          blurSigma: 18,
+          fillOpacity: 0.55,
+          fillColor: const Color(0xFFFFF8F0),
+          borderColor: const Color(0xFFE8C4A8),
+          padding: const EdgeInsets.fromLTRB(6, 8, 6, 10),
+          child: SizedBox(
+            height: 76,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
               _NavItem(
                 icon: Icons.home_rounded,
                 label: l10n.navHome,
@@ -300,7 +302,8 @@ class _MainShellState extends State<MainShell> {
                 selected: _currentIndex == 4,
                 onTap: () => _onTabTap(4),
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -569,9 +572,12 @@ class _NavItem extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
             SizedBox(
               width: 36,
               height: 30,
@@ -627,6 +633,7 @@ class _NavItem extends StatelessWidget {
             ),
           ],
         ),
+        ),
       ),
     );
   }
@@ -647,64 +654,55 @@ class _NavAddItem extends StatelessWidget {
     final accent = selected ? const Color(0xFF00BFFF) : const Color(0xFF80DEEA);
 
     return Expanded(
-      child: SizedBox(
-        height: 58,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Positioned(
-              top: -14,
-              child: Material(
-                elevation: 8,
-                shadowColor: const Color(0xFF00BFFF).withOpacity(0.5),
-                shape: const CircleBorder(),
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: onTap,
-                  customBorder: const CircleBorder(),
-                  child: Ink(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: selected
-                            ? const [Color(0xFF66D9FF), Color(0xFF00BFFF), Color(0xFF0088CC)]
-                            : const [Color(0xFF9AE6FF), Color(0xFF80DEEA), Color(0xFF4DB6AC)],
-                      ),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.45),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: accent.withOpacity(0.4),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+            Material(
+              elevation: 6,
+              shadowColor: accent.withOpacity(0.35),
+              shape: const CircleBorder(),
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onTap,
+                customBorder: const CircleBorder(),
+                child: Ink(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: selected
+                          ? const [Color(0xFF66D9FF), Color(0xFF00BFFF), Color(0xFF0088CC)]
+                          : const [Color(0xFF9AE6FF), Color(0xFF80DEEA), Color(0xFF4DB6AC)],
                     ),
-                    child: const Icon(
-                      Icons.add_rounded,
-                      color: Colors.white,
-                      size: 28,
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.45),
+                      width: 2,
                     ),
+                  ),
+                  child: const Icon(
+                    Icons.add_rounded,
+                    color: Colors.white,
+                    size: 26,
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: Text(
-                l10n.navAdd,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: accent,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.navAdd,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10,
+                color: accent,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                height: 1.1,
               ),
             ),
           ],

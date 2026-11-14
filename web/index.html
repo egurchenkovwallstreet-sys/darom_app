@@ -92,6 +92,55 @@
   </div>
   <script>
     (function () {
+      var DAROM_WEB_BUILD = '2026-11-14-3';
+      var buildKey = 'darom_web_build';
+      var resetKey = 'darom_cache_reset_done';
+      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      function lsGet(key) {
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+      }
+      function lsSet(key, value) {
+        try { localStorage.setItem(key, value); } catch (e) {}
+      }
+      function ssGet(key) {
+        try { return sessionStorage.getItem(key); } catch (e) { return null; }
+      }
+      function ssSet(key, value) {
+        try { sessionStorage.setItem(key, value); } catch (e) {}
+      }
+
+      var needsReset = lsGet(buildKey) !== DAROM_WEB_BUILD;
+      if (isIOS && lsGet(resetKey) !== DAROM_WEB_BUILD) {
+        needsReset = true;
+      }
+
+      if (needsReset && ssGet('darom_resetting') !== '1') {
+        ssSet('darom_resetting', '1');
+        lsSet(buildKey, DAROM_WEB_BUILD);
+        lsSet(resetKey, DAROM_WEB_BUILD);
+
+        var chain = Promise.resolve();
+        if ('serviceWorker' in navigator) {
+          chain = navigator.serviceWorker.getRegistrations().then(function (regs) {
+            return Promise.all(regs.map(function (r) { return r.unregister(); }));
+          });
+        }
+        chain = chain.then(function () {
+          if (!window.caches) return;
+          return caches.keys().then(function (keys) {
+            return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+          });
+        });
+        chain.then(function () { location.reload(); });
+        return;
+      }
+      ssSet('darom_resetting', '0');
+    })();
+  </script>
+  <script>
+    (function () {
       var splash = document.getElementById('darom-splash');
       var splashText = document.getElementById('darom-splash-text');
       if (!splash) return;
@@ -111,7 +160,10 @@
       var loadStarted = Date.now();
       var statusTimer = setInterval(function () {
         var sec = Math.round((Date.now() - loadStarted) / 1000);
-        if (sec >= 8 && splashText) {
+        if (sec >= 20 && splashText && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
+          splashText.textContent =
+            'На iPhone: Настройки → Safari → Дополнения → Данные сайтов → удалите darom-app.online, затем откройте сайт заново в Safari';
+        } else if (sec >= 8 && splashText) {
           splashText.textContent = 'Загрузка занимает больше обычного… Подождите ещё немного';
         } else if (sec >= 3 && splashText) {
           splashText.textContent = 'Подготовка интерфейса…';
@@ -127,8 +179,12 @@
         clearInterval(statusTimer);
       });
 
+      function flutterMounted() {
+        return document.querySelector('flutter-view, flt-glass-pane, flt-scene-host');
+      }
+
       function tryHideAfterFlutter() {
-        if (!document.querySelector('flutter-view')) return false;
+        if (!flutterMounted()) return false;
         setTimeout(function () {
           window.daromHideSplash();
         }, 1200);
@@ -143,6 +199,6 @@
       }
     })();
   </script>
-  <script src="flutter_bootstrap.js" defer></script>
+  <script src="flutter_bootstrap.js?v=20261114-3" defer></script>
 </body>
 </html>

@@ -23,6 +23,27 @@ class AppColors {
     ],
   );
 
+  /// Мягкий тёплый фон (домашний экран / оболочка).
+  static const warmTrustGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0xFFFFF9F4),
+      Color(0xFFFFECD9),
+      Color(0xFFF5DFC8),
+    ],
+  );
+
+  static LinearGradient warmTrustOverlay({double opacity = 1.0}) => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFFFFFEFC).withOpacity(0.55 * opacity),
+          const Color(0xFFFFE8D6).withOpacity(0.35 * opacity),
+          const Color(0xFFFAD9BE).withOpacity(0.25 * opacity),
+        ],
+      );
+
   static LinearGradient overlayGradient({double opacity = 1.0}) => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,

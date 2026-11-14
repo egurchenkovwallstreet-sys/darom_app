@@ -46,6 +46,10 @@ router.post('/', deployLimiter, upload.single('archive'), async (req, res) => {
 
     await execFileAsync('tar', ['-xzf', archivePath, '-C', config.webRoot]);
 
+    await execFileAsync('chown', ['-R', 'www-data:www-data', config.webRoot]);
+    await execFileAsync('find', [config.webRoot, '-type', 'd', '-exec', 'chmod', '755', '{}', '+']);
+    await execFileAsync('find', [config.webRoot, '-type', 'f', '-exec', 'chmod', '644', '{}', '+']);
+
     const files = await fs.promises.readdir(config.webRoot);
     console.log(`✓ Deploy web: ${files.length} files → ${config.webRoot}`);
     res.json({ ok: true, files: files.length, path: config.webRoot });
