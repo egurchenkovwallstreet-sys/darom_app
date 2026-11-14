@@ -156,11 +156,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.textPrimary,
-        title: Text(l10n.deleteAccountTitle, style: const TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surface,
+        title: Text(l10n.deleteAccountTitle, style: const TextStyle(color: AppColors.textPrimary)),
         content: Text(
           l10n.deleteAccountBody,
-          style: TextStyle(color: Colors.white.withOpacity(0.9)),
+          style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -419,7 +419,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFFFFFFF),
+                              color: AppColors.textPrimary,
                               shadows: [
                                 Shadow(
                                   color: AppColors.accent.withOpacity(0.6),
@@ -504,7 +504,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFFFFFFFF),
+                                    color: AppColors.textPrimary,
                                     shadows: [
                                       Shadow(
                                         color: AppColors.accent.withOpacity(0.6),
@@ -519,7 +519,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   user.phoneNumber,
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: Color(0xFFFFFFFF).withOpacity(0.7),
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                                 if (user.isFounder) ...[
@@ -644,7 +644,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFFFFFFFF),
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                                 Text(
@@ -937,14 +937,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Color(0xFFFFFFFF),
+            color: AppColors.textPrimary,
           ),
         ),
         Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Color(0xFFFFFFFF).withOpacity(0.7),
+            color: AppColors.textSecondary,
           ),
         ),
       ],
@@ -982,7 +982,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Color(0xFFFFFFFF),
+                      color: AppColors.textPrimary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1017,7 +1017,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
             Icon(
               Icons.arrow_forward_ios,
-              color: Color(0xFFFFFFFF).withOpacity(0.4),
+              color: AppColors.textSecondary.withOpacity(0.55),
               size: 18,
             ),
           ],

@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
 
-/// Дизайн-система «Даром» — доверие, экология, премиальная лёгкость.
+/// Дизайн-система «Даром» — тёплое доверие, нежный голубой (ui-ux-pro-max: Accessible & Ethical).
 class AppColors {
   AppColors._();
 
-  // --- Новая палитра (источник правды) ---
-  static const backgroundStart = Color(0xFFF8F9FA);
-  static const backgroundEnd = Color(0xFFE8F5E9);
-  static const backgroundWarm = Color(0xFFFFF8E1);
+  // --- Палитра «Нежное небо» ---
+  static const backgroundStart = Color(0xFFF6FAFD);
+  static const backgroundEnd = Color(0xFFE3EFF8);
+  static const backgroundWarm = Color(0xFFFFF9F5);
   static const surface = Color(0xFFFFFFFF);
   static const surfaceGlass = Color(0xCCFFFFFF);
-  static const textPrimary = Color(0xFF1E293B);
-  static const textSecondary = Color(0xFF64748B);
-  static const accent = Color(0xFF10B981);
-  static const accentDark = Color(0xFF059669);
-  static const accentSecondary = Color(0xFFF59E0B);
-  static const danger = Color(0xFFEF4444);
-  static const gold = Color(0xFFF59E0B);
+  static const textPrimary = Color(0xFF2D3F52);
+  static const textSecondary = Color(0xFF5C6B7A);
+  /// Основной акцент — мягкий голубой (не неон).
+  static const accent = Color(0xFF6B9FD4);
+  static const accentDark = Color(0xFF5A8BC0);
+  /// Тёплый вторичный акцент (кнопки «второго плана», уют).
+  static const accentSecondary = Color(0xFFE8B88A);
+  static const danger = Color(0xFFDC2626);
+  static const gold = Color(0xFFD4A574);
   static const white = Color(0xFFFFFFFF);
+  static const borderSoft = Color(0xFFC5DFF0);
 
   static const appBackgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
@@ -28,19 +31,19 @@ class AppColors {
   static const appBackgroundGradientWarm = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [backgroundStart, backgroundWarm],
+    colors: [backgroundWarm, backgroundEnd],
   );
 
   static LinearGradient subtleOverlay({double opacity = 1.0}) => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          surface.withOpacity(0.4 * opacity),
-          backgroundEnd.withOpacity(0.25 * opacity),
+          surface.withOpacity(0.45 * opacity),
+          backgroundEnd.withOpacity(0.35 * opacity),
         ],
       );
 
-  // --- Совместимость со старыми именами (не удалять — используются в коде) ---
+  // --- Совместимость со старыми именами ---
   static const darkBlue = textPrimary;
   static const teal = accentDark;
   static const cyan = accent;
