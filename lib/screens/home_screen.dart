@@ -386,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
       elevation: 0,
       scrolledUnderElevation: 0,
       expandedHeight: 100,
-      backgroundColor: const Color(0xFFFFF9F4).withOpacity(0.92),
+      backgroundColor: AppColors.backgroundStart.withOpacity(0.95),
       surfaceTintColor: Colors.transparent,
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.parallax,
@@ -394,7 +394,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text(
           greeting,
           style: const TextStyle(
-            color: Color(0xFF4A3728),
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.w700,
             fontSize: 18,
           ),
@@ -413,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSearchField(AppLocalizations l10n) {
     return TextField(
       controller: _searchController,
-      style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 14),
+      style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
       textInputAction: TextInputAction.search,
       onSubmitted: (_) => _runSearch(),
       onChanged: (_) {
@@ -426,7 +426,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: InputDecoration(
         isDense: true,
         filled: true,
-        fillColor: AppColors.surface.withOpacity(0.55),
+        fillColor: AppColors.surface.withOpacity(0.92),
         hintText: l10n.searchHint,
         hintStyle: TextStyle(
           color: AppColors.textPrimary.withOpacity(0.45),
@@ -545,7 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _locationHint!,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFFFFFFFF).withOpacity(0.6),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -645,7 +645,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFFFFFFFF),
+                color: AppColors.textPrimary,
               ),
             ),
           ),
@@ -676,7 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: GlassSurface(
         borderRadius: 20,
         blurSigma: 12,
-        fillOpacity: 0.35,
+        fillOpacity: 0.88,
         padding: const EdgeInsets.all(4),
         child: SizedBox(
           height: 36,
@@ -743,7 +743,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: GlassSurface(
         borderRadius: 20,
         blurSigma: 12,
-        fillOpacity: 0.35,
+        fillOpacity: 0.88,
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -755,7 +755,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
-                    color: Color(0xFFFFFFFF),
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -799,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         decoration: BoxDecoration(
                           color: _radiusIndex == index
                               ? AppColors.accent
-                              : AppColors.accentDark.withOpacity(0.3),
+                              : AppColors.textSecondary.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(7),
                         ),
                         child: Center(
@@ -983,7 +983,7 @@ class _HomeScreenState extends State<HomeScreen> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                color: Color(0xFFFFFFFF),
+                color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
               ),
@@ -1104,7 +1104,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Center(
         child: Text(
           message,
-          style: TextStyle(color: Color(0xFFFFFFFF).withOpacity(0.8)),
+          style: const TextStyle(color: AppColors.textSecondary),
         ),
       ),
     );

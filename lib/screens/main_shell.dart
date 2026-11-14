@@ -266,9 +266,9 @@ class _MainShellState extends State<MainShell> {
         child: GlassSurface(
           borderRadius: 28,
           blurSigma: 18,
-          fillOpacity: 0.55,
-          fillColor: const Color(0xFFFFF8F0),
-          borderColor: const Color(0xFFE8C4A8),
+          fillOpacity: 0.88,
+          fillColor: AppColors.surface,
+          borderColor: AppColors.textSecondary.withOpacity(0.25),
           padding: const EdgeInsets.fromLTRB(6, 8, 6, 10),
           child: SizedBox(
             height: 76,
@@ -328,15 +328,15 @@ class _DesktopSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 248,
-      decoration: BoxDecoration(
-        color: AppColors.surface.withOpacity(0.95),
-        border: Border(
-          right: BorderSide(color: AppColors.accent.withOpacity(0.25)),
-        ),
-      ),
-      child: Column(
+    return GlassSurface(
+      borderRadius: 0,
+      blurSigma: 16,
+      fillOpacity: 0.92,
+      softShadow: false,
+      borderColor: AppColors.textSecondary,
+      child: SizedBox(
+        width: 248,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 20),
@@ -350,15 +350,15 @@ class _DesktopSidebar extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF66D9FF), AppColors.accent],
+                      colors: [AppColors.accent, AppColors.accentDark],
                     ),
-                    border: Border.all(color: Colors.white.withOpacity(0.35)),
+                    border: Border.all(color: AppColors.accent.withOpacity(0.2)),
                   ),
                   child: const Center(
                     child: Text(
                       'D',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                       ),
@@ -369,7 +369,7 @@ class _DesktopSidebar extends StatelessWidget {
                 const Text(
                   'Даром',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
@@ -394,34 +394,31 @@ class _DesktopSidebar extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Material(
-              elevation: 6,
-              shadowColor: AppColors.accent.withOpacity(0.45),
-              borderRadius: BorderRadius.circular(14),
+              elevation: 0,
+              borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
               color: Colors.transparent,
               child: InkWell(
                 onTap: () => onTabTap(2),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
                 child: Ink(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    gradient: LinearGradient(
-                      colors: currentIndex == 2
-                          ? const [Color(0xFF66D9FF), AppColors.accent, Color(0xFF0088CC)]
-                          : const [Color(0xFF9AE6FF), AppColors.textSecondary, Color(0xFF4DB6AC)],
+                    borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
+                    gradient: const LinearGradient(
+                      colors: [AppColors.accent, AppColors.accentDark],
                     ),
-                    border: Border.all(color: Colors.white.withOpacity(0.35)),
+                    boxShadow: DaromDecorations.softShadow,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.add_rounded, color: Colors.white, size: 26),
-                      SizedBox(height: 6),
+                      const Icon(Icons.add_rounded, color: AppColors.white, size: 26),
+                      const SizedBox(height: 6),
                       Text(
                         l10n.navAddListing,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
+                        style: const TextStyle(
+                          color: AppColors.white,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                           height: 1.2,
@@ -453,12 +450,13 @@ class _DesktopSidebar extends StatelessWidget {
               'darom-app.online',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.45),
+                color: AppColors.textSecondary,
                 fontSize: 12,
               ),
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -675,21 +673,19 @@ class _NavAddItem extends StatelessWidget {
                   height: 46,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: selected
-                          ? const [Color(0xFF66D9FF), AppColors.accent, Color(0xFF0088CC)]
-                          : const [Color(0xFF9AE6FF), AppColors.textSecondary, Color(0xFF4DB6AC)],
+                      colors: [AppColors.accent, AppColors.accentDark],
                     ),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.45),
+                      color: AppColors.accent.withOpacity(0.25),
                       width: 2,
                     ),
                   ),
                   child: const Icon(
                     Icons.add_rounded,
-                    color: Colors.white,
+                    color: AppColors.white,
                     size: 26,
                   ),
                 ),
