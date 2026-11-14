@@ -86,6 +86,36 @@
   </style>
 </head>
 <body>
+  <script>
+    (function () {
+      var BUILD_ID = '20261114-7';
+      var STORAGE_KEY = 'darom_web_build';
+      try {
+        if (localStorage.getItem(STORAGE_KEY) !== BUILD_ID) {
+          localStorage.setItem(STORAGE_KEY, BUILD_ID);
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              Promise.all(regs.map(function (r) { return r.unregister(); })).then(function () {
+                if (window.caches && caches.keys) {
+                  caches.keys().then(function (keys) {
+                    return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+                  }).finally(function () {
+                    if (!sessionStorage.getItem('darom_sw_reset_done')) {
+                      sessionStorage.setItem('darom_sw_reset_done', '1');
+                      location.reload();
+                    }
+                  });
+                } else if (!sessionStorage.getItem('darom_sw_reset_done')) {
+                  sessionStorage.setItem('darom_sw_reset_done', '1');
+                  location.reload();
+                }
+              });
+            });
+          }
+        }
+      } catch (e) { /* private mode */ }
+    })();
+  </script>
   <div id="darom-splash" aria-live="polite">
     <div class="splash-gradient"></div>
     <div class="splash-spinner" role="progressbar" aria-label="Загрузка"></div>
@@ -119,9 +149,16 @@
         }
       }, 1000);
 
-      window.addEventListener('error', function () {
+      function showLoadError(msg) {
         if (!splashText || hidden) return;
-        splashText.textContent = 'Загрузка приложения…';
+        splashText.textContent = msg;
+        splashText.style.color = '#1E293B';
+        splashText.style.maxWidth = '320px';
+        splashText.style.lineHeight = '1.5';
+      }
+
+      window.addEventListener('error', function () {
+        showLoadError('Ошибка загрузки. Нажмите Ctrl+Shift+R или откройте сайт в режиме инкогнито.');
       });
 
       window.addEventListener('pagehide', function () {
@@ -159,11 +196,13 @@
           window.daromHideSplash();
         } else if (pollTicks >= 120) {
           clearInterval(pollTimer);
-          window.daromHideSplash();
+          if (!flutterMounted()) {
+            showLoadError('Приложение не загрузилось. Обновите страницу: Ctrl+Shift+R (жёсткое обновление).');
+          }
         }
       }, 250);
     })();
   </script>
-  <script src="flutter_bootstrap.js?v=20261114-6" defer></script>
+  <script src="flutter_bootstrap.js?v=20261114-7" defer></script>
 </body>
 </html>
