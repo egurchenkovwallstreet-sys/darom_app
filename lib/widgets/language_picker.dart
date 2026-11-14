@@ -48,7 +48,7 @@ class _LanguageWelcomeScreenState extends State<LanguageWelcomeScreen> {
                 l10n.languageWelcomeTitle,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
@@ -58,7 +58,7 @@ class _LanguageWelcomeScreenState extends State<LanguageWelcomeScreen> {
                 l10n.languageWelcomeSubtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.75),
+                  color: AppColors.textSecondary,
                   fontSize: 15,
                   height: 1.35,
                 ),
@@ -128,7 +128,7 @@ class _LanguageOption extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.95),
+                  color: AppColors.textPrimary,
                   fontSize: 18,
                   fontWeight: selected ? FontWeight.bold : FontWeight.w500,
                 ),
@@ -153,14 +153,14 @@ Future<void> showLanguagePickerDialog(BuildContext context) async {
       return StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            backgroundColor: AppColors.textPrimary,
+            backgroundColor: AppColors.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: AppColors.accent, width: 2),
+              side: BorderSide(color: AppColors.accent.withOpacity(0.35), width: 1.5),
             ),
             title: Text(
               l10n.languageTitle,
-              style: const TextStyle(color: Colors.white, fontSize: 18),
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 18),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -233,12 +233,12 @@ class _DialogLanguageTile extends StatelessWidget {
           color: selected ? AppColors.accent : AppColors.accent.withOpacity(0.3),
         ),
       ),
-      tileColor: AppColors.textPrimary,
+      tileColor: AppColors.backgroundStart,
       leading: Icon(
         selected ? Icons.check_circle : Icons.circle_outlined,
         color: selected ? AppColors.accent : AppColors.textSecondary,
       ),
-      title: Text(label, style: const TextStyle(color: Colors.white)),
+      title: Text(label, style: const TextStyle(color: AppColors.textPrimary)),
     );
   }
 }

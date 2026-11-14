@@ -107,7 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           : null,
                       color: _currentPage == index
                           ? null
-                          : Color(0xFFFFFFFF).withOpacity(0.2),
+                          : AppColors.textSecondary.withOpacity(0.25),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                         color: AppColors.accent,
@@ -240,10 +240,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFFFFFFFF),
+                color: AppColors.textPrimary,
                 shadows: [
                   Shadow(
-                    color: AppColors.accent.withOpacity(0.6),
+                    color: AppColors.accent.withOpacity(0.2),
                     offset: Offset(0, 4),
                     blurRadius: 8,
                   ),
@@ -281,9 +281,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Color(0xFFFFFFFF),
+                  color: AppColors.textPrimary,
                   height: 1.6,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
