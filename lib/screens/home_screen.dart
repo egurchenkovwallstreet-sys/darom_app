@@ -15,6 +15,7 @@ import '../data/app_categories.dart';
 import '../data/map_radius_options.dart';
 import '../utils/instant_on_web.dart';
 import '../utils/map_marker_spread.dart';
+import '../widgets/glass_surface.dart';
 import '../widgets/listing_tile_card.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/osm_map_widget.dart';
@@ -48,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const double _categoryChipHeight = 43.2; // 36 + 20%
   static const double _categoryIconSize = 21.6; // 18 + 20%
   static const double _categoryFontSize = 14.0;
+  static const double _mapPreviewHeight = 280;
 
   int _radiusIndex = 2;
   int _pressedRadiusIndex = -1;
@@ -356,375 +358,557 @@ class _HomeScreenState extends State<HomeScreen> {
     return MidnightGlowScreen(child: content);
   }
 
+  double get _scrollBottomPadding => widget.inShell ? 100 : 24;
+
   Widget _buildContent() {
     final l10n = AppLocalizations.of(context);
 
-    return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    child: TextField(
-                      controller: _searchController,
-                      style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 14),
-                      textInputAction: TextInputAction.search,
-                      onSubmitted: (_) => _runSearch(),
-                      onChanged: (_) {
-                        if (_searchController.text.isEmpty && _showSearchResults) {
-                          _clearSearch();
-                        } else {
-                          setState(() {});
-                        }
-                      },
-                      decoration: InputDecoration(
-                        isDense: true,
-                        filled: true,
-                        fillColor: const Color(0xFF001F3F).withOpacity(0.9),
-                        hintText: l10n.searchHint,
-                        hintStyle: TextStyle(
-                          color: const Color(0xFFFFFFFF).withOpacity(0.45),
-                          fontSize: 13,
-                        ),
-                        prefixIcon: const Icon(Icons.search, color: Color(0xFF00BFFF), size: 20),
-                        prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 36),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear, color: Color(0xFF80DEEA), size: 18),
-                                onPressed: _clearSearch,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                              )
-                            : null,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        enabledBorder: _searchFieldBorder,
-                        focusedBorder: _searchFieldBorder.copyWith(
-                          borderSide: const BorderSide(color: Color(0xFF80DEEA), width: 1.5),
-                        ),
-                      ),
+    final slivers = <Widget>[
+      _buildHomeSliverAppBar(l10n),
+      if (_showSearchResults) ..._buildSearchModeSlivers(l10n) else ..._buildMainModeSlivers(l10n),
+      SliverPadding(padding: EdgeInsets.only(bottom: _scrollBottomPadding)),
+    ];
+
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      slivers: slivers,
+    );
+  }
+
+  SliverAppBar _buildHomeSliverAppBar(AppLocalizations l10n) {
+    final greeting = widget.userName.trim().isNotEmpty ? widget.userName.trim() : 'Даром';
+
+    return SliverAppBar(
+      pinned: true,
+      floating: true,
+      snap: true,
+      stretch: true,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      expandedHeight: 100,
+      backgroundColor: const Color(0xFF001F3F).withOpacity(0.25),
+      surfaceTintColor: Colors.transparent,
+      flexibleSpace: FlexibleSpaceBar(
+        collapseMode: CollapseMode.parallax,
+        titlePadding: const EdgeInsetsDirectional.only(start: 16, bottom: 56),
+        title: Text(
+          greeting,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.92),
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
+        ),
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(52),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: _buildSearchField(l10n),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchField(AppLocalizations l10n) {
+    return TextField(
+      controller: _searchController,
+      style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 14),
+      textInputAction: TextInputAction.search,
+      onSubmitted: (_) => _runSearch(),
+      onChanged: (_) {
+        if (_searchController.text.isEmpty && _showSearchResults) {
+          _clearSearch();
+        } else {
+          setState(() {});
+        }
+      },
+      decoration: InputDecoration(
+        isDense: true,
+        filled: true,
+        fillColor: const Color(0xFF001F3F).withOpacity(0.55),
+        hintText: l10n.searchHint,
+        hintStyle: TextStyle(
+          color: const Color(0xFFFFFFFF).withOpacity(0.45),
+          fontSize: 13,
+        ),
+        prefixIcon: const Icon(Icons.search, color: Color(0xFF00BFFF), size: 20),
+        prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 36),
+        suffixIcon: _searchController.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.clear, color: Color(0xFF80DEEA), size: 18),
+                onPressed: _clearSearch,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              )
+            : null,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        enabledBorder: _searchFieldBorder,
+        focusedBorder: _searchFieldBorder.copyWith(
+          borderSide: const BorderSide(color: Color(0xFF80DEEA), width: 1.5),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildSearchModeSlivers(AppLocalizations l10n) {
+    final slivers = <Widget>[];
+
+    if (_searchError != null) {
+      slivers.add(
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                _searchError!,
+                style: const TextStyle(color: Color(0xFFFF5722), fontSize: 13),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_lastSearchQuery != null && !_isSearching && _searchError == null) {
+      slivers.add(
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                _searchResults.isEmpty
+                    ? l10n.searchNothingFound(_lastSearchQuery!)
+                    : l10n.searchFoundCount(_searchResults.length),
+                style: TextStyle(
+                  color: const Color(0xFF00BFFF).withOpacity(0.95),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_isSearching) {
+      slivers.add(
+        const SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+          ),
+        ),
+      );
+      return slivers;
+    }
+
+    slivers.add(
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final listing = _searchResults[index];
+              return _buildAnimatedListingTile(index, listing);
+            },
+            childCount: _searchResults.length,
+          ),
+        ),
+      ),
+    );
+
+    return slivers;
+  }
+
+  List<Widget> _buildMainModeSlivers(AppLocalizations l10n) {
+    final slivers = <Widget>[
+      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
+      SliverToBoxAdapter(child: _buildMapListToggle(l10n)),
+      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
+      SliverToBoxAdapter(child: _buildRadiusPanel(l10n)),
+      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
+    ];
+
+    if (_locationHint != null) {
+      slivers.add(
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _locationHint!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFFFFFFFF).withOpacity(0.6),
                     ),
                   ),
+                ),
+                TextButton(
+                  onPressed: _loadingLocation ? null : _retryLocation,
+                  child: Text(
+                    l10n.repeatButton,
+                    style: const TextStyle(
+                      color: Color(0xFF00BFFF),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
-                  if (_showSearchResults) ...[
-                    if (_searchError != null)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            _searchError!,
-                            style: const TextStyle(color: Color(0xFFFF5722), fontSize: 13),
-                          ),
-                        ),
-                      ),
-                    if (_lastSearchQuery != null && !_isSearching && _searchError == null)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            _searchResults.isEmpty
-                                ? l10n.searchNothingFound(_lastSearchQuery!)
-                                : l10n.searchFoundCount(_searchResults.length),
-                            style: TextStyle(
-                              color: const Color(0xFF00BFFF).withOpacity(0.95),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    Expanded(child: _buildSearchResults()),
-                  ] else ...[
+    if (_listingsError != null) {
+      slivers.add(
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, _blockGap, 16, 0),
+            child: Text(
+              _listingsError!,
+              style: const TextStyle(fontSize: 12, color: Color(0xFFFF5722)),
+            ),
+          ),
+        ),
+      );
+    }
 
-                  animateUnlessWeb(
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+    slivers.add(SliverToBoxAdapter(child: SizedBox(height: _blockGap)));
+
+    if (_showListView) {
+      slivers.addAll(_buildNearbyListSlivers());
+    } else {
+      slivers.add(
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverToBoxAdapter(
+            child: SizedBox(
+              height: _mapPreviewHeight,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: _buildMapPreview(),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      if (_selectedListing != null) {
+        slivers.add(
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, _blockGap, 16, 0),
+              child: _buildSelectedListingCard(),
+            ),
+          ),
+        );
+      }
+
+      if (_loadingListings) {
+        slivers.add(
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: _blockGap),
+              child: Center(
+                child: SizedBox(
+                  height: 18,
+                  width: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Color(0xFF00BFFF),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    slivers.addAll([
+      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              l10n.categories,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFFFFFFF),
+              ),
+            ),
+          ),
+        ),
+      ),
+      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
+      SliverToBoxAdapter(
+        child: SizedBox(
+          height: _categoryChipHeight,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: _categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: _blockGap),
+            itemBuilder: (context, index) => _buildCategoryChip(index),
+          ),
+        ),
+      ),
+      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
+    ]);
+
+    return slivers;
+  }
+
+  Widget _buildMapListToggle(AppLocalizations l10n) {
+    final toggle = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GlassSurface(
+        borderRadius: 20,
+        blurSigma: 12,
+        fillOpacity: 0.35,
+        padding: const EdgeInsets.all(4),
+        child: SizedBox(
+          height: 36,
+          child: Row(
+            children: [
+              Expanded(child: _mapListSegment(l10n.tabMap, selected: !_showListView, onTap: () => setState(() => _showListView = false), pressed: _pressedMapButton, onPressDown: () => setState(() => _pressedMapButton = true), onPressUp: () => setState(() => _pressedMapButton = false))),
+              const SizedBox(width: 4),
+              Expanded(child: _mapListSegment(l10n.tabList, selected: _showListView, onTap: () => setState(() => _showListView = true), pressed: _pressedListButton, onPressDown: () => setState(() => _pressedListButton = true), onPressUp: () => setState(() => _pressedListButton = false))),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    return animateUnlessWeb(
+      toggle,
+      (child) => child
+          .animate(delay: const Duration(milliseconds: 200))
+          .fadeIn(duration: const Duration(milliseconds: 600), curve: Curves.easeOutCubic)
+          .slideY(begin: -0.15, end: 0, curve: Curves.fastOutSlowIn),
+    );
+  }
+
+  Widget _mapListSegment(
+    String label, {
+    required bool selected,
+    required VoidCallback onTap,
+    required bool pressed,
+    required VoidCallback onPressDown,
+    required VoidCallback onPressUp,
+  }) {
+    return GestureDetector(
+      onTapDown: (_) => onPressDown(),
+      onTapUp: (_) => onPressUp(),
+      onTapCancel: onPressUp,
+      onTap: onTap,
+      child: AnimatedScale(
+        scale: pressed ? 1.06 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutCubic,
+        child: Container(
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFF00BFFF) : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: selected ? Colors.white : const Color(0xFFFFFFFF).withOpacity(0.7),
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRadiusPanel(AppLocalizations l10n) {
+    final panel = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GlassSurface(
+        borderRadius: 20,
+        blurSigma: 12,
+        fillOpacity: 0.35,
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Text(
+                  l10n.radiusLabel,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Color(0xFFFFFFFF),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _radiusLabels[_radiusIndex],
+                    style: const TextStyle(
+                      color: Color(0xFF00BFFF),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                _buildRadiusCountBadge(),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: List.generate(
+                _radiusButtonLabels.length,
+                (index) => Expanded(
+                  child: GestureDetector(
+                    onTapDown: (_) => setState(() => _pressedRadiusIndex = index),
+                    onTapUp: (_) {
+                      setState(() {
+                        _pressedRadiusIndex = -1;
+                        _radiusIndex = index;
+                      });
+                      _loadNearbyListings();
+                    },
+                    onTapCancel: () => setState(() => _pressedRadiusIndex = -1),
+                    child: AnimatedScale(
+                      scale: _pressedRadiusIndex == index ? 1.08 : 1.0,
+                      duration: const Duration(milliseconds: 150),
+                      curve: Curves.easeOutCubic,
                       child: Container(
-                        height: 36,
+                        height: 32,
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
-                          color: Color(0xFF001F3F).withOpacity(0.85),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: Color(0xFF00BFFF), width: 1.5),
+                          color: _radiusIndex == index
+                              ? const Color(0xFF00BFFF)
+                              : const Color(0xFF008C8C).withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(7),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTapDown: (_) => setState(() => _pressedMapButton = true),
-                                onTapUp: (_) => setState(() => _pressedMapButton = false),
-                                onTapCancel: () => setState(() => _pressedMapButton = false),
-                                onTap: () => setState(() => _showListView = false),
-                                child: AnimatedScale(
-                                  scale: _pressedMapButton ? 1.08 : 1.0,
-                                  duration: Duration(milliseconds: 150),
-                                  curve: Curves.easeOut,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: !_showListView
-                                          ? Color(0xFF00BFFF)
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        l10n.tabMap,
-                                        style: TextStyle(
-                                          color: !_showListView
-                                              ? Colors.white
-                                              : Color(0xFFFFFFFF).withOpacity(0.7),
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 4),
-                            Expanded(
-                              child: GestureDetector(
-                                onTapDown: (_) => setState(() => _pressedListButton = true),
-                                onTapUp: (_) => setState(() => _pressedListButton = false),
-                                onTapCancel: () => setState(() => _pressedListButton = false),
-                                onTap: () => setState(() => _showListView = true),
-                                child: AnimatedScale(
-                                  scale: _pressedListButton ? 1.08 : 1.0,
-                                  duration: Duration(milliseconds: 150),
-                                  curve: Curves.easeOut,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: _showListView
-                                          ? Color(0xFF00BFFF)
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        l10n.tabList,
-                                        style: TextStyle(
-                                          color: _showListView
-                                              ? Colors.white
-                                              : Color(0xFFFFFFFF).withOpacity(0.7),
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    (child) => child
-                        .animate(
-                          delay: Duration(milliseconds: 300),
-                        )
-                        .fadeIn(duration: Duration(milliseconds: 800))
-                        .slideY(begin: -0.3, end: 0),
-                  ),
-                  SizedBox(height: _blockGap),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                      decoration: BoxDecoration(
-                        color: Color(0xFF001F3F).withOpacity(0.85),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Color(0xFF00BFFF), width: 1.5),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                        l10n.radiusLabel,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                  color: Color(0xFFFFFFFF),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  _radiusLabels[_radiusIndex],
-                                  style: const TextStyle(
-                                    color: Color(0xFF00BFFF),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              _buildRadiusCountBadge(),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: List.generate(
-                              _radiusButtonLabels.length,
-                              (index) => Expanded(
-                                child: GestureDetector(
-                                  onTapDown: (_) => setState(() => _pressedRadiusIndex = index),
-                                  onTapUp: (_) {
-                                    setState(() {
-                                      _pressedRadiusIndex = -1;
-                                      _radiusIndex = index;
-                                    });
-                                    _loadNearbyListings();
-                                  },
-                                  onTapCancel: () => setState(() => _pressedRadiusIndex = -1),
-                                  child: AnimatedScale(
-                                    scale: _pressedRadiusIndex == index ? 1.08 : 1.0,
-                                    duration: const Duration(milliseconds: 150),
-                                    curve: Curves.easeOut,
-                                    child: Container(
-                                      height: 32,
-                                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                                      decoration: BoxDecoration(
-                                        color: _radiusIndex == index
-                                            ? const Color(0xFF00BFFF)
-                                            : const Color(0xFF008C8C).withOpacity(0.3),
-                                        borderRadius: BorderRadius.circular(7),
-                                      ),
-                                      child: Center(
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            _radiusButtonLabels[index],
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              color: _radiusIndex == index
-                                                  ? Colors.white
-                                                  : const Color(0xFFFFFFFF).withOpacity(0.85),
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: index == 4 ? 10 : 12,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                        .animate(
-                          delay: Duration(milliseconds: 500),
-                        )
-                        .fadeIn(duration: Duration(milliseconds: 800))
-                        .slideY(begin: -0.3, end: 0),
-                  ),
-                  SizedBox(height: _blockGap),
-
-                  if (_locationHint != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
                             child: Text(
-                              _locationHint!,
+                              _radiusButtonLabels[index],
+                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFFFFFFFF).withOpacity(0.6),
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: _loadingLocation ? null : _retryLocation,
-                            child: Text(
-                              l10n.repeatButton,
-                              style: TextStyle(
-                                color: Color(0xFF00BFFF),
-                                fontSize: 12,
+                                color: _radiusIndex == index
+                                    ? Colors.white
+                                    : const Color(0xFFFFFFFF).withOpacity(0.85),
                                 fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (_listingsError != null) ...[
-                    SizedBox(height: _blockGap),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        _listingsError!,
-                        style: const TextStyle(fontSize: 12, color: Color(0xFFFF5722)),
-                      ),
-                    ),
-                  ],
-                  SizedBox(height: _blockGap),
-
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: _showListView ? _buildNearbyListScroll() : _buildMapPreview(),
-                          ),
-                        ),
-                        if (_selectedListing != null && !_showListView) ...[
-                          SizedBox(height: _blockGap),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: _buildSelectedListingCard(),
-                          ),
-                        ],
-                        if (_loadingListings && !_showListView) ...[
-                          SizedBox(height: _blockGap),
-                          const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFF00BFFF),
-                            ),
-                          ),
-                        ],
-                        SizedBox(height: _blockGap),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              l10n.categories,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFFFFFFF),
+                                fontSize: index == 4 ? 10 : 12,
                               ),
                             ),
                           ),
                         ),
-                        SizedBox(height: _blockGap),
-                        SizedBox(
-                          height: _categoryChipHeight,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: _categories.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: _blockGap),
-                            itemBuilder: (context, index) => _buildCategoryChip(index),
-                          ),
-                        ),
-                        SizedBox(height: _blockGap),
-                      ],
+                      ),
                     ),
                   ),
-                  ],
-                ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return animateUnlessWeb(
+      panel,
+      (child) => child
+          .animate(delay: const Duration(milliseconds: 320))
+          .fadeIn(duration: const Duration(milliseconds: 600), curve: Curves.easeOutCubic)
+          .slideY(begin: -0.15, end: 0, curve: Curves.fastOutSlowIn),
+    );
+  }
+
+  List<Widget> _buildNearbyListSlivers() {
+    if (_loadingListings) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverToBoxAdapter(
+            child: SizedBox(height: 200, child: _buildMapPlaceholder(_l10n.loadingListings)),
+          ),
+        ),
+      ];
+    }
+
+    if (_nearbyListings.isEmpty) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverToBoxAdapter(
+            child: SizedBox(
+              height: 200,
+              child: _buildMapPlaceholder(
+                _isAllListingsMode
+                    ? _l10n.noListingsOnMap
+                    : _l10n.noListingsInRadius(_radiusLabels[_radiusIndex]),
+              ),
+            ),
+          ),
+        ),
+      ];
+    }
+
+    final items = _nearbyListings.take(8).toList();
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => _buildAnimatedListingTile(index, items[index]),
+            childCount: items.length,
+          ),
+        ),
+      ),
+    ];
+  }
+
+  Widget _buildAnimatedListingTile(int index, Listing listing) {
+    final card = Padding(
+      padding: const EdgeInsets.only(bottom: _blockGap),
+      child: ListingTileCard(
+        listing: listing,
+        phoneNumber: widget.phoneNumber,
+        isFavorite: _favoriteIds.contains(listing.id),
+        usePremiumGlass: true,
+        onFavoriteChanged: (isFavorite) {
+          setState(() {
+            if (isFavorite) {
+              _favoriteIds.add(listing.id);
+            } else {
+              _favoriteIds.remove(listing.id);
+            }
+          });
+        },
+        onTap: () => _openListing(listing),
+      ),
+    );
+
+    return animateUnlessWeb(
+      card,
+      (child) => child
+          .animate(delay: Duration(milliseconds: 55 * index))
+          .fadeIn(duration: const Duration(milliseconds: 480), curve: Curves.easeOutCubic)
+          .slideY(begin: 0.12, end: 0, curve: Curves.fastOutSlowIn),
     );
   }
 
@@ -783,13 +967,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSelectedListingCard() {
     final listing = _selectedListing!;
-    return Container(
+    return GlassSurface(
+      borderRadius: 20,
+      borderWidth: 1.5,
+      borderColor: const Color(0xFF00BFFF),
+      fillOpacity: 0.42,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.9),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
-      ),
       child: Row(
         children: [
           const Icon(Icons.card_giftcard, color: Color(0xFF00BFFF), size: 22),
@@ -823,44 +1006,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNearbyListScroll() {
-    if (_loadingListings) {
-      return _buildMapPlaceholder(_l10n.loadingListings);
-    }
-
-    if (_nearbyListings.isEmpty) {
-      return _buildMapPlaceholder(
-        _isAllListingsMode
-            ? _l10n.noListingsOnMap
-            : _l10n.noListingsInRadius(_radiusLabels[_radiusIndex]),
-      );
-    }
-
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: _nearbyListings.take(8).map((listing) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: _blockGap),
-          child: ListingTileCard(
-            listing: listing,
-            phoneNumber: widget.phoneNumber,
-            isFavorite: _favoriteIds.contains(listing.id),
-            onFavoriteChanged: (isFavorite) {
-              setState(() {
-                if (isFavorite) {
-                  _favoriteIds.add(listing.id);
-                } else {
-                  _favoriteIds.remove(listing.id);
-                }
-              });
-            },
-            onTap: () => _openListing(listing),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
   void _openCategory(int index) {
     Navigator.push(
       context,
@@ -887,70 +1032,37 @@ class _HomeScreenState extends State<HomeScreen> {
         scale: _pressedCategoryIndex == index ? 1.04 : 1.0,
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOut,
-        child: Container(
-          height: _categoryChipHeight,
+        child: GlassSurface(
+          borderRadius: 16,
+          blurSigma: 10,
+          borderColor: AppColors.categoryIcon,
+          fillOpacity: 0.38,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF001F3F).withOpacity(0.85),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AppColors.categoryIcon, width: 1.5),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                _categoryIcons[index],
-                size: _categoryIconSize,
-                color: AppColors.categoryIcon,
-              ),
-              const SizedBox(width: 7),
-              Text(
-                _l10n.categoryLabel(_categories[index]),
-                style: const TextStyle(
-                  fontSize: _categoryFontSize,
-                  fontWeight: FontWeight.bold,
+          child: SizedBox(
+            height: _categoryChipHeight - 2,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _categoryIcons[index],
+                  size: _categoryIconSize,
                   color: AppColors.categoryIcon,
-                  height: 1.1,
                 ),
-              ),
-            ],
+                const SizedBox(width: 7),
+                Text(
+                  _l10n.categoryLabel(_categories[index]),
+                  style: const TextStyle(
+                    fontSize: _categoryFontSize,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.categoryIcon,
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildSearchResults() {
-    if (_isSearching) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) {
-        final listing = _searchResults[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: ListingTileCard(
-            listing: listing,
-            phoneNumber: widget.phoneNumber,
-            isFavorite: _favoriteIds.contains(listing.id),
-            onFavoriteChanged: (isFavorite) {
-              setState(() {
-                if (isFavorite) {
-                  _favoriteIds.add(listing.id);
-                } else {
-                  _favoriteIds.remove(listing.id);
-                }
-              });
-            },
-            onTap: () => _openListing(listing),
-          ),
-        );
-      },
     );
   }
 
@@ -986,12 +1098,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMapPlaceholder(String message) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xFF001F3F).withOpacity(0.85),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Color(0xFF00BFFF), width: 2),
-      ),
+    return GlassSurface(
+      borderRadius: 24,
+      fillOpacity: 0.4,
       child: Center(
         child: Text(
           message,

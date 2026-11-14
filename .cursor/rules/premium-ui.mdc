@@ -1,0 +1,12 @@
+---
+description: Premium UI rules for Flutter
+globs: ["**/*.dart"]
+alwaysApply: true
+---
+# Правила дизайна
+- НИКОГДА не удаляй и не меняй существующие переменные состояния (State), вызовы API, Firebase, логику навигации и работу с бэкендом.
+- Меняй ТОЛЬКО визуальную часть (Widget tree, Decoration, Colors, Animations).
+- Используй пакет flutter_animate для плавных staggered-анимаций появления элементов (fade + slide).
+- Используй кастомные кривые (Curves.easeOutCubic, Curves.fastOutSlowIn) вместо стандартных.
+- Забудь про стандартные шрифты и дефолтные тени Material. Используй мягкие тени (большой blurRadius, низкая opacity) и градиенты.
+- Все кнопки должны иметь анимацию нажатия (scale).

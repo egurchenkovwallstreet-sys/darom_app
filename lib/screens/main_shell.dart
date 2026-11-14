@@ -15,6 +15,7 @@ import '../services/refresh_intervals.dart';
 import '../services/session_service.dart';
 import '../services/users_api.dart';
 import '../utils/responsive_layout.dart';
+import '../widgets/glass_surface.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/privacy_policy_update_dialog.dart';
 import '../widgets/responsive_page_frame.dart';
@@ -256,51 +257,51 @@ class _MainShellState extends State<MainShell> {
 
   Widget _buildMobileBottomNav(BuildContext context, AppLocalizations l10n) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final bottomPad = bottomInset > 0 ? bottomInset + 6 : 14.0;
 
-    return Container(
-      clipBehavior: Clip.none,
-      decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.95),
-        border: Border(
-          top: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.25)),
-        ),
-      ),
-      padding: EdgeInsets.only(top: 8, bottom: bottomInset > 0 ? bottomInset : 8),
-      child: SizedBox(
-        height: 62,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _NavItem(
-              icon: Icons.home_rounded,
-              label: l10n.navHome,
-              selected: _currentIndex == 0,
-              onTap: () => _onTabTap(0),
-            ),
-            _NavItem(
-              icon: Icons.favorite_rounded,
-              label: l10n.navFavorites,
-              selected: _currentIndex == 1,
-              onTap: () => _onTabTap(1),
-            ),
-            _NavAddItem(
-              selected: _currentIndex == 2,
-              onTap: () => _onTabTap(2),
-            ),
-            _NavItem(
-              icon: Icons.chat_bubble_rounded,
-              label: l10n.navChats,
-              selected: _currentIndex == 3,
-              badgeCount: _unreadChatCount,
-              onTap: () => _onTabTap(3),
-            ),
-            _NavItem(
-              icon: Icons.person_rounded,
-              label: l10n.navProfile,
-              selected: _currentIndex == 4,
-              onTap: () => _onTabTap(4),
-            ),
-          ],
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPad),
+      child: GlassSurface(
+        borderRadius: 28,
+        blurSigma: 18,
+        fillOpacity: 0.32,
+        padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+        child: SizedBox(
+          height: 62,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _NavItem(
+                icon: Icons.home_rounded,
+                label: l10n.navHome,
+                selected: _currentIndex == 0,
+                onTap: () => _onTabTap(0),
+              ),
+              _NavItem(
+                icon: Icons.favorite_rounded,
+                label: l10n.navFavorites,
+                selected: _currentIndex == 1,
+                onTap: () => _onTabTap(1),
+              ),
+              _NavAddItem(
+                selected: _currentIndex == 2,
+                onTap: () => _onTabTap(2),
+              ),
+              _NavItem(
+                icon: Icons.chat_bubble_rounded,
+                label: l10n.navChats,
+                selected: _currentIndex == 3,
+                badgeCount: _unreadChatCount,
+                onTap: () => _onTabTap(3),
+              ),
+              _NavItem(
+                icon: Icons.person_rounded,
+                label: l10n.navProfile,
+                selected: _currentIndex == 4,
+                onTap: () => _onTabTap(4),
+              ),
+            ],
+          ),
         ),
       ),
     );

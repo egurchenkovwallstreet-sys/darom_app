@@ -64,7 +64,13 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen>
     return Scaffold(
       backgroundColor: AppColors.darkBlue,
       resizeToAvoidBottomInset: false,
-      bottomNavigationBar: widget.bottomNavigationBar,
+      extendBody: widget.bottomNavigationBar != null,
+      bottomNavigationBar: widget.bottomNavigationBar != null
+          ? ColoredBox(
+              color: Colors.transparent,
+              child: widget.bottomNavigationBar,
+            )
+          : null,
       body: Stack(
         fit: StackFit.expand,
         children: [
