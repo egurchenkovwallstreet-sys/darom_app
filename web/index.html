@@ -11,12 +11,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Даром">
-  <link rel="apple-touch-icon" sizes="180x180" href="icons/Icon-192.png?v=4">
-  <link rel="apple-touch-icon" sizes="192x192" href="icons/Icon-192.png?v=4">
-  <link rel="apple-touch-icon" sizes="512x512" href="icons/Icon-512.png?v=4">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png?v=4">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/Icon-192.png?v=5">
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/Icon-192.png?v=5">
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/Icon-512.png?v=5">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png?v=5">
 
-  <link rel="icon" type="image/png" href="favicon.png?v=4"/>
+  <link rel="icon" type="image/png" href="favicon.png?v=5"/>
   <link rel="preload" href="flutter_bootstrap.js" as="script">
   <link rel="preload" href="main.dart.js" as="script">
 
@@ -29,7 +29,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #001F3F;
+      background-color: #FFF9F4;
     }
 
     #darom-splash {
@@ -52,7 +52,7 @@
     #darom-splash .splash-gradient {
       position: absolute;
       inset: 0;
-      background: linear-gradient(to bottom right, #001F3F, #008C8C, #00BFFF);
+      background: linear-gradient(to bottom, #FFF9F4, #FFECD9, #F5DFC8);
       z-index: 0;
     }
 
@@ -60,7 +60,7 @@
       position: relative;
       z-index: 2;
       margin-top: 24px;
-      color: rgba(255, 255, 255, 0.92);
+      color: rgba(80, 55, 40, 0.88);
       font-family: system-ui, -apple-system, Segoe UI, sans-serif;
       font-size: 16px;
       letter-spacing: 0.02em;
@@ -74,7 +74,7 @@
       width: 42px;
       height: 42px;
       border-radius: 50%;
-      border: 3px solid rgba(255, 255, 255, 0.25);
+      border: 3px solid rgba(0, 140, 140, 0.2);
       border-top-color: #00BFFF;
       animation: splash-spin 0.9s linear infinite;
     }
@@ -92,11 +92,9 @@
   </div>
   <script>
     (function () {
-      var DAROM_WEB_BUILD = '2026-11-14-3';
+      var DAROM_WEB_BUILD = '2026-11-14-4';
       var buildKey = 'darom_web_build';
-      var resetKey = 'darom_cache_reset_done';
-      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var sessionReadyKey = 'darom_web_ready_' + DAROM_WEB_BUILD;
 
       function lsGet(key) {
         try { return localStorage.getItem(key); } catch (e) { return null; }
@@ -111,16 +109,15 @@
         try { sessionStorage.setItem(key, value); } catch (e) {}
       }
 
-      var needsReset = lsGet(buildKey) !== DAROM_WEB_BUILD;
-      if (isIOS && lsGet(resetKey) !== DAROM_WEB_BUILD) {
-        needsReset = true;
+      if (ssGet(sessionReadyKey) === '1') {
+        return;
       }
 
-      if (needsReset && ssGet('darom_resetting') !== '1') {
-        ssSet('darom_resetting', '1');
-        lsSet(buildKey, DAROM_WEB_BUILD);
-        lsSet(resetKey, DAROM_WEB_BUILD);
+      var previousBuild = lsGet(buildKey);
+      var shouldMigrateCache = previousBuild !== null && previousBuild !== DAROM_WEB_BUILD;
 
+      if (shouldMigrateCache && ssGet('darom_resetting') !== '1') {
+        ssSet('darom_resetting', '1');
         var chain = Promise.resolve();
         if ('serviceWorker' in navigator) {
           chain = navigator.serviceWorker.getRegistrations().then(function (regs) {
@@ -133,10 +130,16 @@
             return Promise.all(keys.map(function (k) { return caches.delete(k); }));
           });
         });
-        chain.then(function () { location.reload(); });
+        chain.then(function () {
+          lsSet(buildKey, DAROM_WEB_BUILD);
+          location.reload();
+        });
         return;
       }
+
+      lsSet(buildKey, DAROM_WEB_BUILD);
       ssSet('darom_resetting', '0');
+      ssSet(sessionReadyKey, '1');
     })();
   </script>
   <script>
@@ -160,19 +163,16 @@
       var loadStarted = Date.now();
       var statusTimer = setInterval(function () {
         var sec = Math.round((Date.now() - loadStarted) / 1000);
-        if (sec >= 20 && splashText && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
-          splashText.textContent =
-            'На iPhone: Настройки → Safari → Дополнения → Данные сайтов → удалите darom-app.online, затем откройте сайт заново в Safari';
-        } else if (sec >= 8 && splashText) {
+        if (sec >= 8 && splashText) {
           splashText.textContent = 'Загрузка занимает больше обычного… Подождите ещё немного';
         } else if (sec >= 3 && splashText) {
-          splashText.textContent = 'Подготовка интерфейса…';
+          splashText.textContent = 'Загрузка приложения…';
         }
       }, 1000);
 
-      window.addEventListener('error', function (event) {
+      window.addEventListener('error', function () {
         if (!splashText || hidden) return;
-        splashText.textContent = 'Ошибка загрузки. Обновите страницу или проверьте интернет';
+        splashText.textContent = 'Загрузка приложения…';
       });
 
       window.addEventListener('pagehide', function () {
@@ -199,6 +199,6 @@
       }
     })();
   </script>
-  <script src="flutter_bootstrap.js?v=20261114-3" defer></script>
+  <script src="flutter_bootstrap.js?v=20261114-4" defer></script>
 </body>
 </html>
