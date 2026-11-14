@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../services/auth_api.dart';
 import '../widgets/auth_form_scroll.dart';
@@ -226,7 +227,7 @@ class _ResetPinVerifyScreenState extends State<ResetPinVerifyScreen> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
                   _error!,
-                  style: const TextStyle(color: Color(0xFFFF5722), fontSize: 14),
+                  style: const TextStyle(color: AppColors.danger, fontSize: 14),
                 ),
               ),
             if (_needsOtp) ...[
@@ -246,7 +247,7 @@ class _ResetPinVerifyScreenState extends State<ResetPinVerifyScreen> {
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+                  child: CircularProgressIndicator(color: AppColors.accent),
                 ),
               )
             else

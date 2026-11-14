@@ -66,7 +66,7 @@ class _ListingScreenState extends State<ListingScreen> {
       if (!mounted) return;
       setState(() => _listing = updated);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(success), backgroundColor: const Color(0xFF00BFFF)),
+        SnackBar(content: Text(success), backgroundColor: AppColors.accent),
       );
     } catch (error) {
       if (!mounted) return;
@@ -95,7 +95,7 @@ class _ListingScreenState extends State<ListingScreen> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error'), backgroundColor: const Color(0xFFFF5722)),
+        SnackBar(content: Text('$error'), backgroundColor: AppColors.danger),
       );
     } finally {
       if (mounted) setState(() => _isBusy = false);
@@ -115,7 +115,7 @@ class _ListingScreenState extends State<ListingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Сделка завершена!'),
-          backgroundColor: Color(0xFF00BFFF),
+          backgroundColor: AppColors.accent,
         ),
       );
       final deal = result.deal;
@@ -130,7 +130,7 @@ class _ListingScreenState extends State<ListingScreen> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error'), backgroundColor: const Color(0xFFFF5722)),
+        SnackBar(content: Text('$error'), backgroundColor: AppColors.danger),
       );
     } finally {
       if (mounted) setState(() => _isBusy = false);
@@ -143,7 +143,7 @@ class _ListingScreenState extends State<ListingScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF001F3F),
+        backgroundColor: AppColors.textPrimary,
         title: const Text('Пожаловаться?', style: TextStyle(color: Colors.white)),
         content: Text(
           'Жалоба на объявление «${_listing.title}». После 3 жалоб оно будет скрыто.',
@@ -156,7 +156,7 @@ class _ListingScreenState extends State<ListingScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Пожаловаться', style: TextStyle(color: Color(0xFFFF5722))),
+            child: const Text('Пожаловаться', style: TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
@@ -172,7 +172,7 @@ class _ListingScreenState extends State<ListingScreen> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.message), backgroundColor: const Color(0xFF00BFFF)),
+        SnackBar(content: Text(result.message), backgroundColor: AppColors.accent),
       );
       if (result.hidden) {
         Navigator.pop(context);
@@ -180,7 +180,7 @@ class _ListingScreenState extends State<ListingScreen> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error'), backgroundColor: const Color(0xFFFF5722)),
+        SnackBar(content: Text('$error'), backgroundColor: AppColors.danger),
       );
     } finally {
       if (mounted) setState(() => _isBusy = false);
@@ -193,7 +193,7 @@ class _ListingScreenState extends State<ListingScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF001F3F),
+        backgroundColor: AppColors.textPrimary,
         title: const Text('Удалить объявление?', style: TextStyle(color: Colors.white)),
         content: Text(
           '«${_listing.title}» будет скрыто из ленты. Это действие нельзя отменить.',
@@ -206,7 +206,7 @@ class _ListingScreenState extends State<ListingScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Удалить', style: TextStyle(color: Color(0xFFFF5722))),
+            child: const Text('Удалить', style: TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
@@ -224,14 +224,14 @@ class _ListingScreenState extends State<ListingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Объявление удалено'),
-          backgroundColor: Color(0xFF00BFFF),
+          backgroundColor: AppColors.accent,
         ),
       );
       Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error'), backgroundColor: const Color(0xFFFF5722)),
+        SnackBar(content: Text('$error'), backgroundColor: AppColors.danger),
       );
     } finally {
       if (mounted) setState(() => _isBusy = false);
@@ -280,7 +280,7 @@ class _ListingScreenState extends State<ListingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error is ChatsApiException ? error.message : '$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -346,11 +346,11 @@ class _ListingScreenState extends State<ListingScreen> {
               width: 45,
               height: 45,
               decoration: BoxDecoration(
-                color: const Color(0xFF001F3F).withOpacity(0.85),
+                color: AppColors.surface.withOpacity(0.92),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                border: Border.all(color: AppColors.accent, width: 2),
               ),
-              child: const Icon(Icons.arrow_back, color: Color(0xFF00BFFF)),
+              child: const Icon(Icons.arrow_back, color: AppColors.accent),
             ),
           ),
           const SizedBox(width: 15),
@@ -373,11 +373,11 @@ class _ListingScreenState extends State<ListingScreen> {
                 width: 45,
                 height: 45,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF001F3F).withOpacity(0.85),
+                  color: AppColors.surface.withOpacity(0.92),
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFFF5722).withOpacity(0.7), width: 2),
+                  border: Border.all(color: AppColors.danger.withOpacity(0.7), width: 2),
                 ),
-                child: const Icon(Icons.flag_outlined, color: Color(0xFFFF5722), size: 22),
+                child: const Icon(Icons.flag_outlined, color: AppColors.danger, size: 22),
               ),
             ),
           if (!_isOwner)
@@ -433,9 +433,9 @@ class _ListingScreenState extends State<ListingScreen> {
   Widget _buildTags() {
     return Row(
       children: [
-        _tag(_listing.category, const Color(0xFF00BFFF)),
+        _tag(_listing.category, AppColors.accent),
         const SizedBox(width: 8),
-        _tag(_listing.subcategory, const Color(0xFF008C8C)),
+        _tag(_listing.subcategory, AppColors.accentDark),
       ],
     );
   }
@@ -459,9 +459,9 @@ class _ListingScreenState extends State<ListingScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.85),
+        color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+        border: Border.all(color: AppColors.accent, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,7 +471,7 @@ class _ListingScreenState extends State<ListingScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF00BFFF),
+              color: AppColors.accent,
             ),
           ),
           const SizedBox(height: 10),
@@ -488,9 +488,9 @@ class _ListingScreenState extends State<ListingScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.85),
+        color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: const Color(0xFF008C8C), width: 2),
+        border: Border.all(color: AppColors.accentDark, width: 2),
       ),
       child: Row(
         children: [
@@ -498,7 +498,7 @@ class _ListingScreenState extends State<ListingScreen> {
             width: 56,
             height: 56,
             decoration: const BoxDecoration(
-              color: Color(0xFF00BFFF),
+              color: AppColors.accent,
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.person, color: Colors.white, size: 32),
@@ -545,7 +545,7 @@ class _ListingScreenState extends State<ListingScreen> {
                   '${_listing.authorLevel} • ${_listing.authorRating} ★',
                   style: TextStyle(
                     fontSize: 13,
-                    color: const Color(0xFFFFFFFF).withOpacity(0.75),
+                    color: AppColors.textPrimary.withOpacity(0.75),
                   ),
                 ),
               ],
@@ -560,15 +560,15 @@ class _ListingScreenState extends State<ListingScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.95),
+        color: AppColors.surface.withOpacity(0.95),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-        border: Border(top: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.3), width: 2)),
+        border: Border(top: BorderSide(color: AppColors.accent.withOpacity(0.3), width: 2)),
       ),
       child: _isBusy
           ? const Center(
               child: Padding(
                 padding: EdgeInsets.all(12),
-                child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+                child: CircularProgressIndicator(color: AppColors.accent),
               ),
             )
           : _buildActionButtons(),
@@ -676,7 +676,7 @@ class _ListingScreenState extends State<ListingScreen> {
       _listing.isReserved ? 'Объявление забронировано' : 'Объявление недоступно',
       textAlign: TextAlign.center,
       style: TextStyle(
-        color: const Color(0xFFFFFFFF).withOpacity(0.7),
+        color: AppColors.textPrimary.withOpacity(0.7),
         fontSize: 16,
       ),
     );

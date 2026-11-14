@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../services/users_api.dart';
 import '../widgets/midnight_glow_screen.dart';
@@ -50,7 +51,7 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF00BFFF)),
+                    icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.accent),
                   ),
                   const Expanded(
                     child: Text(
@@ -71,7 +72,7 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
-                      child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+                      child: CircularProgressIndicator(color: AppColors.accent),
                     );
                   }
 
@@ -170,9 +171,9 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.9),
+        color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF00BFFF).withOpacity(0.4)),
+        border: Border.all(color: AppColors.accent.withOpacity(0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,7 +181,7 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
           Text(
             title,
             style: const TextStyle(
-              color: Color(0xFF00BFFF),
+              color: AppColors.accent,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),

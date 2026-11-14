@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../models/listing.dart';
 import '../utils/founder_listing_style.dart';
@@ -33,7 +34,7 @@ class _ListingTileCardState extends State<ListingTileCard> {
 
   @override
   Widget build(BuildContext context) {
-    const defaultBorder = Color(0xFF00BFFF);
+    const defaultBorder = AppColors.accent;
     final border = FounderListingStyle.borderColor(widget.listing, defaultBorder);
 
     final content = Row(
@@ -63,7 +64,7 @@ class _ListingTileCardState extends State<ListingTileCard> {
                 '${widget.listing.category} · ${widget.listing.distanceKm} км',
                 style: TextStyle(
                   fontSize: 12,
-                  color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                  color: AppColors.textPrimary.withOpacity(0.7),
                 ),
               ),
             ],

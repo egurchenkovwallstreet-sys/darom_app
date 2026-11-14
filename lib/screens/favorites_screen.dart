@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../models/listing.dart';
 import '../services/favorites_api.dart';
@@ -83,7 +84,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 if (_future == null ||
                     snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+                    child: CircularProgressIndicator(color: AppColors.accent),
                   );
                 }
 
@@ -98,7 +99,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             snapshot.error.toString(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                              color: AppColors.textPrimary.withOpacity(0.7),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -127,14 +128,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           Icon(
                             Icons.favorite_border,
                             size: 64,
-                            color: const Color(0xFF00BFFF).withOpacity(0.5),
+                            color: AppColors.accent.withOpacity(0.5),
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'Пока пусто\nНажмите ❤️ на объявлении, чтобы сохранить',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                              color: AppColors.textPrimary.withOpacity(0.7),
                               height: 1.4,
                             ),
                           ),
@@ -145,7 +146,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 }
 
                 return RefreshIndicator(
-                  color: const Color(0xFF00BFFF),
+                  color: AppColors.accent,
                   onRefresh: () async => _reload(),
                   child: ListView.builder(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),

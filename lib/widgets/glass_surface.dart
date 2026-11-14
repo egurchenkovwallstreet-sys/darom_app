@@ -2,18 +2,21 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
+import '../theme/darom_decorations.dart';
+
 /// Полупрозрачная «стеклянная» панель с размытием фона.
 class GlassSurface extends StatelessWidget {
   const GlassSurface({
     super.key,
     required this.child,
-    this.borderRadius = 24,
-    this.blurSigma = 14,
+    this.borderRadius = DaromDecorations.cardRadius,
+    this.blurSigma = 12,
     this.padding,
     this.borderColor,
     this.fillColor,
-    this.fillOpacity = 0.28,
-    this.borderWidth = 1.2,
+    this.fillOpacity = 0.8,
+    this.borderWidth = 1,
     this.softShadow = true,
   });
 
@@ -30,8 +33,8 @@ class GlassSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(borderRadius);
-    final fill = fillColor ?? const Color(0xFF001F3F);
-    final border = borderColor ?? const Color(0xFF00BFFF);
+    final fill = fillColor ?? AppColors.surface;
+    final border = borderColor ?? AppColors.textSecondary;
 
     Widget panel = ClipRRect(
       borderRadius: radius,
@@ -41,7 +44,7 @@ class GlassSurface extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: radius,
             color: fill.withOpacity(fillOpacity),
-            border: Border.all(color: border.withOpacity(0.42), width: borderWidth),
+            border: Border.all(color: border.withOpacity(0.15), width: borderWidth),
           ),
           child: padding != null ? Padding(padding: padding!, child: child) : child,
         ),
@@ -53,13 +56,7 @@ class GlassSurface extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: radius,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.22),
-            blurRadius: 28,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        boxShadow: DaromDecorations.softShadow,
       ),
       child: panel,
     );

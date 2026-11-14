@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../services/auth_api.dart';
 import '../services/session_service.dart';
@@ -280,11 +281,11 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
     final showOtp = _started && (_needsOtp || _flashCallMode || !_mobileIdMode);
 
     return Dialog(
-      backgroundColor: const Color(0xFF001F3F),
+      backgroundColor: AppColors.textPrimary,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Color(0xFF00BFFF), width: 2),
+        side: const BorderSide(color: AppColors.accent, width: 2),
       ),
       child: KeyboardInsetPadding(
         child: ConstrainedBox(
@@ -308,7 +309,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                 ),
                 const SizedBox(height: 16),
                 if (_success) ...[
-                  const Icon(Icons.check_circle, color: Color(0xFF00BFFF), size: 56),
+                  const Icon(Icons.check_circle, color: AppColors.accent, size: 56),
                   const SizedBox(height: 12),
                   const Text(
                     'Теперь вам доступны все функции приложения!',
@@ -333,17 +334,17 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                       style: const TextStyle(color: Colors.white, fontSize: 18),
                       decoration: InputDecoration(
                         labelText: 'Номер телефона',
-                        labelStyle: const TextStyle(color: Color(0xFF80DEEA)),
+                        labelStyle: const TextStyle(color: AppColors.textSecondary),
                         filled: true,
                         fillColor: const Color(0xFF00152A),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF00BFFF)),
+                          borderSide: const BorderSide(color: AppColors.accent),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide:
-                              BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.5)),
+                              BorderSide(color: AppColors.accent.withOpacity(0.5)),
                         ),
                       ),
                     ),
@@ -353,7 +354,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                     Text(
                       _statusMessage!,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Color(0xFF80DEEA), fontSize: 14, height: 1.4),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.4),
                     ),
                   ],
                   if (_debugCode != null) ...[
@@ -363,14 +364,14 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                       decoration: BoxDecoration(
                         color: const Color(0xFF004466),
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                        border: Border.all(color: AppColors.accent, width: 2),
                       ),
                       child: Column(
                         children: [
                           const Text(
                             'Тестовый код (режим SMS_MOCK)',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
+                            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -409,7 +410,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                     Text(
                       _error!,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Color(0xFFFF5722), fontSize: 13),
+                      style: const TextStyle(color: AppColors.danger, fontSize: 13),
                     ),
                   ],
                   const SizedBox(height: 20),
@@ -419,7 +420,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                         onPressed: _loading ? null : () => Navigator.pop(context),
                         child: const Text(
                           'Отмена',
-                          style: TextStyle(color: Color(0xFF80DEEA)),
+                          style: TextStyle(color: AppColors.textSecondary),
                         ),
                       ),
                       const SizedBox(width: 8),

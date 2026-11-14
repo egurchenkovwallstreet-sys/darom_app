@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/app_localizations.dart';
@@ -43,7 +44,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.errAcceptOffer),
-          backgroundColor: Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
       return;
@@ -53,7 +54,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.errAcceptPrivacy),
-          backgroundColor: Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
       return;
@@ -64,7 +65,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.errInvalidPhone),
-          backgroundColor: Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
       return;
@@ -103,7 +104,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     } finally {
@@ -131,17 +132,17 @@ class _PhoneScreenState extends State<PhoneScreen> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                const Color(0xFF001F3F),
-                const Color(0xFF008C8C).withOpacity(0.3),
+                AppColors.textPrimary,
+                AppColors.accentDark.withOpacity(0.3),
               ],
             ),
             border: Border.all(
-              color: const Color(0xFF00BFFF),
+              color: AppColors.accent,
               width: 5,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF00BFFF).withOpacity(0.4),
+                color: AppColors.accent.withOpacity(0.4),
                 blurRadius: 40,
                 spreadRadius: 10,
                 offset: const Offset(0, 15),
@@ -151,7 +152,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
           child: const Icon(
             Icons.phone_android,
             size: 48,
-            color: Color(0xFF00BFFF),
+            color: AppColors.accent,
           ),
         )
             .animate(onPlay: (c) => c.repeat(reverse: true))
@@ -162,10 +163,10 @@ class _PhoneScreenState extends State<PhoneScreen> {
         form: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: const Color(0xFF001F3F).withOpacity(0.85),
+            color: AppColors.surface.withOpacity(0.92),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: const Color(0xFF00BFFF),
+              color: AppColors.accent,
               width: 3,
             ),
           ),
@@ -183,13 +184,13 @@ class _PhoneScreenState extends State<PhoneScreen> {
             decoration: InputDecoration(
               hintText: l10n.phoneHint,
               hintStyle: TextStyle(
-                color: const Color(0xFFFFFFFF).withOpacity(0.4),
+                color: AppColors.textPrimary.withOpacity(0.4),
                 fontSize: 18,
               ),
               border: InputBorder.none,
               prefixIcon: const Icon(
                 Icons.phone,
-                color: Color(0xFF00BFFF),
+                color: AppColors.accent,
                 size: 24,
               ),
             ),
@@ -266,12 +267,12 @@ class _PhoneNumberWarning extends StatelessWidget {
         color: const Color(0xFF00152A).withOpacity(0.95),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF00BFFF).withOpacity(0.65),
+          color: AppColors.accent.withOpacity(0.65),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00BFFF).withOpacity(0.12),
+            color: AppColors.accent.withOpacity(0.12),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

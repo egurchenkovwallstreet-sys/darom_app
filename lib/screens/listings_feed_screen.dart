@@ -104,11 +104,11 @@ class _ListingsFeedScreenState extends State<ListingsFeedScreen> {
                       width: 45,
                       height: 45,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF001F3F).withOpacity(0.85),
+                        color: AppColors.surface.withOpacity(0.92),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                        border: Border.all(color: AppColors.accent, width: 2),
                       ),
-                      child: const Icon(Icons.arrow_back, color: Color(0xFF00BFFF)),
+                      child: const Icon(Icons.arrow_back, color: AppColors.accent),
                     ),
                   ),
                   const SizedBox(width: 15),
@@ -128,7 +128,7 @@ class _ListingsFeedScreenState extends State<ListingsFeedScreen> {
                           widget.categoryName,
                           style: TextStyle(
                             fontSize: 14,
-                            color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                            color: AppColors.textPrimary.withOpacity(0.7),
                           ),
                         ),
                       ],
@@ -238,7 +238,7 @@ class _ErrorState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                color: AppColors.textPrimary.withOpacity(0.7),
               ),
             ),
             const SizedBox(height: 8),
@@ -247,7 +247,7 @@ class _ErrorState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: const Color(0xFFFFFFFF).withOpacity(0.5),
+                color: AppColors.textPrimary.withOpacity(0.5),
               ),
             ),
             const SizedBox(height: 20),
@@ -279,7 +279,7 @@ class _EmptyState extends StatelessWidget {
         'Пока нет объявлений в этой категории',
         style: TextStyle(
           fontSize: 16,
-          color: const Color(0xFFFFFFFF).withOpacity(0.7),
+          color: AppColors.textPrimary.withOpacity(0.7),
         ),
       ),
     );
@@ -416,7 +416,7 @@ class _ListingCardState extends State<_ListingCard> {
                       listing.description,
                       style: TextStyle(
                         fontSize: 13,
-                        color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                        color: AppColors.textPrimary.withOpacity(0.7),
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -441,7 +441,7 @@ class _ListingCardState extends State<_ListingCard> {
                           '${listing.authorRating}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: const Color(0xFFFFFFFF).withOpacity(0.8),
+                            color: AppColors.textPrimary.withOpacity(0.8),
                           ),
                         ),
                       ],

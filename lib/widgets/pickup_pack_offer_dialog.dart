@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../models/pickup_limit_info.dart';
 import '../services/users_api.dart';
@@ -16,7 +17,7 @@ Future<bool?> showPickupPackOfferDialog(
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF001F3F),
+        backgroundColor: AppColors.textPrimary,
         title: const Text('Лимит заборов', style: TextStyle(color: Colors.white)),
         content: Text(limitInfo.message, style: const TextStyle(color: Colors.white70)),
         actions: [
@@ -86,17 +87,17 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
     final upsell = widget.upsell;
 
     return Dialog(
-      backgroundColor: const Color(0xFF001F3F),
+      backgroundColor: AppColors.textPrimary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.5), width: 2),
+        side: BorderSide(color: AppColors.accent.withOpacity(0.5), width: 2),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.shopping_bag_outlined, color: Color(0xFF00BFFF), size: 40),
+            const Icon(Icons.shopping_bag_outlined, color: AppColors.accent, size: 40),
             const SizedBox(height: 12),
             Text(
               widget.limitInfo.message,
@@ -118,7 +119,7 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF00BFFF),
+                color: AppColors.accent,
               ),
             ),
             const SizedBox(height: 8),

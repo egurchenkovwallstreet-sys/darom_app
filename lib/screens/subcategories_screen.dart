@@ -111,11 +111,11 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                       width: 45,
                       height: 45,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF001F3F).withOpacity(0.85),
+                        color: AppColors.surface.withOpacity(0.92),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                        border: Border.all(color: AppColors.accent, width: 2),
                       ),
-                      child: const Icon(Icons.arrow_back, color: Color(0xFF00BFFF)),
+                      child: const Icon(Icons.arrow_back, color: AppColors.accent),
                     ),
                   ),
                   const SizedBox(width: 15),
@@ -128,7 +128,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFFFFFFFF),
+                            color: AppColors.textPrimary,
                             shadows: [
                               Shadow(
                                 color: AppColors.categoryIcon.withOpacity(0.6),
@@ -142,7 +142,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                           l10n.subcategoriesCount(subcategories.length),
                           style: TextStyle(
                             fontSize: 14,
-                            color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                            color: AppColors.textPrimary.withOpacity(0.7),
                           ),
                         ),
                       ],
@@ -153,7 +153,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
             ),
             Expanded(
               child: RefreshIndicator(
-                color: const Color(0xFF00BFFF),
+                color: AppColors.accent,
                 onRefresh: () => _refreshCounts(),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -227,10 +227,10 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
       decoration: BoxDecoration(
         color: count > 0
             ? AppColors.categoryIcon.withOpacity(0.25)
-            : const Color(0xFFFFFFFF).withOpacity(0.08),
+            : AppColors.textPrimary.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: count > 0 ? AppColors.categoryIcon : const Color(0xFFFFFFFF).withOpacity(0.2),
+          color: count > 0 ? AppColors.categoryIcon : AppColors.textPrimary.withOpacity(0.2),
         ),
       ),
       child: Text(
@@ -238,7 +238,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: count > 0 ? AppColors.categoryIcon : const Color(0xFFFFFFFF).withOpacity(0.5),
+          color: count > 0 ? AppColors.categoryIcon : AppColors.textPrimary.withOpacity(0.5),
         ),
       ),
     );
@@ -251,7 +251,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF001F3F).withOpacity(0.85),
+          color: AppColors.surface.withOpacity(0.92),
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
             color: AppColors.categoryIcon,
@@ -300,7 +300,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: const Color(0xFFFFFFFF).withOpacity(0.4),
+              color: AppColors.textPrimary.withOpacity(0.4),
               size: 20,
             ),
           ],

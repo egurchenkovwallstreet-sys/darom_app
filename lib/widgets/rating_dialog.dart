@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../services/deals_api.dart';
 import 'primary_action_button.dart';
@@ -20,10 +21,10 @@ Future<void> showRatingDialog(
       return StatefulBuilder(
         builder: (context, setState) {
           return Dialog(
-            backgroundColor: const Color(0xFF001F3F),
+            backgroundColor: AppColors.textPrimary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              side: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.5)),
+              side: BorderSide(color: AppColors.accent.withOpacity(0.5)),
             ),
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -44,7 +45,7 @@ Future<void> showRatingDialog(
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      color: const Color(0xFFFFFFFF).withOpacity(0.85),
+                      color: AppColors.textPrimary.withOpacity(0.85),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -82,7 +83,7 @@ Future<void> showRatingDialog(
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Спасибо за оценку!'),
-                              backgroundColor: Color(0xFF00BFFF),
+                              backgroundColor: AppColors.accent,
                             ),
                           );
                         }
@@ -91,7 +92,7 @@ Future<void> showRatingDialog(
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('$error'),
-                              backgroundColor: const Color(0xFFFF5722),
+                              backgroundColor: AppColors.danger,
                             ),
                           );
                         }
@@ -102,7 +103,7 @@ Future<void> showRatingDialog(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
                       'Пропустить',
-                      style: TextStyle(color: const Color(0xFFFFFFFF).withOpacity(0.6)),
+                      style: TextStyle(color: AppColors.textPrimary.withOpacity(0.6)),
                     ),
                   ),
                 ],

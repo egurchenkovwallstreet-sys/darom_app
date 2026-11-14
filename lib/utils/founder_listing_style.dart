@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/listing.dart';
 import '../theme/app_colors.dart';
+import '../theme/darom_decorations.dart';
 
 /// Визуальный приоритет объявлений основателей (первые 1000 пользователей).
 class FounderListingStyle {
@@ -11,7 +12,7 @@ class FounderListingStyle {
       listing.authorIsFounder && !listing.isReserved;
 
   static Color borderColor(Listing listing, Color defaultColor) {
-    if (listing.isReserved) return const Color(0xFF9E9E9E);
+    if (listing.isReserved) return AppColors.textSecondary;
     if (highlight(listing)) return AppColors.gold;
     return defaultColor;
   }
@@ -19,18 +20,18 @@ class FounderListingStyle {
   static Color backgroundColor(Listing listing) {
     if (highlight(listing)) {
       return Color.alphaBlend(
-        AppColors.gold.withOpacity(0.18),
-        const Color(0xFF001F3F).withOpacity(0.85),
+        AppColors.gold.withOpacity(0.12),
+        AppColors.surface.withOpacity(0.92),
       );
     }
-    return const Color(0xFF001F3F).withOpacity(0.85);
+    return AppColors.surface.withOpacity(0.92);
   }
 
   static BoxDecoration cardDecoration(
     Listing listing,
     Color defaultBorderColor, {
-    double borderWidth = 1.5,
-    double radius = 14,
+    double borderWidth = 1,
+    double radius = DaromDecorations.cardRadius,
   }) {
     return BoxDecoration(
       color: backgroundColor(listing),
@@ -39,6 +40,7 @@ class FounderListingStyle {
         color: borderColor(listing, defaultBorderColor),
         width: borderWidth,
       ),
+      boxShadow: DaromDecorations.softShadow,
     );
   }
 }

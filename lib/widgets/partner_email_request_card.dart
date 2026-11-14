@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -40,7 +41,7 @@ class PartnerEmailRequestCard extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Адрес почты скопирован'),
-          backgroundColor: Color(0xFF00BFFF),
+          backgroundColor: AppColors.accent,
           duration: Duration(seconds: 2),
         ),
       );
@@ -49,7 +50,7 @@ class PartnerEmailRequestCard extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: SelectableText(kPartnerRequestEmail),
-          backgroundColor: const Color(0xFF00BFFF),
+          backgroundColor: AppColors.accent,
           duration: const Duration(seconds: 5),
         ),
       );
@@ -64,7 +65,7 @@ class PartnerEmailRequestCard extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -75,12 +76,12 @@ class PartnerEmailRequestCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.9),
+        color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+        border: Border.all(color: AppColors.accent, width: 2),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00BFFF).withOpacity(0.25),
+            color: AppColors.accent.withOpacity(0.25),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -103,13 +104,13 @@ class PartnerEmailRequestCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.only(left: 12, top: 4, bottom: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF00BFFF).withOpacity(0.15),
+              color: AppColors.accent.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
+              border: Border.all(color: AppColors.accent, width: 1.5),
             ),
             child: Row(
               children: [
-                const Icon(Icons.mail_outline, color: Color(0xFF00BFFF), size: 20),
+                const Icon(Icons.mail_outline, color: AppColors.accent, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Material(
@@ -126,11 +127,11 @@ class PartnerEmailRequestCard extends StatelessWidget {
                             kPartnerRequestEmail,
                             maxLines: 1,
                             style: const TextStyle(
-                              color: Color(0xFF80DEEA),
+                              color: AppColors.textSecondary,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               decoration: TextDecoration.underline,
-                              decorationColor: Color(0xFF80DEEA),
+                              decorationColor: AppColors.textSecondary,
                             ),
                           ),
                         ),
@@ -145,7 +146,7 @@ class PartnerEmailRequestCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     child: const Padding(
                       padding: EdgeInsets.all(10),
-                      child: Icon(Icons.copy_rounded, color: Color(0xFF00BFFF), size: 22),
+                      child: Icon(Icons.copy_rounded, color: AppColors.accent, size: 22),
                     ),
                   ),
                 ),
@@ -157,7 +158,7 @@ class PartnerEmailRequestCard extends StatelessWidget {
             'Нажмите на почту — откроется приложение для письма',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: const Color(0xFFFFFFFF).withOpacity(0.55),
+              color: AppColors.textPrimary.withOpacity(0.55),
               fontSize: 12,
             ),
           ),

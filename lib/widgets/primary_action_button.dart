@@ -2,7 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-/// Основная кнопка Midnight Glow: градиент, тень, нажатие 1.08 и блик (shimmer).
+import '../theme/app_colors.dart';
+import '../theme/darom_decorations.dart';
+
+/// Основная кнопка: изумрудный акцент, мягкая тень, scale при нажатии.
 class PrimaryActionButton extends StatefulWidget {
   const PrimaryActionButton({
     super.key,
@@ -15,47 +18,36 @@ class PrimaryActionButton extends StatefulWidget {
     this.shadowColor,
     this.height = 60,
     this.fontSize = 20,
-    this.borderRadius = 30,
+    this.borderRadius = DaromDecorations.buttonRadius,
     this.icon,
     this.showShadow = true,
   });
 
   static const primaryGradient = [
-    Color(0xFF00BFFF),
-    Color(0xFF008C8C),
-    Color(0xFF001F3F),
+    AppColors.accent,
+    AppColors.accentDark,
   ];
 
-  static const primaryShortGradient = [
-    Color(0xFF00BFFF),
-    Color(0xFF008C8C),
-  ];
+  static const primaryShortGradient = primaryGradient;
 
   static const successGradient = [
-    Color(0xFF4CAF50),
-    Color(0xFF008C8C),
+    AppColors.accent,
+    AppColors.accentDark,
   ];
 
   static const warningGradient = [
-    Color(0xFFFFC107),
-    Color(0xFFFF5722),
+    AppColors.accentSecondary,
+    Color(0xFFFBBF24),
   ];
 
   static const dangerGradient = [
-    Color(0xFFFF5722),
-    Color(0xFF9E9E9E),
+    AppColors.danger,
+    Color(0xFFFCA5A5),
   ];
 
-  static const dangerDeepGradient = [
-    Color(0xFFFF5722),
-    Color(0xFFD32F2F),
-    Color(0xFFB71C1C),
-  ];
+  static const dangerDeepGradient = dangerGradient;
 
-  static const tealGradient = [
-    Color(0xFF008C8C),
-    Color(0xFF001F3F),
-  ];
+  static const tealGradient = primaryGradient;
 
   final String label;
   final VoidCallback? onPressed;
@@ -169,7 +161,7 @@ class _PrimaryActionButtonState extends State<PrimaryActionButton> {
                       style: TextStyle(
                         fontSize: widget.fontSize,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFFFFFFFF),
+                        color: AppColors.white,
                         shadows: const [
                           Shadow(
                             color: Color(0x4D000000),
@@ -191,7 +183,7 @@ class _PrimaryActionButtonState extends State<PrimaryActionButton> {
         .animate(onPlay: (controller) => controller.repeat())
         .shimmer(
           duration: 2.seconds,
-          color: const Color(0xFFFFFFFF).withOpacity(0.3),
+          color: AppColors.textPrimary.withOpacity(0.3),
         );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 /// Спрашивает, включить ли push. Кнопка «Включить» — жест пользователя для браузера.
 Future<bool?> showPushPermissionDialog(BuildContext context) {
@@ -6,14 +7,14 @@ Future<bool?> showPushPermissionDialog(BuildContext context) {
     context: context,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
-      backgroundColor: const Color(0xFF001F3F),
+      backgroundColor: AppColors.textPrimary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFF00BFFF), width: 2),
+        side: const BorderSide(color: AppColors.accent, width: 2),
       ),
       title: const Row(
         children: [
-          Icon(Icons.notifications_active_rounded, color: Color(0xFF00BFFF)),
+          Icon(Icons.notifications_active_rounded, color: AppColors.accent),
           SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -32,11 +33,11 @@ Future<bool?> showPushPermissionDialog(BuildContext context) {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Не сейчас', style: TextStyle(color: Color(0xFF80DEEA))),
+          child: const Text('Не сейчас', style: TextStyle(color: AppColors.textSecondary)),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Включить', style: TextStyle(color: Color(0xFF00BFFF))),
+          child: const Text('Включить', style: TextStyle(color: AppColors.accent)),
         ),
       ],
     ),

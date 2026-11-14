@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../services/auth_api.dart';
 import '../widgets/auth_form_scroll.dart';
@@ -73,7 +74,7 @@ class _SmsScreenState extends State<SmsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Введите 4 цифры кода'),
-          backgroundColor: Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
       return;
@@ -136,7 +137,7 @@ class _SmsScreenState extends State<SmsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     } finally {
@@ -156,21 +157,21 @@ class _SmsScreenState extends State<SmsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Новый тестовый код: ${result.debugCode}'),
-            backgroundColor: const Color(0xFF00BFFF),
+            backgroundColor: AppColors.accent,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Код отправлен повторно'),
-            backgroundColor: Color(0xFF00BFFF),
+            backgroundColor: AppColors.accent,
           ),
         );
       }
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error'), backgroundColor: const Color(0xFFFF5722)),
+        SnackBar(content: Text('$error'), backgroundColor: AppColors.danger),
       );
     }
   }
@@ -202,13 +203,13 @@ class _SmsScreenState extends State<SmsScreen> {
             shape: BoxShape.circle,
             gradient: LinearGradient(
               colors: [
-                const Color(0xFF001F3F),
-                const Color(0xFF008C8C).withOpacity(0.3),
+                AppColors.textPrimary,
+                AppColors.accentDark.withOpacity(0.3),
               ],
             ),
-            border: Border.all(color: const Color(0xFF00BFFF), width: 5),
+            border: Border.all(color: AppColors.accent, width: 5),
           ),
-          child: const Icon(Icons.sms, size: 60, color: Color(0xFF00BFFF)),
+          child: const Icon(Icons.sms, size: 60, color: AppColors.accent),
         ),
         form: Column(
           children: [
@@ -220,10 +221,10 @@ class _SmsScreenState extends State<SmsScreen> {
                 decoration: BoxDecoration(
                   color: const Color(0xFF004466),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                  border: Border.all(color: AppColors.accent, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF00BFFF).withOpacity(0.25),
+                      color: AppColors.accent.withOpacity(0.25),
                       blurRadius: 20,
                       spreadRadius: 2,
                     ),
@@ -234,7 +235,7 @@ class _SmsScreenState extends State<SmsScreen> {
                     const Text(
                       'Тестовый код регистрации',
                       style: TextStyle(
-                        color: Color(0xFF80DEEA),
+                        color: AppColors.textSecondary,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -266,7 +267,7 @@ class _SmsScreenState extends State<SmsScreen> {
               onPressed: _resend,
               child: const Text(
                 'Отправить код ещё раз',
-                style: TextStyle(color: Color(0xFF00BFFF)),
+                style: TextStyle(color: AppColors.accent),
               ),
             ),
             const SizedBox(height: 16),

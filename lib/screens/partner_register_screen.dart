@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../services/auth_api.dart';
 import '../services/partners_api.dart';
@@ -99,7 +100,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: const Color(0xFFFF5722)),
+      SnackBar(content: Text(message), backgroundColor: AppColors.danger),
     );
   }
 
@@ -111,7 +112,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
         compactSubtitle: 'Код партнёра и номер; подтверждение через Mobile ID (~3–6 ₽)',
         focusNode: _codeFocus,
         formKey: _formKey,
-        leading: const Icon(Icons.handshake_rounded, size: 72, color: Color(0xFF00BFFF)),
+        leading: const Icon(Icons.handshake_rounded, size: 72, color: AppColors.accent),
         form: Column(
           children: [
             const PartnerEmailRequestCard(),
@@ -120,7 +121,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
               'Если код уже получен — введите ниже',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: const Color(0xFFFFFFFF).withOpacity(0.65),
+                color: AppColors.textPrimary.withOpacity(0.65),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -129,9 +130,9 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF001F3F).withOpacity(0.85),
+                color: AppColors.surface.withOpacity(0.92),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF00BFFF), width: 3),
+                border: Border.all(color: AppColors.accent, width: 3),
               ),
               child: TextField(
                 controller: _codeController,
@@ -148,7 +149,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
                 decoration: const InputDecoration(
                   counterText: '',
                   border: InputBorder.none,
-                  prefixIcon: Icon(Icons.vpn_key, color: Color(0xFF00BFFF)),
+                  prefixIcon: Icon(Icons.vpn_key, color: AppColors.accent),
                 ),
               ),
             ),
@@ -156,9 +157,9 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF001F3F).withOpacity(0.85),
+                color: AppColors.surface.withOpacity(0.92),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF00BFFF), width: 3),
+                border: Border.all(color: AppColors.accent, width: 3),
               ),
               child: TextField(
                 controller: _phoneController,
@@ -174,11 +175,11 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
                 decoration: InputDecoration(
                   hintText: 'Номер телефона',
                   hintStyle: TextStyle(
-                    color: const Color(0xFFFFFFFF).withOpacity(0.4),
+                    color: AppColors.textPrimary.withOpacity(0.4),
                     fontSize: 18,
                   ),
                   border: InputBorder.none,
-                  prefixIcon: const Icon(Icons.phone, color: Color(0xFF00BFFF)),
+                  prefixIcon: const Icon(Icons.phone, color: AppColors.accent),
                 ),
               ),
             ),

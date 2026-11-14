@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 
 import 'add_listing_screen.dart';
 import 'chats_screen.dart';
@@ -122,7 +124,7 @@ class _MainShellState extends State<MainShell> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context).privacyConsentSaved),
-            backgroundColor: Color(0xFF00BFFF),
+            backgroundColor: AppColors.accent,
           ),
         );
       } catch (error) {
@@ -136,7 +138,7 @@ class _MainShellState extends State<MainShell> {
                   ? error.message
                   : AppLocalizations.of(context).errPrivacyConsentSave,
             ),
-            backgroundColor: const Color(0xFFFF5722),
+            backgroundColor: AppColors.danger,
           ),
         );
         await _showPrivacyConsentDialog();
@@ -258,9 +260,9 @@ class _MainShellState extends State<MainShell> {
   Widget _buildMobileBottomNav(BuildContext context, AppLocalizations l10n) {
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.only(bottom: 10),
+      minimum: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+        padding: const EdgeInsets.fromLTRB(DaromDecorations.screenPaddingH, 0, DaromDecorations.screenPaddingH, 8),
         child: GlassSurface(
           borderRadius: 28,
           blurSigma: 18,
@@ -329,9 +331,9 @@ class _DesktopSidebar extends StatelessWidget {
     return Container(
       width: 248,
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.95),
+        color: AppColors.surface.withOpacity(0.95),
         border: Border(
-          right: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.25)),
+          right: BorderSide(color: AppColors.accent.withOpacity(0.25)),
         ),
       ),
       child: Column(
@@ -348,7 +350,7 @@ class _DesktopSidebar extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF66D9FF), Color(0xFF00BFFF)],
+                      colors: [Color(0xFF66D9FF), AppColors.accent],
                     ),
                     border: Border.all(color: Colors.white.withOpacity(0.35)),
                   ),
@@ -393,7 +395,7 @@ class _DesktopSidebar extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Material(
               elevation: 6,
-              shadowColor: const Color(0xFF00BFFF).withOpacity(0.45),
+              shadowColor: AppColors.accent.withOpacity(0.45),
               borderRadius: BorderRadius.circular(14),
               color: Colors.transparent,
               child: InkWell(
@@ -405,8 +407,8 @@ class _DesktopSidebar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     gradient: LinearGradient(
                       colors: currentIndex == 2
-                          ? const [Color(0xFF66D9FF), Color(0xFF00BFFF), Color(0xFF0088CC)]
-                          : const [Color(0xFF9AE6FF), Color(0xFF80DEEA), Color(0xFF4DB6AC)],
+                          ? const [Color(0xFF66D9FF), AppColors.accent, Color(0xFF0088CC)]
+                          : const [Color(0xFF9AE6FF), AppColors.textSecondary, Color(0xFF4DB6AC)],
                     ),
                     border: Border.all(color: Colors.white.withOpacity(0.35)),
                   ),
@@ -479,13 +481,13 @@ class _DesktopNavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? const Color(0xFF00BFFF) : const Color(0xFF80DEEA);
+    final color = selected ? AppColors.accent : AppColors.textSecondary;
     final badgeLabel = badgeCount > 99 ? '99+' : '$badgeCount';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Material(
-        color: selected ? const Color(0xFF00BFFF).withOpacity(0.12) : Colors.transparent,
+        color: selected ? AppColors.accent.withOpacity(0.12) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: onTap,
@@ -510,7 +512,7 @@ class _DesktopNavTile extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                             constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF5722),
+                              color: AppColors.danger,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: Colors.white, width: 1.5),
                             ),
@@ -534,7 +536,7 @@ class _DesktopNavTile extends StatelessWidget {
                   child: Text(
                     badgeCount > 0 ? '$label ($badgeCount)' : label,
                     style: TextStyle(
-                      color: badgeCount > 0 ? const Color(0xFFFF5722) : color,
+                      color: badgeCount > 0 ? AppColors.danger : color,
                       fontSize: 15,
                       fontWeight: selected || badgeCount > 0 ? FontWeight.w600 : FontWeight.w500,
                     ),
@@ -566,7 +568,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? const Color(0xFF00BFFF) : const Color(0xFF80DEEA);
+    final color = selected ? AppColors.accent : AppColors.textSecondary;
     final badgeLabel = badgeCount > 99 ? '99+' : '$badgeCount';
 
     return Expanded(
@@ -594,7 +596,7 @@ class _NavItem extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                         constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF5722),
+                          color: AppColors.danger,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.white, width: 1.5),
                           boxShadow: const [
@@ -627,7 +629,7 @@ class _NavItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 10,
-                color: badgeCount > 0 ? const Color(0xFFFF5722) : color,
+                color: badgeCount > 0 ? AppColors.danger : color,
                 fontWeight: badgeCount > 0 || selected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -651,7 +653,7 @@ class _NavAddItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final accent = selected ? const Color(0xFF00BFFF) : const Color(0xFF80DEEA);
+    final accent = selected ? AppColors.accent : AppColors.textSecondary;
 
     return Expanded(
       child: Padding(
@@ -677,8 +679,8 @@ class _NavAddItem extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: selected
-                          ? const [Color(0xFF66D9FF), Color(0xFF00BFFF), Color(0xFF0088CC)]
-                          : const [Color(0xFF9AE6FF), Color(0xFF80DEEA), Color(0xFF4DB6AC)],
+                          ? const [Color(0xFF66D9FF), AppColors.accent, Color(0xFF0088CC)]
+                          : const [Color(0xFF9AE6FF), AppColors.textSecondary, Color(0xFF4DB6AC)],
                     ),
                     border: Border.all(
                       color: Colors.white.withOpacity(0.45),

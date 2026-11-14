@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../data/legal_consent.dart';
 import '../l10n/app_localizations.dart';
@@ -14,14 +15,14 @@ Future<bool?> showPrivacyPolicyUpdateDialog(BuildContext context) {
     context: context,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
-      backgroundColor: const Color(0xFF001F3F),
+      backgroundColor: AppColors.textPrimary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFF00BFFF), width: 2),
+        side: const BorderSide(color: AppColors.accent, width: 2),
       ),
       title: Row(
         children: [
-          const Icon(Icons.privacy_tip_outlined, color: Color(0xFF00BFFF)),
+          const Icon(Icons.privacy_tip_outlined, color: AppColors.accent),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -65,14 +66,14 @@ Future<bool?> showPrivacyPolicyUpdateDialog(BuildContext context) {
           onPressed: () => Navigator.pop(context, false),
           child: Text(
             l10n.logoutButton,
-            style: const TextStyle(color: Color(0xFF80DEEA)),
+            style: const TextStyle(color: AppColors.textSecondary),
           ),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
           child: Text(
             l10n.acceptButton,
-            style: const TextStyle(color: Color(0xFF00BFFF), fontWeight: FontWeight.w600),
+            style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -106,7 +107,7 @@ class _DocLink extends StatelessWidget {
         child: Text(
           label,
           style: const TextStyle(
-            color: Color(0xFF00BFFF),
+            color: AppColors.accent,
             fontWeight: FontWeight.w600,
           ),
         ),

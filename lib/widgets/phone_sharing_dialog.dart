@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../utils/phone_detect.dart';
 
@@ -7,14 +8,14 @@ Future<bool> confirmPhoneSharing(BuildContext context) {
   return showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      backgroundColor: const Color(0xFF001F3F),
+      backgroundColor: AppColors.textPrimary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFFF5722), width: 2),
+        side: const BorderSide(color: AppColors.danger, width: 2),
       ),
       title: const Row(
         children: [
-          Icon(Icons.warning_amber_rounded, color: Color(0xFFFF5722)),
+          Icon(Icons.warning_amber_rounded, color: AppColors.danger),
           SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -36,11 +37,11 @@ Future<bool> confirmPhoneSharing(BuildContext context) {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Отмена', style: TextStyle(color: Color(0xFF80DEEA))),
+          child: const Text('Отмена', style: TextStyle(color: AppColors.textSecondary)),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Отправить', style: TextStyle(color: Color(0xFFFF5722))),
+          child: const Text('Отправить', style: TextStyle(color: AppColors.danger)),
         ),
       ],
     ),
@@ -54,7 +55,7 @@ void showPhoneSharingReminder(BuildContext context) {
       content: Text(
         'Вы передали номер сами. Не переводите деньги и не сообщайте личные данные незнакомцам.',
       ),
-      backgroundColor: Color(0xFFFF5722),
+      backgroundColor: AppColors.danger,
       duration: Duration(seconds: 8),
     ),
   );

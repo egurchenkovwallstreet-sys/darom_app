@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../models/listing.dart';
 import '../services/listings_api.dart';
@@ -40,7 +41,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   static const _fieldBorder = OutlineInputBorder(
     borderRadius: BorderRadius.all(Radius.circular(14)),
-    borderSide: BorderSide(color: Color(0xFF00BFFF), width: 2),
+    borderSide: BorderSide(color: AppColors.accent, width: 2),
   );
 
   @override
@@ -131,11 +132,11 @@ class _SearchScreenState extends State<SearchScreen> {
                     width: 45,
                     height: 45,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF001F3F).withOpacity(0.85),
+                      color: AppColors.surface.withOpacity(0.92),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                      border: Border.all(color: AppColors.accent, width: 2),
                     ),
-                    child: const Icon(Icons.arrow_back, color: Color(0xFF00BFFF)),
+                    child: const Icon(Icons.arrow_back, color: AppColors.accent),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -168,23 +169,23 @@ class _SearchScreenState extends State<SearchScreen> {
             onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
               filled: true,
-              fillColor: const Color(0xFF001F3F).withOpacity(0.9),
+              fillColor: AppColors.surface.withOpacity(0.92),
               hintText: 'Название или описание...',
               hintStyle: TextStyle(
-                color: const Color(0xFFFFFFFF).withOpacity(0.45),
+                color: AppColors.textPrimary.withOpacity(0.45),
                 fontSize: 16,
               ),
-              prefixIcon: const Icon(Icons.search, color: Color(0xFF00BFFF)),
+              prefixIcon: const Icon(Icons.search, color: AppColors.accent),
               suffixIcon: _queryController.text.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.clear, color: Color(0xFF80DEEA)),
+                      icon: const Icon(Icons.clear, color: AppColors.textSecondary),
                       onPressed: _clearQuery,
                     )
                   : null,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               enabledBorder: _fieldBorder,
               focusedBorder: _fieldBorder.copyWith(
-                borderSide: const BorderSide(color: Color(0xFF80DEEA), width: 2),
+                borderSide: const BorderSide(color: AppColors.textSecondary, width: 2),
               ),
             ),
           ),
@@ -198,7 +199,7 @@ class _SearchScreenState extends State<SearchScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(23),
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF00BFFF), Color(0xFF008C8C)],
+                  colors: [AppColors.accent, AppColors.accentDark],
                 ),
               ),
               child: Center(
@@ -228,7 +229,7 @@ class _SearchScreenState extends State<SearchScreen> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
             child: Text(
               _error!,
-              style: const TextStyle(color: Color(0xFFFF5722), fontSize: 13),
+              style: const TextStyle(color: AppColors.danger, fontSize: 13),
             ),
           ),
         if (_lastQuery != null && !_isSearching && _error == null)
@@ -241,7 +242,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     ? 'По запросу «$_lastQuery» ничего не найдено'
                     : 'Найдено: ${_results.length}',
                 style: TextStyle(
-                  color: const Color(0xFF00BFFF).withOpacity(0.95),
+                  color: AppColors.accent.withOpacity(0.95),
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -274,7 +275,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     padding: const EdgeInsets.all(12),
                     decoration: FounderListingStyle.cardDecoration(
                       listing,
-                      const Color(0xFF00BFFF),
+                      AppColors.accent,
                     ),
                     child: Row(
                       children: [
@@ -305,7 +306,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 '${listing.category} · ${listing.distanceKm} км',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                                  color: AppColors.textPrimary.withOpacity(0.7),
                                 ),
                               ),
                             ],

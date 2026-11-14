@@ -96,10 +96,22 @@ class _DaromAppState extends State<DaromApp> {
       ],
       theme: ThemeData(
         fontFamily: 'NotoSans',
-        primaryColor: AppColors.cyan,
-        scaffoldBackgroundColor: AppColors.darkBlue,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.cyan,
+        primaryColor: AppColors.accent,
+        scaffoldBackgroundColor: AppColors.backgroundStart,
+        colorScheme: const ColorScheme.light(
+          primary: AppColors.accent,
+          secondary: AppColors.accentSecondary,
+          surface: AppColors.surface,
+          error: AppColors.danger,
+          onPrimary: AppColors.white,
+          onSurface: AppColors.textPrimary,
+        ),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w400),
+          bodyMedium: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w400),
+          titleMedium: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
+          titleLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
+          labelLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
         ),
         useMaterial3: true,
       ),

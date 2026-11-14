@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../models/user.dart';
 import '../services/auth_api.dart';
@@ -108,7 +109,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: const Color(0xFFFF5722)),
+      SnackBar(content: Text(message), backgroundColor: AppColors.danger),
     );
   }
 
@@ -127,7 +128,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
         compactSubtitle: 'Введите и повторите 4 цифры',
         focusNode: _pinFocus,
         formKey: _formKey,
-        leading: const Icon(Icons.lock_outline, size: 72, color: Color(0xFF00BFFF)),
+        leading: const Icon(Icons.lock_outline, size: 72, color: AppColors.accent),
         form: Column(
           children: [
             PinCodeFields(
@@ -147,7 +148,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
               onPressed: () => setState(() => _obscure = !_obscure),
               child: Text(
                 _obscure ? 'Показать цифры' : 'Скрыть цифры',
-                style: const TextStyle(color: Color(0xFF00BFFF)),
+                style: const TextStyle(color: AppColors.accent),
               ),
             ),
           ],

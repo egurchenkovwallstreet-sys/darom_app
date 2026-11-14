@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../models/listing.dart';
@@ -58,7 +59,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
       case 'hidden':
         return const Color(0xFF9E9E9E);
       default:
-        return const Color(0xFF00BFFF);
+        return AppColors.accent;
     }
   }
 
@@ -78,11 +79,11 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       width: 45,
                       height: 45,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF001F3F).withOpacity(0.85),
+                        color: AppColors.surface.withOpacity(0.92),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                        border: Border.all(color: AppColors.accent, width: 2),
                       ),
-                      child: const Icon(Icons.arrow_back, color: Color(0xFF00BFFF)),
+                      child: const Icon(Icons.arrow_back, color: AppColors.accent),
                     ),
                   ),
                   const SizedBox(width: 15),
@@ -105,7 +106,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
-                      child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+                      child: CircularProgressIndicator(color: AppColors.accent),
                     );
                   }
 
@@ -116,13 +117,13 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.cloud_off, size: 48, color: Color(0xFF00BFFF)),
+                            const Icon(Icons.cloud_off, size: 48, color: AppColors.accent),
                             const SizedBox(height: 16),
                             Text(
                               snapshot.error.toString(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                                color: AppColors.textPrimary.withOpacity(0.7),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -150,7 +151,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                         'У вас пока нет объявлений',
                         style: TextStyle(
                           fontSize: 16,
-                          color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                          color: AppColors.textPrimary.withOpacity(0.7),
                         ),
                       ),
                     );
@@ -210,7 +211,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                                       '${listing.category} · ${listing.subcategory}',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: const Color(0xFFFFFFFF).withOpacity(0.6),
+                                        color: AppColors.textPrimary.withOpacity(0.6),
                                       ),
                                     ),
                                     const SizedBox(height: 8),

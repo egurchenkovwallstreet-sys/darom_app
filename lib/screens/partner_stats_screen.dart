@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
 import '../services/partners_api.dart';
@@ -47,7 +48,7 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back, color: Color(0xFF00BFFF)),
+                    icon: const Icon(Icons.arrow_back, color: AppColors.accent),
                   ),
                   const Expanded(
                     child: Text(
@@ -68,7 +69,7 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState != ConnectionState.done) {
                     return const Center(
-                      child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+                      child: CircularProgressIndicator(color: AppColors.accent),
                     );
                   }
 
@@ -87,7 +88,7 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                             const SizedBox(height: 16),
                             TextButton(
                               onPressed: _retry,
-                              child: const Text('Повторить', style: TextStyle(color: Color(0xFF00BFFF))),
+                              child: const Text('Повторить', style: TextStyle(color: AppColors.accent)),
                             ),
                           ],
                         ),
@@ -97,7 +98,7 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
 
                   final stats = snapshot.data!;
                   return RefreshIndicator(
-                    color: const Color(0xFF00BFFF),
+                    color: AppColors.accent,
                     onRefresh: () async {
                       _retry();
                       await _statsFuture;
@@ -145,7 +146,7 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                           'После ${stats.referralTtlDays} дней реферал отключается. '
                           'Выплаты партнёрам — раз в месяц.',
                           style: TextStyle(
-                            color: const Color(0xFFFFFFFF).withOpacity(0.65),
+                            color: AppColors.textPrimary.withOpacity(0.65),
                             height: 1.45,
                             fontSize: 13,
                           ),
@@ -166,16 +167,16 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.9),
+        color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+        border: Border.all(color: AppColors.accent, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Ваш код для аудитории',
-            style: TextStyle(color: Color(0xFF80DEEA), fontSize: 14),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
           ),
           const SizedBox(height: 8),
           Row(
@@ -197,11 +198,11 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Код скопирован'),
-                      backgroundColor: Color(0xFF00BFFF),
+                      backgroundColor: AppColors.accent,
                     ),
                   );
                 },
-                icon: const Icon(Icons.copy, color: Color(0xFF00BFFF)),
+                icon: const Icon(Icons.copy, color: AppColors.accent),
               ),
             ],
           ),
@@ -217,12 +218,12 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
     required String subtitle,
     bool accent = false,
   }) {
-    final color = accent ? const Color(0xFFFFC107) : const Color(0xFF00BFFF);
+    final color = accent ? const Color(0xFFFFC107) : AppColors.accent;
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.85),
+        color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color, width: 2),
       ),
@@ -245,7 +246,7 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    color: const Color(0xFFFFFFFF).withOpacity(0.75),
+                    color: AppColors.textPrimary.withOpacity(0.75),
                     fontSize: 13,
                   ),
                 ),
@@ -261,7 +262,7 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    color: const Color(0xFFFFFFFF).withOpacity(0.55),
+                    color: AppColors.textPrimary.withOpacity(0.55),
                     fontSize: 12,
                   ),
                 ),

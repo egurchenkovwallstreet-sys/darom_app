@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/instant_on_web.dart';
@@ -23,22 +24,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   List<Map<String, dynamic>> _pages(AppLocalizations l10n) => [
     {
       'icon': Icons.card_giftcard,
-      'color': Color(0xFF00BFFF),
-      'borderColor': Color(0xFF008C8C),
+      'color': AppColors.accent,
+      'borderColor': AppColors.accentDark,
       'title': l10n.onboardingTitle1,
       'description': l10n.onboardingDesc1,
     },
     {
       'icon': Icons.favorite,
-      'color': Color(0xFF008C8C),
-      'borderColor': Color(0xFF00BFFF),
+      'color': AppColors.accentDark,
+      'borderColor': AppColors.accent,
       'title': l10n.onboardingTitle2,
       'description': l10n.onboardingDesc2,
     },
     {
       'icon': Icons.volunteer_activism,
-      'color': Color(0xFF00BFFF),
-      'borderColor': Color(0xFF008C8C),
+      'color': AppColors.accent,
+      'borderColor': AppColors.accentDark,
       'title': l10n.onboardingTitle3,
       'description': l10n.onboardingDesc3,
     },
@@ -99,8 +100,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       gradient: _currentPage == index
                           ? LinearGradient(
                               colors: [
-                                Color(0xFF00BFFF),
-                                Color(0xFF008C8C),
+                                AppColors.accent,
+                                AppColors.accentDark,
                               ],
                             )
                           : null,
@@ -109,13 +110,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           : Color(0xFFFFFFFF).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: Color(0xFF00BFFF),
+                        color: AppColors.accent,
                         width: 2,
                       ),
                       boxShadow: _currentPage == index
                           ? [
                               BoxShadow(
-                                color: Color(0xFF00BFFF).withOpacity(0.6),
+                                color: AppColors.accent.withOpacity(0.6),
                                 blurRadius: 15,
                                 spreadRadius: 3,
                               ),
@@ -159,7 +160,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Text(
                   l10n.partnerLink,
                   style: TextStyle(
-                    color: Color(0xFF80DEEA),
+                    color: AppColors.textSecondary,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -195,7 +196,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF001F3F),
+                  AppColors.textPrimary,
                   borderColor.withOpacity(0.3),
                 ],
               ),
@@ -242,7 +243,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 color: Color(0xFFFFFFFF),
                 shadows: [
                   Shadow(
-                    color: Color(0xFF00BFFF).withOpacity(0.6),
+                    color: AppColors.accent.withOpacity(0.6),
                     offset: Offset(0, 4),
                     blurRadius: 8,
                   ),
@@ -261,7 +262,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Container(
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Color(0xFF001F3F).withOpacity(0.85),
+                color: AppColors.surface.withOpacity(0.92),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: borderColor,
@@ -269,7 +270,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0xFF00BFFF).withOpacity(0.2),
+                    color: AppColors.accent.withOpacity(0.2),
                     blurRadius: 25,
                     offset: Offset(0, 10),
                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../data/map_radius_options.dart';
 import '../models/listing.dart';
@@ -155,7 +156,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                 children: [
                   IconButton(
                     onPressed: _close,
-                    icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF00BFFF)),
+                    icon: const Icon(Icons.arrow_back_rounded, color: AppColors.accent),
                     tooltip: 'Назад',
                   ),
                   const Expanded(
@@ -171,14 +172,14 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00BFFF).withOpacity(0.15),
+                      color: AppColors.accent.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
+                      border: Border.all(color: AppColors.accent, width: 1.5),
                     ),
                     child: Text(
                       _loading ? '…' : '${_listings.length} шт.',
                       style: const TextStyle(
-                        color: Color(0xFF00BFFF),
+                        color: AppColors.accent,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -206,7 +207,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                   ),
                   if (_loading)
                     const Center(
-                      child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+                      child: CircularProgressIndicator(color: AppColors.accent),
                     ),
                   Positioned(
                     left: 12,
@@ -230,13 +231,13 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF001F3F).withOpacity(0.95),
+                    color: AppColors.surface.withOpacity(0.95),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                    border: Border.all(color: AppColors.accent, width: 2),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.card_giftcard, color: Color(0xFF00BFFF), size: 22),
+                      const Icon(Icons.card_giftcard, color: AppColors.accent, size: 22),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -255,13 +256,13 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                         child: const Text(
                           'Открыть',
                           style: TextStyle(
-                            color: Color(0xFF00BFFF),
+                            color: AppColors.accent,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Color(0xFF80DEEA), size: 20),
+                        icon: const Icon(Icons.close, color: AppColors.textSecondary, size: 20),
                         onPressed: () => setState(() => _selectedMarkerId = null),
                       ),
                     ],
@@ -278,9 +279,9 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.92),
+        color: AppColors.surface.withOpacity(0.94),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
+        border: Border.all(color: AppColors.accent, width: 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.35),
@@ -308,7 +309,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                 child: Text(
                   MapRadiusOptions.labels[_radiusIndex],
                   style: const TextStyle(
-                    color: Color(0xFF00BFFF),
+                    color: AppColors.accent,
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
@@ -345,8 +346,8 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
                         color: _radiusIndex == index
-                            ? const Color(0xFF00BFFF)
-                            : const Color(0xFF008C8C).withOpacity(0.35),
+                            ? AppColors.accent
+                            : AppColors.accentDark.withOpacity(0.35),
                         borderRadius: BorderRadius.circular(7),
                       ),
                       child: Center(
@@ -358,7 +359,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                             style: TextStyle(
                               color: _radiusIndex == index
                                   ? Colors.white
-                                  : const Color(0xFFFFFFFF).withOpacity(0.85),
+                                  : AppColors.textPrimary.withOpacity(0.85),
                               fontWeight: FontWeight.bold,
                               fontSize: index == 4 ? 10 : 12,
                             ),
@@ -380,13 +381,13 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.92),
+        color: AppColors.surface.withOpacity(0.94),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFFF5722), width: 1.5),
+        border: Border.all(color: AppColors.danger, width: 1.5),
       ),
       child: Text(
         message,
-        style: const TextStyle(color: Color(0xFFFF5722), fontSize: 12),
+        style: const TextStyle(color: AppColors.danger, fontSize: 12),
         textAlign: TextAlign.center,
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../data/legal_consent.dart';
 import '../l10n/app_localizations.dart';
@@ -29,9 +30,9 @@ class LegalConsentCheckboxes extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.7),
+        color: AppColors.textPrimary.withOpacity(0.7),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF00BFFF).withOpacity(0.25)),
+        border: Border.all(color: AppColors.accent.withOpacity(0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -99,8 +100,8 @@ class _ConsentRow extends StatelessWidget {
               height: 24,
               child: Checkbox(
                 value: value,
-                activeColor: const Color(0xFF00BFFF),
-                side: const BorderSide(color: Color(0xFF00BFFF)),
+                activeColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
                 onChanged: enabled ? (v) => onChanged(v ?? false) : null,
               ),
             ),
@@ -129,7 +130,7 @@ class _ConsentRow extends StatelessWidget {
             child: Text(
               linkLabel,
               style: const TextStyle(
-                color: Color(0xFF00BFFF),
+                color: AppColors.accent,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),

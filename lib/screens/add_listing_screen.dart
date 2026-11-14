@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -139,7 +140,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Заполните все поля'),
-          backgroundColor: Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
       return;
@@ -172,7 +173,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Изменения сохранены!'),
-            backgroundColor: Color(0xFF00BFFF),
+            backgroundColor: AppColors.accent,
           ),
         );
         widget.onSaved?.call(updated);
@@ -208,7 +209,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Объявление опубликовано!'),
-          backgroundColor: Color(0xFF00BFFF),
+          backgroundColor: AppColors.accent,
         ),
       );
       widget.onPublished?.call();
@@ -255,7 +256,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_publishErrorMessage(error)),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     } finally {
@@ -280,7 +281,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Максимум $_maxPhotos фото'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
       return;
@@ -357,11 +358,11 @@ class _AddListingScreenState extends State<AddListingScreen> {
                               width: 45,
                               height: 45,
                               decoration: BoxDecoration(
-                                color: Color(0xFF001F3F).withOpacity(0.85),
+                                color: AppColors.surface.withOpacity(0.92),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Color(0xFF00BFFF), width: 2),
+                                border: Border.all(color: AppColors.accent, width: 2),
                               ),
-                              child: Icon(Icons.arrow_back, color: Color(0xFF00BFFF)),
+                              child: Icon(Icons.arrow_back, color: AppColors.accent),
                             ),
                           )
                               .animate(
@@ -379,7 +380,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                               color: Color(0xFFFFFFFF),
                               shadows: [
                                 Shadow(
-                                  color: Color(0xFF00BFFF).withOpacity(0.6),
+                                  color: AppColors.accent.withOpacity(0.6),
                                   offset: Offset(0, 4),
                                   blurRadius: 8,
                                 ),
@@ -404,9 +405,9 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             key: _titleFieldKey,
                             padding: EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Color(0xFF001F3F).withOpacity(0.85),
+                              color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: Color(0xFF00BFFF), width: 2),
+                              border: Border.all(color: AppColors.accent, width: 2),
                             ),
                             child: TextField(
                               controller: _titleController,
@@ -425,7 +426,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                 border: InputBorder.none,
                                 prefixIcon: Icon(
                                   Icons.title,
-                                  color: Color(0xFF00BFFF),
+                                  color: AppColors.accent,
                                   size: 24,
                                 ),
                               ),
@@ -442,25 +443,25 @@ class _AddListingScreenState extends State<AddListingScreen> {
                           Container(
                             padding: EdgeInsets.all(15),
                             decoration: BoxDecoration(
-                              color: Color(0xFF001F3F).withOpacity(0.85),
+                              color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: Color(0xFF00BFFF), width: 2),
+                              border: Border.all(color: AppColors.accent, width: 2),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.category, color: Color(0xFF00BFFF), size: 24),
+                                Icon(Icons.category, color: AppColors.accent, size: 24),
                                 SizedBox(width: 15),
                                 Expanded(
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String>(
                                       value: _selectedCategory,
-                                      dropdownColor: Color(0xFF001F3F),
+                                      dropdownColor: AppColors.textPrimary,
                                       style: TextStyle(
                                         color: Color(0xFFFFFFFF),
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
-                                      icon: Icon(Icons.arrow_drop_down, color: Color(0xFF00BFFF)),
+                                      icon: Icon(Icons.arrow_drop_down, color: AppColors.accent),
                                       items: _subcategories.keys.map((String category) {
                                         return DropdownMenuItem<String>(
                                           value: category,
@@ -492,25 +493,25 @@ class _AddListingScreenState extends State<AddListingScreen> {
                           Container(
                             padding: EdgeInsets.all(15),
                             decoration: BoxDecoration(
-                              color: Color(0xFF001F3F).withOpacity(0.85),
+                              color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: Color(0xFF008C8C), width: 2),
+                              border: Border.all(color: AppColors.accentDark, width: 2),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.subdirectory_arrow_right, color: Color(0xFF008C8C), size: 24),
+                                Icon(Icons.subdirectory_arrow_right, color: AppColors.accentDark, size: 24),
                                 SizedBox(width: 15),
                                 Expanded(
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String>(
                                       value: _selectedSubcategory,
-                                      dropdownColor: Color(0xFF001F3F),
+                                      dropdownColor: AppColors.textPrimary,
                                       style: TextStyle(
                                         color: Color(0xFFFFFFFF),
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
-                                      icon: Icon(Icons.arrow_drop_down, color: Color(0xFF008C8C)),
+                                      icon: Icon(Icons.arrow_drop_down, color: AppColors.accentDark),
                                       items: _currentSubcategoryOptions.map((String subcategory) {
                                         return DropdownMenuItem<String>(
                                           value: subcategory,
@@ -542,9 +543,9 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             key: _descriptionFieldKey,
                             padding: EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Color(0xFF001F3F).withOpacity(0.85),
+                              color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: Color(0xFF00BFFF), width: 2),
+                              border: Border.all(color: AppColors.accent, width: 2),
                             ),
                             child: TextField(
                               controller: _descriptionController,
@@ -563,7 +564,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                 border: InputBorder.none,
                                 prefixIcon: Icon(
                                   Icons.description,
-                                  color: Color(0xFF00BFFF),
+                                  color: AppColors.accent,
                                   size: 24,
                                 ),
                               ),
@@ -590,9 +591,9 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                 constraints: const BoxConstraints(minHeight: 120),
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Color(0xFF001F3F).withOpacity(0.85),
+                                  color: AppColors.surface.withOpacity(0.92),
                                   borderRadius: BorderRadius.circular(15),
-                                  border: Border.all(color: Color(0xFF00BFFF), width: 2, strokeAlign: BorderSide.strokeAlignOutside),
+                                  border: Border.all(color: AppColors.accent, width: 2, strokeAlign: BorderSide.strokeAlignOutside),
                                 ),
                                 child: _totalPhotoCount == 0
                                     ? Column(
@@ -601,14 +602,14 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                           Icon(
                                             Icons.add_a_photo,
                                             size: 40,
-                                            color: Color(0xFF00BFFF),
+                                            color: AppColors.accent,
                                           ),
                                           SizedBox(height: 10),
                                           Text(
                                             'Добавить фото',
                                             style: TextStyle(
                                               fontSize: 16,
-                                              color: Color(0xFF00BFFF),
+                                              color: AppColors.accent,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -628,7 +629,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                           Text(
                                             'Фото: $_totalPhotoCount/$_maxPhotos',
                                             style: const TextStyle(
-                                              color: Color(0xFF00BFFF),
+                                              color: AppColors.accent,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -667,7 +668,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                                         onTap: () => _removePhoto(index),
                                                         child: Container(
                                                           decoration: const BoxDecoration(
-                                                            color: Color(0xFFFF5722),
+                                                            color: AppColors.danger,
                                                             shape: BoxShape.circle,
                                                           ),
                                                           child: const Icon(
@@ -687,11 +688,11 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                                   height: 72,
                                                   decoration: BoxDecoration(
                                                     borderRadius: BorderRadius.circular(8),
-                                                    border: Border.all(color: const Color(0xFF00BFFF)),
+                                                    border: Border.all(color: AppColors.accent),
                                                   ),
                                                   child: const Icon(
                                                     Icons.add,
-                                                    color: Color(0xFF00BFFF),
+                                                    color: AppColors.accent,
                                                   ),
                                                 ),
                                             ],

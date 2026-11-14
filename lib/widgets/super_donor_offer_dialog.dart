@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../models/listing_limit_info.dart';
 import '../services/users_api.dart';
@@ -52,10 +53,10 @@ class _LimitDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF001F3F),
+      backgroundColor: AppColors.textPrimary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.4)),
+        side: BorderSide(color: AppColors.accent.withOpacity(0.4)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -76,7 +77,7 @@ class _LimitDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
-                color: const Color(0xFFFFFFFF).withOpacity(0.85),
+                color: AppColors.textPrimary.withOpacity(0.85),
                 height: 1.4,
               ),
             ),
@@ -142,10 +143,10 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
     final upsell = widget.upsell;
 
     return Dialog(
-      backgroundColor: const Color(0xFF001F3F),
+      backgroundColor: AppColors.textPrimary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.5), width: 2),
+        side: BorderSide(color: AppColors.accent.withOpacity(0.5), width: 2),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -159,7 +160,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
                 gradient: LinearGradient(
                   colors: [
                     const Color(0xFFFFC107).withOpacity(0.3),
-                    const Color(0xFF00BFFF).withOpacity(0.3),
+                    AppColors.accent.withOpacity(0.3),
                   ],
                 ),
               ),
@@ -171,7 +172,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
-                color: const Color(0xFFFFFFFF).withOpacity(0.85),
+                color: AppColors.textPrimary.withOpacity(0.85),
               ),
             ),
             const SizedBox(height: 16),
@@ -180,13 +181,13 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF00BFFF).withOpacity(0.4)),
+                border: Border.all(color: AppColors.accent.withOpacity(0.4)),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFF00BFFF).withOpacity(0.15),
-                    const Color(0xFF008C8C).withOpacity(0.1),
+                    AppColors.accent.withOpacity(0.15),
+                    AppColors.accentDark.withOpacity(0.1),
                   ],
                 ),
               ),
@@ -206,7 +207,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF00BFFF),
+                      color: AppColors.accent,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -215,7 +216,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
-                      color: const Color(0xFFFFFFFF).withOpacity(0.8),
+                      color: AppColors.textPrimary.withOpacity(0.8),
                       height: 1.35,
                     ),
                   ),
@@ -237,7 +238,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: const Color(0xFFFFFFFF).withOpacity(0.5),
+                color: AppColors.textPrimary.withOpacity(0.5),
               ),
             ),
             const SizedBox(height: 20),
@@ -255,7 +256,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
               onPressed: () => Navigator.pop(context, false),
               child: Text(
                 'Не сейчас',
-                style: TextStyle(color: const Color(0xFFFFFFFF).withOpacity(0.6)),
+                style: TextStyle(color: AppColors.textPrimary.withOpacity(0.6)),
               ),
             ),
           ],

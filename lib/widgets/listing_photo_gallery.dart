@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import 'listing_photo_image.dart';
 
@@ -49,18 +50,18 @@ class _ListingPhotoGalleryState extends State<ListingPhotoGallery> {
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: const Color(0xFF001F3F).withOpacity(0.85),
+            color: AppColors.surface.withOpacity(0.92),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+            border: Border.all(color: AppColors.accent, width: 2),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.image, size: 72, color: const Color(0xFF00BFFF).withOpacity(0.5)),
+              Icon(Icons.image, size: 72, color: AppColors.accent.withOpacity(0.5)),
               const SizedBox(height: 8),
               Text(
                 'Нет фото',
-                style: TextStyle(color: const Color(0xFFFFFFFF).withOpacity(0.7)),
+                style: TextStyle(color: AppColors.textPrimary.withOpacity(0.7)),
               ),
             ],
           ),
@@ -120,9 +121,9 @@ class _ListingPhotoGalleryState extends State<ListingPhotoGallery> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF001F3F).withOpacity(0.85),
+                    color: AppColors.surface.withOpacity(0.92),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
+                    border: Border.all(color: AppColors.accent, width: 1.5),
                   ),
                   child: Text(
                     '${_index + 1} / ${urls.length}',
@@ -149,8 +150,8 @@ class _ListingPhotoGalleryState extends State<ListingPhotoGallery> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: i == _index
-                    ? const Color(0xFF00BFFF)
-                    : const Color(0xFF00BFFF).withOpacity(0.35),
+                    ? AppColors.accent
+                    : AppColors.accent.withOpacity(0.35),
               ),
             ),
           ),
@@ -161,14 +162,14 @@ class _ListingPhotoGalleryState extends State<ListingPhotoGallery> {
 
   Widget _navButton(IconData icon, VoidCallback onTap) {
     return Material(
-      color: const Color(0xFF001F3F).withOpacity(0.75),
+      color: AppColors.textPrimary.withOpacity(0.75),
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: Padding(
           padding: const EdgeInsets.all(4),
-          child: Icon(icon, color: const Color(0xFF00BFFF), size: 28),
+          child: Icon(icon, color: AppColors.accent, size: 28),
         ),
       ),
     );

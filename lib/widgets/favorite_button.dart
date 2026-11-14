@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../services/favorites_api.dart';
 
@@ -77,7 +78,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error is FavoritesApiException ? error.message : '$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -91,11 +92,11 @@ class _FavoriteButtonState extends State<FavoriteButton> {
           ? SizedBox(
               width: widget.size,
               height: widget.size,
-              child: const CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF00BFFF)),
+              child: const CircularProgressIndicator(strokeWidth: 2, color: AppColors.accent),
             )
           : Icon(
               _isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: _isFavorite ? const Color(0xFFFF5722) : const Color(0xFF80DEEA),
+              color: _isFavorite ? AppColors.danger : AppColors.textSecondary,
               size: widget.size,
             ),
     );

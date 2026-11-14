@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const _searchFieldBorder = OutlineInputBorder(
     borderRadius: BorderRadius.all(Radius.circular(10)),
-    borderSide: BorderSide(color: Color(0xFF00BFFF), width: 1.5),
+    borderSide: BorderSide(color: AppColors.accent, width: 1.5),
   );
 
   static const List<double> _radiusKmValues = MapRadiusOptions.kmValues;
@@ -386,15 +386,15 @@ class _HomeScreenState extends State<HomeScreen> {
       elevation: 0,
       scrolledUnderElevation: 0,
       expandedHeight: 100,
-      backgroundColor: const Color(0xFF001F3F).withOpacity(0.25),
+      backgroundColor: const Color(0xFFFFF9F4).withOpacity(0.92),
       surfaceTintColor: Colors.transparent,
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.parallax,
         titlePadding: const EdgeInsetsDirectional.only(start: 16, bottom: 56),
         title: Text(
           greeting,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.92),
+          style: const TextStyle(
+            color: Color(0xFF4A3728),
             fontWeight: FontWeight.w700,
             fontSize: 18,
           ),
@@ -426,17 +426,17 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: InputDecoration(
         isDense: true,
         filled: true,
-        fillColor: const Color(0xFF001F3F).withOpacity(0.55),
+        fillColor: AppColors.surface.withOpacity(0.55),
         hintText: l10n.searchHint,
         hintStyle: TextStyle(
-          color: const Color(0xFFFFFFFF).withOpacity(0.45),
+          color: AppColors.textPrimary.withOpacity(0.45),
           fontSize: 13,
         ),
-        prefixIcon: const Icon(Icons.search, color: Color(0xFF00BFFF), size: 20),
+        prefixIcon: const Icon(Icons.search, color: AppColors.accent, size: 20),
         prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 36),
         suffixIcon: _searchController.text.isNotEmpty
             ? IconButton(
-                icon: const Icon(Icons.clear, color: Color(0xFF80DEEA), size: 18),
+                icon: const Icon(Icons.clear, color: AppColors.textSecondary, size: 18),
                 onPressed: _clearSearch,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -445,7 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         enabledBorder: _searchFieldBorder,
         focusedBorder: _searchFieldBorder.copyWith(
-          borderSide: const BorderSide(color: Color(0xFF80DEEA), width: 1.5),
+          borderSide: const BorderSide(color: AppColors.textSecondary, width: 1.5),
         ),
       ),
     );
@@ -463,7 +463,7 @@ class _HomeScreenState extends State<HomeScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 _searchError!,
-                style: const TextStyle(color: Color(0xFFFF5722), fontSize: 13),
+                style: const TextStyle(color: AppColors.danger, fontSize: 13),
               ),
             ),
           ),
@@ -483,7 +483,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ? l10n.searchNothingFound(_lastSearchQuery!)
                     : l10n.searchFoundCount(_searchResults.length),
                 style: TextStyle(
-                  color: const Color(0xFF00BFFF).withOpacity(0.95),
+                  color: AppColors.accent.withOpacity(0.95),
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -499,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SliverFillRemaining(
           hasScrollBody: false,
           child: Center(
-            child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+            child: CircularProgressIndicator(color: AppColors.accent),
           ),
         ),
       );
@@ -554,7 +554,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     l10n.repeatButton,
                     style: const TextStyle(
-                      color: Color(0xFF00BFFF),
+                      color: AppColors.accent,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -574,7 +574,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(16, _blockGap, 16, 0),
             child: Text(
               _listingsError!,
-              style: const TextStyle(fontSize: 12, color: Color(0xFFFF5722)),
+              style: const TextStyle(fontSize: 12, color: AppColors.danger),
             ),
           ),
         ),
@@ -623,7 +623,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Color(0xFF00BFFF),
+                    color: AppColors.accent,
                   ),
                 ),
               ),
@@ -719,14 +719,14 @@ class _HomeScreenState extends State<HomeScreen> {
         curve: Curves.easeOutCubic,
         child: Container(
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFF00BFFF) : Colors.transparent,
+            color: selected ? AppColors.accent : Colors.transparent,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
             child: Text(
               label,
               style: TextStyle(
-                color: selected ? Colors.white : const Color(0xFFFFFFFF).withOpacity(0.7),
+                color: selected ? Colors.white : AppColors.textPrimary.withOpacity(0.7),
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
@@ -763,7 +763,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     _radiusLabels[_radiusIndex],
                     style: const TextStyle(
-                      color: Color(0xFF00BFFF),
+                      color: AppColors.accent,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
@@ -798,8 +798,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
                           color: _radiusIndex == index
-                              ? const Color(0xFF00BFFF)
-                              : const Color(0xFF008C8C).withOpacity(0.3),
+                              ? AppColors.accent
+                              : AppColors.accentDark.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(7),
                         ),
                         child: Center(
@@ -811,7 +811,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(
                                 color: _radiusIndex == index
                                     ? Colors.white
-                                    : const Color(0xFFFFFFFF).withOpacity(0.85),
+                                    : AppColors.textPrimary.withOpacity(0.85),
                                 fontWeight: FontWeight.bold,
                                 fontSize: index == 4 ? 10 : 12,
                               ),
@@ -939,19 +939,19 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF001F3F).withOpacity(0.88),
+                color: AppColors.textPrimary.withOpacity(0.88),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
+                border: Border.all(color: AppColors.accent, width: 1.5),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.fullscreen_rounded, color: Color(0xFF00BFFF), size: 16),
+                  const Icon(Icons.fullscreen_rounded, color: AppColors.accent, size: 16),
                   const SizedBox(width: 4),
                   Text(
                     _l10n.openButton,
                     style: TextStyle(
-                      color: Color(0xFF00BFFF),
+                      color: AppColors.accent,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -970,12 +970,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return GlassSurface(
       borderRadius: 20,
       borderWidth: 1.5,
-      borderColor: const Color(0xFF00BFFF),
+      borderColor: AppColors.accent,
       fillOpacity: 0.42,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       child: Row(
         children: [
-          const Icon(Icons.card_giftcard, color: Color(0xFF00BFFF), size: 22),
+          const Icon(Icons.card_giftcard, color: AppColors.accent, size: 22),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -994,11 +994,11 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => _openListing(listing),
             child: Text(
               _l10n.openButton,
-              style: const TextStyle(color: Color(0xFF00BFFF), fontWeight: FontWeight.bold),
+              style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, color: Color(0xFF80DEEA), size: 20),
+            icon: const Icon(Icons.close, color: AppColors.textSecondary, size: 20),
             onPressed: () => setState(() => _selectedMarkerId = null),
           ),
         ],
@@ -1073,7 +1073,7 @@ class _HomeScreenState extends State<HomeScreen> {
         height: 22,
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          color: Color(0xFF00BFFF),
+          color: AppColors.accent,
         ),
       );
     }
@@ -1082,14 +1082,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: const Color(0xFF00BFFF).withOpacity(0.15),
+        color: AppColors.accent.withOpacity(0.15),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
+        border: Border.all(color: AppColors.accent, width: 1.5),
       ),
       child: Text(
         '$count шт.',
         style: const TextStyle(
-          color: Color(0xFF00BFFF),
+          color: AppColors.accent,
           fontWeight: FontWeight.bold,
           fontSize: 13,
         ),

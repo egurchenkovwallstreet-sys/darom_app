@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../l10n/app_localizations.dart';
 import '../services/locale_service.dart';
@@ -110,10 +111,10 @@ class _LanguageOption extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFF001F3F).withOpacity(0.85),
+            color: AppColors.surface.withOpacity(0.92),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: selected ? const Color(0xFF00BFFF) : const Color(0xFF00BFFF).withOpacity(0.35),
+              color: selected ? AppColors.accent : AppColors.accent.withOpacity(0.35),
               width: selected ? 2.5 : 1.5,
             ),
           ),
@@ -121,7 +122,7 @@ class _LanguageOption extends StatelessWidget {
             children: [
               Icon(
                 selected ? Icons.radio_button_checked : Icons.radio_button_off,
-                color: selected ? const Color(0xFF00BFFF) : const Color(0xFF80DEEA),
+                color: selected ? AppColors.accent : AppColors.textSecondary,
               ),
               const SizedBox(width: 12),
               Text(
@@ -152,10 +153,10 @@ Future<void> showLanguagePickerDialog(BuildContext context) async {
       return StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF001F3F),
+            backgroundColor: AppColors.textPrimary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: Color(0xFF00BFFF), width: 2),
+              side: const BorderSide(color: AppColors.accent, width: 2),
             ),
             title: Text(
               l10n.languageTitle,
@@ -180,7 +181,7 @@ Future<void> showLanguagePickerDialog(BuildContext context) async {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: Text(l10n.cancel, style: const TextStyle(color: Color(0xFF80DEEA))),
+                child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textSecondary)),
               ),
               TextButton(
                 onPressed: () async {
@@ -190,7 +191,7 @@ Future<void> showLanguagePickerDialog(BuildContext context) async {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(l10n.languageChanged),
-                        backgroundColor: const Color(0xFF00BFFF),
+                        backgroundColor: AppColors.accent,
                       ),
                     );
                   }
@@ -198,7 +199,7 @@ Future<void> showLanguagePickerDialog(BuildContext context) async {
                 child: Text(
                   l10n.continueButton,
                   style: const TextStyle(
-                    color: Color(0xFF00BFFF),
+                    color: AppColors.accent,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -229,13 +230,13 @@ class _DialogLanguageTile extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
         side: BorderSide(
-          color: selected ? const Color(0xFF00BFFF) : const Color(0xFF00BFFF).withOpacity(0.3),
+          color: selected ? AppColors.accent : AppColors.accent.withOpacity(0.3),
         ),
       ),
-      tileColor: const Color(0xFF001F3F),
+      tileColor: AppColors.textPrimary,
       leading: Icon(
         selected ? Icons.check_circle : Icons.circle_outlined,
-        color: selected ? const Color(0xFF00BFFF) : const Color(0xFF80DEEA),
+        color: selected ? AppColors.accent : AppColors.textSecondary,
       ),
       title: Text(label, style: const TextStyle(color: Colors.white)),
     );

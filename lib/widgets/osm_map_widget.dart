@@ -80,7 +80,7 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
                 point: center,
                 radius: widget.radiusKm! * 1000,
                 color: const Color(0x3300BFFF),
-                borderColor: const Color(0xFF00BFFF),
+                borderColor: AppColors.accent,
                 borderStrokeWidth: 2,
                 useRadiusInMeter: true,
               ),
@@ -143,7 +143,7 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+        border: Border.all(color: AppColors.accent, width: 2),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius - 2),

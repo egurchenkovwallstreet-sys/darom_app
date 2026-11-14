@@ -1,56 +1,56 @@
 import 'package:flutter/material.dart';
 
-/// Цветовая палитра Midnight Glow (ТЗ v3.0)
+/// Дизайн-система «Даром» — доверие, экология, премиальная лёгкость.
 class AppColors {
   AppColors._();
 
-  static const darkBlue = Color(0xFF001F3F);
-  static const teal = Color(0xFF008C8C);
-  static const cyan = Color(0xFF00BFFF);
+  // --- Новая палитра (источник правды) ---
+  static const backgroundStart = Color(0xFFF8F9FA);
+  static const backgroundEnd = Color(0xFFE8F5E9);
+  static const backgroundWarm = Color(0xFFFFF8E1);
+  static const surface = Color(0xFFFFFFFF);
+  static const surfaceGlass = Color(0xCCFFFFFF);
+  static const textPrimary = Color(0xFF1E293B);
+  static const textSecondary = Color(0xFF64748B);
+  static const accent = Color(0xFF10B981);
+  static const accentDark = Color(0xFF059669);
+  static const accentSecondary = Color(0xFFF59E0B);
+  static const danger = Color(0xFFEF4444);
+  static const gold = Color(0xFFF59E0B);
   static const white = Color(0xFFFFFFFF);
-  static const gold = Color(0xFFFFC107);
-  static const red = Color(0xFFFF5722);
-  /// Цвет иконок категорий и подкатегорий (как «Спорт» на главном экране).
-  static const categoryIcon = Color(0xFF2196F3);
 
-  static const midnightGlowGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      darkBlue,
-      teal,
-      cyan,
-    ],
-  );
-
-  /// Мягкий тёплый фон (домашний экран / оболочка).
-  static const warmTrustGradient = LinearGradient(
+  static const appBackgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [
-      Color(0xFFFFF9F4),
-      Color(0xFFFFECD9),
-      Color(0xFFF5DFC8),
-    ],
+    colors: [backgroundStart, backgroundEnd],
   );
 
-  static LinearGradient warmTrustOverlay({double opacity = 1.0}) => LinearGradient(
+  static const appBackgroundGradientWarm = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [backgroundStart, backgroundWarm],
+  );
+
+  static LinearGradient subtleOverlay({double opacity = 1.0}) => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          const Color(0xFFFFFEFC).withOpacity(0.55 * opacity),
-          const Color(0xFFFFE8D6).withOpacity(0.35 * opacity),
-          const Color(0xFFFAD9BE).withOpacity(0.25 * opacity),
+          surface.withOpacity(0.4 * opacity),
+          backgroundEnd.withOpacity(0.25 * opacity),
         ],
       );
 
-  static LinearGradient overlayGradient({double opacity = 1.0}) => LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          darkBlue.withOpacity(0.7 * opacity),
-          teal.withOpacity(0.3 * opacity),
-          cyan.withOpacity(0.2 * opacity),
-        ],
-      );
+  // --- Совместимость со старыми именами (не удалять — используются в коде) ---
+  static const darkBlue = textPrimary;
+  static const teal = accentDark;
+  static const cyan = accent;
+  static const red = danger;
+  static const categoryIcon = accent;
+
+  static const midnightGlowGradient = appBackgroundGradient;
+  static const warmTrustGradient = appBackgroundGradientWarm;
+
+  static LinearGradient warmTrustOverlay({double opacity = 1.0}) => subtleOverlay(opacity: opacity);
+
+  static LinearGradient overlayGradient({double opacity = 1.0}) => subtleOverlay(opacity: opacity);
 }

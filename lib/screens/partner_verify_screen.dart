@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../services/auth_api.dart';
 import '../widgets/auth_form_scroll.dart';
@@ -231,7 +232,7 @@ class _PartnerVerifyScreenState extends State<PartnerVerifyScreen> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
                   _error!,
-                  style: const TextStyle(color: Color(0xFFFF5722), fontSize: 14),
+                  style: const TextStyle(color: AppColors.danger, fontSize: 14),
                 ),
               ),
             if (_debugCode != null) ...[
@@ -240,7 +241,7 @@ class _PartnerVerifyScreenState extends State<PartnerVerifyScreen> {
                 child: Text(
                   'Тестовый код: $_debugCode',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFF80DEEA), fontSize: 16),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 16),
                 ),
               ),
             ],
@@ -261,7 +262,7 @@ class _PartnerVerifyScreenState extends State<PartnerVerifyScreen> {
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+                  child: CircularProgressIndicator(color: AppColors.accent),
                 ),
               )
             else

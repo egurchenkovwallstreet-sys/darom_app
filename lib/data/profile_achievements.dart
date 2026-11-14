@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../models/user.dart';
 
@@ -25,19 +26,19 @@ class ProfileAchievements {
     ProfileAchievement(
       icon: Icons.waving_hand,
       title: 'Новичок',
-      color: Color(0xFF80DEEA),
+      color: AppColors.textSecondary,
       isUnlocked: _novice,
     ),
     ProfileAchievement(
       icon: Icons.bolt,
       title: 'Активный',
-      color: Color(0xFF00BFFF),
+      color: AppColors.accent,
       isUnlocked: _active,
     ),
     ProfileAchievement(
       icon: Icons.card_giftcard,
       title: 'Щедрый',
-      color: Color(0xFF008C8C),
+      color: AppColors.accentDark,
       isUnlocked: _generous,
     ),
     ProfileAchievement(
@@ -49,7 +50,7 @@ class ProfileAchievements {
     ProfileAchievement(
       icon: Icons.favorite,
       title: 'Самое доброе сердце',
-      color: Color(0xFFFF5722),
+      color: AppColors.danger,
       isUnlocked: _kindestHeart,
     ),
   ];

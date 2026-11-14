@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../data/public_offer.dart';
 import '../widgets/midnight_glow_screen.dart';
@@ -19,7 +20,7 @@ class PublicOfferScreen extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF00BFFF)),
+                    icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.accent),
                   ),
                   const Expanded(
                     child: Text(
@@ -41,9 +42,9 @@ class PublicOfferScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF001F3F).withOpacity(0.9),
+                    color: AppColors.surface.withOpacity(0.92),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFF00BFFF).withOpacity(0.4), width: 2),
+                    border: Border.all(color: AppColors.accent.withOpacity(0.4), width: 2),
                   ),
                   child: const Text(
                     PublicOfferText.body,

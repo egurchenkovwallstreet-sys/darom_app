@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
 import '../utils/responsive_layout.dart';
 import 'keyboard_inset_padding.dart';
 import 'responsive_page_frame.dart';
@@ -106,7 +107,7 @@ class _AuthFormScrollState extends State<AuthFormScroll> {
                 style: TextStyle(
                   fontSize: _compact ? 22 : 26,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFFFFFFFF),
+                  color: AppColors.textPrimary,
                   shadows: const [
                     Shadow(
                       color: Color(0x6600BFFF),
@@ -126,7 +127,7 @@ class _AuthFormScrollState extends State<AuthFormScroll> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                    color: AppColors.textPrimary.withOpacity(0.7),
                     height: 1.45,
                   ),
                 ),

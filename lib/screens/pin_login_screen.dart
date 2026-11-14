@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/user.dart';
@@ -102,7 +103,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: const Color(0xFFFF5722)),
+      SnackBar(content: Text(message), backgroundColor: AppColors.danger),
     );
   }
 
@@ -117,7 +118,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
         compactSubtitle: l10n.pinCompactSubtitle,
         focusNode: _pinFocus,
         formKey: _formKey,
-        leading: const Icon(Icons.lock, size: 72, color: Color(0xFF00BFFF)),
+        leading: const Icon(Icons.lock, size: 72, color: AppColors.accent),
         form: Column(
           children: [
             PinCodeFields(
@@ -131,7 +132,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
               onPressed: () => setState(() => _obscure = !_obscure),
               child: Text(
                 _obscure ? l10n.showPinDigits : l10n.hidePinDigits,
-                style: const TextStyle(color: Color(0xFF00BFFF)),
+                style: const TextStyle(color: AppColors.accent),
               ),
             ),
           ],
@@ -149,7 +150,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
               child: Text(
                 l10n.forgotPinReset,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFF80DEEA), fontSize: 13),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
             ),
           ],

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 
 import '../models/conversation.dart';
 import '../services/chats_api.dart';
@@ -148,7 +149,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
   Widget _buildBody() {
     if (_loading) {
       return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+        child: CircularProgressIndicator(color: AppColors.accent),
       );
     }
 
@@ -163,7 +164,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 _error!,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                  color: AppColors.textPrimary.withOpacity(0.7),
                 ),
               ),
               const SizedBox(height: 16),
@@ -191,14 +192,14 @@ class _ChatsScreenState extends State<ChatsScreen> {
               Icon(
                 Icons.chat_bubble_outline,
                 size: 64,
-                color: const Color(0xFF00BFFF).withOpacity(0.5),
+                color: AppColors.accent.withOpacity(0.5),
               ),
               const SizedBox(height: 16),
               Text(
                 'Пока нет переписок\nОткройте объявление и нажмите «Написать владельцу»',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                  color: AppColors.textPrimary.withOpacity(0.7),
                   height: 1.4,
                 ),
               ),
@@ -209,7 +210,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
     }
 
     return RefreshIndicator(
-      color: const Color(0xFF00BFFF),
+      color: AppColors.accent,
       onRefresh: () => _refresh(),
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
@@ -235,9 +236,9 @@ class _ChatsScreenState extends State<ChatsScreen> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF001F3F).withOpacity(0.85),
+                  color: AppColors.surface.withOpacity(0.92),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFF00BFFF), width: 1.5),
+                  border: Border.all(color: AppColors.accent, width: 1.5),
                 ),
                 child: Row(
                   children: [
@@ -245,11 +246,11 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00BFFF).withOpacity(0.2),
+                        color: AppColors.accent.withOpacity(0.2),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF00BFFF)),
+                        border: Border.all(color: AppColors.accent),
                       ),
-                      child: const Icon(Icons.chat, color: Color(0xFF00BFFF)),
+                      child: const Icon(Icons.chat, color: AppColors.accent),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -270,7 +271,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 12,
-                              color: const Color(0xFF00BFFF).withOpacity(0.9),
+                              color: AppColors.accent.withOpacity(0.9),
                             ),
                           ),
                           if (chat.lastMessage != null) ...[
@@ -281,7 +282,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 13,
-                                color: const Color(0xFFFFFFFF).withOpacity(0.65),
+                                color: AppColors.textPrimary.withOpacity(0.65),
                               ),
                             ),
                           ],
@@ -295,7 +296,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                           _formatTime(chat.lastMessageAt),
                           style: TextStyle(
                             fontSize: 11,
-                            color: const Color(0xFFFFFFFF).withOpacity(0.5),
+                            color: AppColors.textPrimary.withOpacity(0.5),
                           ),
                         ),
                         if (chat.unreadCount > 0) ...[
@@ -303,7 +304,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF5722),
+                              color: AppColors.danger,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(

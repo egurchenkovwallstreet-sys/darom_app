@@ -62,7 +62,7 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF9F4),
+      backgroundColor: AppColors.backgroundStart,
       resizeToAvoidBottomInset: false,
       extendBody: widget.bottomNavigationBar != null,
       bottomNavigationBar: widget.bottomNavigationBar != null
@@ -84,14 +84,14 @@ class _MidnightGlowScreenState extends State<MidnightGlowScreen>
                 const Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: AppColors.warmTrustGradient,
+                      gradient: AppColors.appBackgroundGradient,
                     ),
                   ),
                 ),
                 Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: AppColors.warmTrustOverlay(),
+                      gradient: AppColors.subtleOverlay(),
                     ),
                   ),
                 ),

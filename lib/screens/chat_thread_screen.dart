@@ -209,7 +209,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error is ChatsApiException ? error.message : '$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -236,7 +236,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.message),
-          backgroundColor: const Color(0xFF00BFFF),
+          backgroundColor: AppColors.accent,
         ),
       );
     } catch (error) {
@@ -258,7 +258,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error is ChatsApiException ? error.message : '$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -284,7 +284,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Сделка завершена!'),
-          backgroundColor: Color(0xFF00BFFF),
+          backgroundColor: AppColors.accent,
         ),
       );
       final deal = result.deal;
@@ -302,7 +302,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -327,7 +327,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Объявление снова активно'),
-          backgroundColor: Color(0xFF00BFFF),
+          backgroundColor: AppColors.accent,
         ),
       );
     } catch (error) {
@@ -336,7 +336,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -374,7 +374,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     final reason = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF001F3F),
+        backgroundColor: AppColors.textPrimary,
         title: const Text('Пожаловаться на чат', style: TextStyle(color: Colors.white)),
         content: TextField(
           controller: reasonController,
@@ -407,7 +407,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Жалоба отправлена модераторам'),
-          backgroundColor: Color(0xFF00BFFF),
+          backgroundColor: AppColors.accent,
         ),
       );
     } catch (error) {
@@ -415,7 +415,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error is ChatsApiException ? error.message : '$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -428,7 +428,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         children: [
           IconButton(
             onPressed: () => Navigator.pop(context, _conversation),
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF00BFFF)),
+            icon: const Icon(Icons.arrow_back, color: AppColors.accent),
           ),
           Expanded(
             child: Column(
@@ -449,7 +449,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: const Color(0xFFFFFFFF).withOpacity(0.65),
+                    color: AppColors.textPrimary.withOpacity(0.65),
                     fontSize: 13,
                   ),
                 ),
@@ -458,7 +458,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           ),
           IconButton(
             onPressed: _reportChat,
-            icon: const Icon(Icons.flag_outlined, color: Color(0xFFFF5722)),
+            icon: const Icon(Icons.flag_outlined, color: AppColors.danger),
             tooltip: 'Пожаловаться на чат',
           ),
         ],
@@ -493,7 +493,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 'Напишите сообщение и дождитесь ответа дарителя',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(0xFFFFFFFF).withOpacity(0.65),
+                  color: AppColors.textPrimary.withOpacity(0.65),
                   fontSize: 12,
                   height: 1.3,
                 ),
@@ -564,7 +564,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
 
   Widget _buildMessages() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFF00BFFF)));
+      return const Center(child: CircularProgressIndicator(color: AppColors.accent));
     }
 
     if (_error != null) {
@@ -584,7 +584,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
             'Напишите первое сообщение.\nКогда даритель ответит — станет доступна кнопка «Забронировать».',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: const Color(0xFFFFFFFF).withOpacity(0.7),
+              color: AppColors.textPrimary.withOpacity(0.7),
               height: 1.4,
             ),
           ),
@@ -612,11 +612,11 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
             ),
             decoration: BoxDecoration(
               color: isMine
-                  ? const Color(0xFF00BFFF).withOpacity(0.85)
-                  : const Color(0xFF001F3F).withOpacity(0.9),
+                  ? AppColors.accent.withOpacity(0.85)
+                  : AppColors.surface.withOpacity(0.92),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isMine ? const Color(0xFF80DEEA) : const Color(0xFF00BFFF),
+                color: isMine ? AppColors.textSecondary : AppColors.accent,
                 width: 1.5,
               ),
             ),
@@ -654,7 +654,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   message.body,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: const Color(0xFFFFFFFF).withOpacity(0.85),
+                    color: AppColors.textPrimary.withOpacity(0.85),
                     fontSize: 13,
                     height: 1.35,
                     fontStyle: FontStyle.italic,
@@ -672,8 +672,8 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.95),
-        border: Border(top: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.3))),
+        color: AppColors.surface.withOpacity(0.95),
+        border: Border(top: BorderSide(color: AppColors.accent.withOpacity(0.3))),
       ),
       child: Row(
         children: [
@@ -689,17 +689,17 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               onSubmitted: (_) => _sendMessage(),
               decoration: InputDecoration(
                 hintText: 'Сообщение...',
-                hintStyle: TextStyle(color: const Color(0xFFFFFFFF).withOpacity(0.45)),
+                hintStyle: TextStyle(color: AppColors.textPrimary.withOpacity(0.45)),
                 filled: true,
-                fillColor: const Color(0xFF001F3F),
+                fillColor: AppColors.surface,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFF00BFFF), width: 1.5),
+                  borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFF80DEEA), width: 2),
+                  borderSide: const BorderSide(color: AppColors.textSecondary, width: 2),
                 ),
               ),
             ),
@@ -711,9 +711,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 ? const SizedBox(
                     width: 22,
                     height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF00BFFF)),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accent),
                   )
-                : const Icon(Icons.send_rounded, color: Color(0xFF00BFFF), size: 28),
+                : const Icon(Icons.send_rounded, color: AppColors.accent, size: 28),
           ),
         ],
       ),

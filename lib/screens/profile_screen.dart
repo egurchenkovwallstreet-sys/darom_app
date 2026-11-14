@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import '../data/profile_achievements.dart';
@@ -135,7 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context).avatarUpdated),
-          backgroundColor: Color(0xFF00BFFF),
+          backgroundColor: AppColors.accent,
         ),
       );
     } catch (error) {
@@ -144,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error is UsersApiException ? error.message : '$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -155,7 +156,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF001F3F),
+        backgroundColor: AppColors.textPrimary,
         title: Text(l10n.deleteAccountTitle, style: const TextStyle(color: Colors.white)),
         content: Text(
           l10n.deleteAccountBody,
@@ -164,11 +165,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.cancel, style: const TextStyle(color: Color(0xFF80DEEA))),
+            child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.deleteButton, style: const TextStyle(color: Color(0xFFFF5722))),
+            child: Text(l10n.deleteButton, style: const TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
@@ -190,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error is UsersApiException ? error.message : '$error'),
-          backgroundColor: const Color(0xFFFF5722),
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -284,7 +285,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (_profileFuture == null ||
                     snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF00BFFF)),
+                    child: CircularProgressIndicator(color: AppColors.accent),
                   );
                 }
 
@@ -296,13 +297,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.cloud_off, size: 48, color: Color(0xFF00BFFF)),
+                      const Icon(Icons.cloud_off, size: 48, color: AppColors.accent),
                       const SizedBox(height: 16),
                       Text(
                         snapshot.error?.toString() ?? l10n.errLoadProfile,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: const Color(0xFFFFFFFF).withOpacity(0.7),
+                          color: AppColors.textPrimary.withOpacity(0.7),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -321,7 +322,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fontSize: 16,
                         borderRadius: 24,
                         gradientColors: PrimaryActionButton.dangerDeepGradient,
-                        shadowColor: const Color(0xFFFF5722),
+                        shadowColor: AppColors.danger,
                         onPressed: _logout,
                       ),
                     ],
@@ -353,7 +354,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           AvatarImage(
             url: user.avatarUrl,
             size: 100,
-            borderColor: const Color(0xFF008C8C),
+            borderColor: AppColors.accentDark,
           ),
           if (_uploadingAvatar)
             const SizedBox(
@@ -361,7 +362,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               height: 100,
               child: CircularProgressIndicator(
                 strokeWidth: 3,
-                color: Color(0xFF00BFFF),
+                color: AppColors.accent,
               ),
             ),
           Positioned(
@@ -371,11 +372,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: const Color(0xFF001F3F),
+                color: AppColors.textPrimary,
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF00BFFF), width: 2),
+                border: Border.all(color: AppColors.accent, width: 2),
               ),
-              child: const Icon(Icons.camera_alt, color: Color(0xFF00BFFF), size: 18),
+              child: const Icon(Icons.camera_alt, color: AppColors.accent, size: 18),
             ),
           ),
         ],
@@ -398,11 +399,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               width: 45,
                               height: 45,
                               decoration: BoxDecoration(
-                                color: Color(0xFF001F3F).withOpacity(0.85),
+                                color: AppColors.surface.withOpacity(0.92),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Color(0xFF00BFFF), width: 2),
+                                border: Border.all(color: AppColors.accent, width: 2),
                               ),
-                              child: Icon(Icons.arrow_back, color: Color(0xFF00BFFF)),
+                              child: Icon(Icons.arrow_back, color: AppColors.accent),
                             ),
                           )
                               .animate(
@@ -421,7 +422,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: Color(0xFFFFFFFF),
                               shadows: [
                                 Shadow(
-                                  color: Color(0xFF00BFFF).withOpacity(0.6),
+                                  color: AppColors.accent.withOpacity(0.6),
                                   offset: Offset(0, 4),
                                   blurRadius: 8,
                                 ),
@@ -441,7 +442,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(l10n.editProfileSoon),
-                                backgroundColor: Color(0xFF00BFFF),
+                                backgroundColor: AppColors.accent,
                               ),
                             );
                           },
@@ -454,11 +455,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               width: 45,
                               height: 45,
                               decoration: BoxDecoration(
-                                color: Color(0xFF001F3F).withOpacity(0.85),
+                                color: AppColors.surface.withOpacity(0.92),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Color(0xFF00BFFF), width: 2),
+                                border: Border.all(color: AppColors.accent, width: 2),
                               ),
-                              child: Icon(Icons.edit, color: Color(0xFF00BFFF)),
+                              child: Icon(Icons.edit, color: AppColors.accent),
                             ),
                           ),
                         ),
@@ -475,12 +476,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Container(
                             padding: EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Color(0xFF001F3F).withOpacity(0.85),
+                              color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Color(0xFF00BFFF), width: 2),
+                              border: Border.all(color: AppColors.accent, width: 2),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Color(0xFF00BFFF).withOpacity(0.3),
+                                  color: AppColors.accent.withOpacity(0.3),
                                   blurRadius: 20,
                                   offset: Offset(0, 10),
                                 ),
@@ -494,7 +495,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   l10n.tapPhotoToChange,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: const Color(0xFFFFFFFF).withOpacity(0.55),
+                                    color: AppColors.textPrimary.withOpacity(0.55),
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -506,7 +507,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     color: Color(0xFFFFFFFF),
                                     shadows: [
                                       Shadow(
-                                        color: Color(0xFF00BFFF).withOpacity(0.6),
+                                        color: AppColors.accent.withOpacity(0.6),
                                         offset: Offset(0, 4),
                                         blurRadius: 8,
                                       ),
@@ -545,14 +546,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF80DEEA).withOpacity(0.2),
+                                      color: AppColors.textSecondary.withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: const Color(0xFF80DEEA)),
+                                      border: Border.all(color: AppColors.textSecondary),
                                     ),
                                     child: Text(
                                       l10n.partnerBadge,
                                       style: TextStyle(
-                                        color: Color(0xFF80DEEA),
+                                        color: AppColors.textSecondary,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12,
                                       ),
@@ -563,7 +564,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Container(
                                   padding: EdgeInsets.symmetric(horizontal: 15, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: Color(0xFF00BFFF),
+                                    color: AppColors.accent,
                                     borderRadius: BorderRadius.circular(15),
                                   ),
                                   child: Row(
@@ -597,9 +598,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Container(
                             padding: EdgeInsets.all(15),
                             decoration: BoxDecoration(
-                              color: Color(0xFF001F3F).withOpacity(0.85),
+                              color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: Color(0xFF008C8C), width: 2),
+                              border: Border.all(color: AppColors.accentDark, width: 2),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -608,13 +609,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Container(
                                   width: 1,
                                   height: 50,
-                                  color: Color(0xFF00BFFF).withOpacity(0.3),
+                                  color: AppColors.accent.withOpacity(0.3),
                                 ),
                                 _buildStatItem(Icons.handshake, '${user.dealsCount}', l10n.statDeals),
                                 Container(
                                   width: 1,
                                   height: 50,
-                                  color: Color(0xFF00BFFF).withOpacity(0.3),
+                                  color: AppColors.accent.withOpacity(0.3),
                                 ),
                                 _buildStatItem(
                                   Icons.shopping_bag_outlined,
@@ -649,7 +650,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Text(
                                   '${ProfileAchievements.unlockedCount(user)}/${ProfileAchievements.all.length}',
                                   style: TextStyle(
-                                    color: Color(0xFF00BFFF),
+                                    color: AppColors.accent,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -661,9 +662,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Container(
                             height: 120,
                             decoration: BoxDecoration(
-                              color: Color(0xFF001F3F).withOpacity(0.85),
+                              color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: Color(0xFF00BFFF), width: 2),
+                              border: Border.all(color: AppColors.accent, width: 2),
                             ),
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
@@ -688,9 +689,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // Настройки
                           Container(
                             decoration: BoxDecoration(
-                              color: Color(0xFF001F3F).withOpacity(0.85),
+                              color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: Color(0xFF00BFFF), width: 2),
+                              border: Border.all(color: AppColors.accent, width: 2),
                             ),
                             child: Column(
                               children: [
@@ -700,7 +701,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   subtitle: LocaleService.instance.languageLabel,
                                   onTap: () => showLanguagePickerDialog(context),
                                 ),
-                                Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.inventory_2_outlined,
                                   AppLocalizations.of(context).myListings,
@@ -717,7 +718,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   },
                                 ),
                                 if (user.isPartner) ...[
-                                  Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                  Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
                                     Icons.analytics_outlined,
                                     AppLocalizations.of(context).partnerStats,
@@ -734,7 +735,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ],
                                 if (user.canAccessAdminPanel) ...[
-                                  Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                  Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
                                     Icons.flag_outlined,
                                     l10n.adminReports,
@@ -749,7 +750,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ],
                                 if (user.isSuperAdmin) ...[
-                                  Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                  Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
                                     Icons.bar_chart_outlined,
                                     l10n.adminDailyStats,
@@ -762,7 +763,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       );
                                     },
                                   ),
-                                  Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                  Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
                                     Icons.support_agent_outlined,
                                     l10n.adminUserRequests,
@@ -780,14 +781,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       if (mounted) _refreshSupportUnread(user);
                                     },
                                   ),
-                                  Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                  Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                   _buildSettingsItem(
                                     Icons.admin_panel_settings_outlined,
                                     l10n.adminPanel,
                                     onTap: () => _openAdminPanel(user.phoneNumber),
                                   ),
                                 ],
-                                Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.support_agent_outlined,
                                   AppLocalizations.of(context).support,
@@ -804,7 +805,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     if (mounted) _refreshSupportUnread(user);
                                   },
                                 ),
-                                Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.policy_outlined,
                                   AppLocalizations.of(context).publicOffer,
@@ -817,7 +818,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                   },
                                 ),
-                                Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.privacy_tip_outlined,
                                   AppLocalizations.of(context).privacyPolicyMenu,
@@ -830,7 +831,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                   },
                                 ),
-                                Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.article_outlined,
                                   AppLocalizations.of(context).cookiePolicyMenu,
@@ -843,7 +844,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                   },
                                 ),
-                                Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.folder_shared_outlined,
                                   AppLocalizations.of(context).myPersonalData,
@@ -858,7 +859,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                   },
                                 ),
-                                Divider(color: Color(0xFF00BFFF).withOpacity(0.3), height: 1),
+                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
                                 _buildSettingsItem(
                                   Icons.info,
                                   AppLocalizations.of(context).aboutApp,
@@ -889,9 +890,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             borderRadius: 25,
                             gradientColors: const [
                               Color(0xFF8B0000),
-                              Color(0xFFFF5722),
+                              AppColors.danger,
                             ],
-                            shadowColor: const Color(0xFFFF5722),
+                            shadowColor: AppColors.danger,
                             onPressed: () => _deleteAccount(user),
                           )
                               .animate(
@@ -908,7 +909,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontSize: 18,
                             borderRadius: 27,
                             gradientColors: PrimaryActionButton.dangerDeepGradient,
-                            shadowColor: const Color(0xFFFF5722),
+                            shadowColor: AppColors.danger,
                             onPressed: _logout,
                           )
                               .animate(
@@ -929,7 +930,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildStatItem(IconData icon, String value, String label) {
     return Column(
       children: [
-        Icon(icon, color: Color(0xFF00BFFF), size: 28),
+        Icon(icon, color: AppColors.accent, size: 28),
         SizedBox(height: 5),
         Text(
           value,
@@ -963,7 +964,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.comingSoon(title)),
-            backgroundColor: Color(0xFF00BFFF),
+            backgroundColor: AppColors.accent,
           ),
         );
       },
@@ -971,7 +972,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         child: Row(
           children: [
-            Icon(icon, color: Color(0xFF00BFFF), size: 24),
+            Icon(icon, color: AppColors.accent, size: 24),
             SizedBox(width: 15),
             Expanded(
               child: Column(
@@ -990,7 +991,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       subtitle,
                       style: TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF80DEEA).withOpacity(0.9),
+                        color: AppColors.textSecondary.withOpacity(0.9),
                       ),
                     ),
                 ],
@@ -1000,7 +1001,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFFF5722),
+                  color: AppColors.danger,
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
                 child: Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:darom_app/theme/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../screens/auth_gate.dart';
@@ -26,7 +27,7 @@ Future<bool> startDaromPayment(
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.message ?? successSnackPrefix),
-          backgroundColor: const Color(0xFF00BFFF),
+          backgroundColor: AppColors.accent,
         ),
       );
       return true;
@@ -56,7 +57,7 @@ Future<bool> startDaromPayment(
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$error'),
-        backgroundColor: const Color(0xFFFF5722),
+        backgroundColor: AppColors.danger,
       ),
     );
     return false;
@@ -133,7 +134,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF001F3F),
+      backgroundColor: AppColors.textPrimary,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -143,7 +144,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
               Icon(
                 widget.success ? Icons.check_circle_outline : Icons.error_outline,
                 size: 72,
-                color: widget.success ? const Color(0xFF00BFFF) : const Color(0xFFFF5722),
+                color: widget.success ? AppColors.accent : AppColors.danger,
               ),
               const SizedBox(height: 24),
               Text(
@@ -156,7 +157,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (_checking) const CircularProgressIndicator(color: Color(0xFF00BFFF)),
+              if (_checking) const CircularProgressIndicator(color: AppColors.accent),
               if (_checking) const SizedBox(height: 16),
               Text(
                 _statusText,
