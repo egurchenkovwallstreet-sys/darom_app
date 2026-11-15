@@ -7,6 +7,7 @@ Future<Map<String, String>> authHeaders() async {
   final headers = <String, String>{};
   if (token != null && token.isNotEmpty) {
     headers['Authorization'] = 'Bearer $token';
+    headers['X-User-Token'] = token;
   }
   return headers;
 }

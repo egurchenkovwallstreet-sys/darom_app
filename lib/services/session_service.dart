@@ -13,11 +13,9 @@ class SessionService {
   static const _keyCookieMode = 'session_cookie_v1';
 
   static Future<String?> getToken() async {
-    if (ApiConfig.usesHttpOnlySessionCookie &&
-        await readString(_keyCookieMode) == '1') {
-      return null;
-    }
-    return readString(_keyToken);
+    final token = await readString(_keyToken);
+    if (token != null && token.isNotEmpty) return token;
+    return null;
   }
 
   static Future<void> saveToken(String token) async {
@@ -36,11 +34,11 @@ class SessionService {
     required String sessionToken,
   }) async {
     await save(user);
+    await saveString(_keyToken, sessionToken);
     if (ApiConfig.usesHttpOnlySessionCookie) {
       await saveString(_keyCookieMode, '1');
-      await removeKey(_keyToken);
     } else {
-      await saveToken(sessionToken);
+      await removeKey(_keyCookieMode);
     }
   }
 
@@ -103,11 +101,12 @@ class SessionService {
   }
 
   /// Переход на HttpOnly-cookie на боевом сайте (J-H).
+  /// Токен в localStorage остаётся для Authorization при загрузке фото (multipart).
   static Future<void> migrateToHttpOnlyCookieIfNeeded() async {
     if (!ApiConfig.usesHttpOnlySessionCookie) return;
-    const key = 'session_cookie_migrated_v1';
+    const key = 'session_cookie_migrated_v2';
     if (await readString(key) == '1') return;
-    await removeKey(_keyToken);
+    await saveString(_keyCookieMode, '1');
     await saveString(key, '1');
   }
 }

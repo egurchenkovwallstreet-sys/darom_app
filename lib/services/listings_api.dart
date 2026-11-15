@@ -263,9 +263,18 @@ class ListingsApi {
     final response = await http.Response.fromStream(streamed);
 
     if (response.statusCode != 201) {
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      Map<String, dynamic> body = {};
+      try {
+        body = jsonDecode(response.body) as Map<String, dynamic>;
+      } catch (_) {}
+      if (response.statusCode == 401) {
+        throw ListingsApiException(
+          body['error'] as String? ??
+              'Сессия не распознана. Выйдите из профиля и войдите снова, затем повторите загрузку фото.',
+        );
+      }
       throw ListingsApiException(
-        body['error'] as String? ?? 'Не удалось загрузить фото',
+        body['error'] as String? ?? 'Не удалось загрузить фото (код $response.statusCode)',
       );
     }
 
