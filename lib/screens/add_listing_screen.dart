@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
 import 'package:darom_app/theme/darom_decorations.dart';
@@ -196,6 +197,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
         lng: lng,
       );
 
+      var photosUploaded = 0;
       for (final photo in _photos) {
         await _listingsApi.uploadPhoto(
           listingId: listing.id,
@@ -203,13 +205,19 @@ class _AddListingScreenState extends State<AddListingScreen> {
           bytes: photo.bytes,
           fileName: photo.name,
         );
+        photosUploaded++;
       }
 
       if (!mounted) return;
 
+      final photoNote = _photos.isEmpty
+          ? ''
+          : (photosUploaded == _photos.length
+              ? ' Фото добавлены.'
+              : ' Часть фото не загрузилась — попробуйте отредактировать объявление.');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Объявление опубликовано!'),
+        SnackBar(
+          content: Text('Объявление опубликовано!$photoNote'),
           backgroundColor: AppColors.accent,
         ),
       );
@@ -288,10 +296,30 @@ class _AddListingScreenState extends State<AddListingScreen> {
       return;
     }
 
-    final picked = await _imagePicker.pickMultiImage(
-      imageQuality: 85,
-      maxWidth: 1600,
-    );
+    List<XFile> picked = [];
+    try {
+      picked = await _imagePicker.pickMultiImage(
+        imageQuality: 85,
+        maxWidth: 1600,
+      );
+      if (picked.isEmpty && kIsWeb) {
+        final single = await _imagePicker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 85,
+          maxWidth: 1600,
+        );
+        if (single != null) picked = [single];
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Не удалось выбрать фото: $error'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+      return;
+    }
     if (picked.isEmpty || !mounted) return;
 
     final remaining = _maxPhotos - _totalPhotoCount;
@@ -608,7 +636,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                             'До 5 фото (JPG, PNG)',
                                             style: TextStyle(
                                               fontSize: 12,
-                                              color: Color(0x80FFFFFF),
+                                              color: AppColors.textSecondary,
                                             ),
                                           ),
                                         ],

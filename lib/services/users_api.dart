@@ -223,7 +223,7 @@ class UsersApi {
       ),
     );
 
-    final streamed = await request.send().timeout(const Duration(seconds: 30));
+    final streamed = await _client.send(request).timeout(const Duration(seconds: 60));
     final response = await http.Response.fromStream(streamed);
 
     if (response.statusCode != 200) {
