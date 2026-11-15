@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../services/admin_api.dart';
 import '../services/admin_session_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/darom_decorations.dart';
 import '../widgets/auth_form_scroll.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/pin_code_fields.dart';
@@ -357,7 +358,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               TextField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                style: const TextStyle(color: Colors.white),
+                style: DaromDecorations.fieldTextLarge,
                 decoration: const InputDecoration(
                   labelText: 'Телефон администратора',
                   labelStyle: TextStyle(color: AppColors.cyan),
@@ -383,7 +384,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   maxLength: 4,
-                  style: const TextStyle(color: Colors.white),
+                  style: DaromDecorations.fieldTextLarge,
                   decoration: const InputDecoration(
                     labelText: 'Код из SMS (4 цифры)',
                     counterText: '',
@@ -404,7 +405,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   maxLength: 6,
-                  style: const TextStyle(color: Colors.white),
+                  style: DaromDecorations.fieldTextLarge,
                   decoration: const InputDecoration(
                     labelText: 'Код с почты',
                     counterText: '',

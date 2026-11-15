@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/app_localizations.dart';
@@ -176,11 +177,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
             keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _continue(),
-            style: const TextStyle(
-              fontSize: 20,
-              color: Color(0xFFFFFFFF),
-              fontWeight: FontWeight.bold,
-            ),
+            style: DaromDecorations.fieldTextLarge,
             decoration: InputDecoration(
               hintText: l10n.phoneHint,
               hintStyle: TextStyle(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 
 import '../services/auth_api.dart';
 import '../services/partners_api.dart';
@@ -141,11 +142,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
                 maxLength: 4,
                 textInputAction: TextInputAction.next,
                 onSubmitted: (_) => _phoneFocus.requestFocus(),
-                style: const TextStyle(
-                  fontSize: 20,
-                  color: Color(0xFFFFFFFF),
-                  fontWeight: FontWeight.bold,
-                ),
+                style: DaromDecorations.fieldTextLarge,
                 decoration: const InputDecoration(
                   counterText: '',
                   border: InputBorder.none,
@@ -167,11 +164,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _continue(),
-                style: const TextStyle(
-                  fontSize: 20,
-                  color: Color(0xFFFFFFFF),
-                  fontWeight: FontWeight.bold,
-                ),
+                style: DaromDecorations.fieldTextLarge,
                 decoration: InputDecoration(
                   hintText: 'Номер телефона',
                   hintStyle: TextStyle(

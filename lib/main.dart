@@ -9,6 +9,7 @@ import 'package:darom_app/services/locale_service.dart';
 import 'package:darom_app/services/planet_assets.dart';
 import 'package:darom_app/services/session_service.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:darom_app/screens/public_offer_screen.dart';
 import 'package:darom_app/screens/privacy_policy_screen.dart';
 import 'package:darom_app/widgets/payment_flow.dart';
@@ -112,6 +113,15 @@ class _DaromAppState extends State<DaromApp> {
           titleMedium: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
           titleLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
           labelLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: AppColors.surface.withOpacity(0.95),
+          hintStyle: DaromDecorations.fieldHint(),
+          labelStyle: const TextStyle(color: AppColors.textSecondary),
+          enabledBorder: DaromDecorations.fieldOutlineBorder(),
+          focusedBorder: DaromDecorations.fieldOutlineBorder(focused: true),
+          border: DaromDecorations.fieldOutlineBorder(),
         ),
         useMaterial3: true,
       ),

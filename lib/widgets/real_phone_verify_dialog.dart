@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 
 import '../services/auth_api.dart';
 import '../services/session_service.dart';
@@ -281,7 +282,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
     final showOtp = _started && (_needsOtp || _flashCallMode || !_mobileIdMode);
 
     return Dialog(
-      backgroundColor: AppColors.textPrimary,
+      backgroundColor: AppColors.surface,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
@@ -302,7 +303,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                   _success ? 'Готово!' : 'Подтверждение номера',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
                   ),
@@ -314,14 +315,14 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                   const Text(
                     'Теперь вам доступны все функции приложения!',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 16, height: 1.4),
+                    style: TextStyle(color: AppColors.textPrimary, fontSize: 16, height: 1.4),
                   ),
                 ] else ...[
                   const Text(
                     'Один раз бесплатно подтвердите номер — так мы проверяем, что вы человек, '
                     'и защищаем площадку от мошенничества. '
                     'На телефон поступит короткий звонок: введите последние 4 цифры номера звонящего.',
-                    style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.45),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.45),
                   ),
                   const SizedBox(height: 16),
                   KeyedSubtree(
@@ -331,12 +332,12 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                       focusNode: _phoneFocus,
                       enabled: !_started && !_loading,
                       keyboardType: TextInputType.phone,
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                      style: DaromDecorations.fieldTextLarge.copyWith(fontSize: 18),
                       decoration: InputDecoration(
                         labelText: 'Номер телефона',
                         labelStyle: const TextStyle(color: AppColors.textSecondary),
                         filled: true,
-                        fillColor: const Color(0xFF00152A),
+                        fillColor: AppColors.surface.withOpacity(0.95),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: AppColors.accent),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 
 import '../models/listing.dart';
 import '../services/listings_api.dart';
@@ -159,11 +160,7 @@ class _SearchScreenState extends State<SearchScreen> {
           child: TextField(
             controller: _queryController,
             focusNode: _focusNode,
-            style: const TextStyle(
-              color: Color(0xFFFFFFFF),
-              fontSize: 16,
-              height: 1.25,
-            ),
+            style: DaromDecorations.fieldText.copyWith(height: 1.25),
             textInputAction: TextInputAction.search,
             onSubmitted: (_) => _runSearch(),
             onChanged: (_) => setState(() {}),

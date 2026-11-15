@@ -7,6 +7,7 @@ import '../models/support_ticket.dart';
 import '../services/support_api.dart';
 import '../services/refresh_intervals.dart';
 import '../theme/app_colors.dart';
+import '../theme/darom_decorations.dart';
 import '../widgets/keyboard_inset_padding.dart';
 import '../widgets/midnight_glow_screen.dart';
 
@@ -325,21 +326,20 @@ class _SupportThreadScreenState extends State<SupportThreadScreen> {
             Expanded(
               child: TextField(
                 controller: _inputController,
-                style: const TextStyle(color: Colors.white),
+                style: DaromDecorations.fieldText,
                 maxLines: 4,
                 minLines: 1,
-                decoration: InputDecoration(
+                decoration: DaromDecorations.lightFieldDecoration(
                   hintText: widget.isAdminMode ? 'Ответить...' : 'Написать сообщение...',
-                  hintStyle: const TextStyle(color: Colors.white38),
-                  filled: true,
-                  fillColor: const Color(0xFF0A2A4A),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(color: AppColors.cyan),
-                  ),
+                ).copyWith(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: AppColors.cyan.withOpacity(0.5)),
+                    borderSide: const BorderSide(color: AppColors.borderSoft),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
                   ),
                 ),
                 onSubmitted: (_) => _send(),

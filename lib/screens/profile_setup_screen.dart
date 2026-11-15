@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../services/users_api.dart';
@@ -175,11 +176,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 textCapitalization: TextCapitalization.words,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _continue(),
-                style: const TextStyle(
-                  fontSize: 20,
-                  color: Color(0xFFFFFFFF),
-                  fontWeight: FontWeight.bold,
-                ),
+                style: DaromDecorations.fieldTextLarge,
                 decoration: InputDecoration(
                   hintText: 'Ваше имя',
                   hintStyle: TextStyle(
@@ -219,11 +216,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     controller: _referralController,
                     keyboardType: TextInputType.number,
                     maxLength: 4,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      color: Color(0xFFFFFFFF),
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: DaromDecorations.fieldTextLarge,
                     decoration: const InputDecoration(
                       counterText: '',
                       border: InputBorder.none,

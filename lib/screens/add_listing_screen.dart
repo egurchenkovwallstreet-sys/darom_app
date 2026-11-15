@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -412,17 +413,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             child: TextField(
                               controller: _titleController,
                               focusNode: _titleFocus,
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Color(0xFFFFFFFF),
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: DaromDecorations.fieldTextLarge.copyWith(fontSize: 18),
                               decoration: InputDecoration(
                                 hintText: 'Название объявления',
-                                hintStyle: TextStyle(
-                                  color: Color(0xFFFFFFFF).withOpacity(0.4),
-                                  fontSize: 16,
-                                ),
+                                hintStyle: DaromDecorations.fieldHint(fontSize: 16),
                                 border: InputBorder.none,
                                 prefixIcon: Icon(
                                   Icons.title,
@@ -551,16 +545,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
                               controller: _descriptionController,
                               focusNode: _descriptionFocus,
                               maxLines: 5,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Color(0xFFFFFFFF),
-                              ),
+                              style: DaromDecorations.fieldText,
                               decoration: InputDecoration(
                                 hintText: 'Описание товара',
-                                hintStyle: TextStyle(
-                                  color: Color(0xFFFFFFFF).withOpacity(0.4),
-                                  fontSize: 15,
-                                ),
+                                hintStyle: DaromDecorations.fieldHint(fontSize: 15),
                                 border: InputBorder.none,
                                 prefixIcon: Icon(
                                   Icons.description,

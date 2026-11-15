@@ -9,6 +9,7 @@ import '../services/listings_api.dart' show ListingsApi, PickupLimitException;
 import '../services/real_phone_required.dart';
 import '../services/refresh_intervals.dart';
 import '../theme/app_colors.dart';
+import '../theme/darom_decorations.dart';
 import '../widgets/keyboard_inset_padding.dart';
 import '../widgets/phone_sharing_dialog.dart';
 import '../widgets/primary_action_button.dart';
@@ -374,16 +375,13 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     final reason = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.textPrimary,
-        title: const Text('Пожаловаться на чат', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surface,
+        title: const Text('Пожаловаться на чат', style: TextStyle(color: AppColors.textPrimary)),
         content: TextField(
           controller: reasonController,
           maxLines: 3,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            hintText: 'Причина (необязательно)',
-            hintStyle: TextStyle(color: Colors.white54),
-          ),
+          style: DaromDecorations.fieldText,
+          decoration: DaromDecorations.lightFieldDecoration(hintText: 'Причина (необязательно)'),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
@@ -682,7 +680,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               controller: _inputController,
               focusNode: _inputFocus,
               enabled: !_sending,
-              style: const TextStyle(color: Color(0xFFFFFFFF)),
+              style: DaromDecorations.fieldText,
               minLines: 1,
               maxLines: 4,
               textInputAction: TextInputAction.send,

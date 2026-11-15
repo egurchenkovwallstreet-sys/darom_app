@@ -44,4 +44,49 @@ class DaromDecorations {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(buttonRadius)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       );
+
+  /// Текст в полях ввода на светлом фоне — всегда тёмный, не белый.
+  static const TextStyle fieldText = TextStyle(
+    color: AppColors.textPrimary,
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+  );
+
+  static const TextStyle fieldTextLarge = TextStyle(
+    color: AppColors.textPrimary,
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+  );
+
+  static TextStyle fieldHint({double fontSize = 15}) => TextStyle(
+        color: AppColors.textSecondary.withOpacity(0.9),
+        fontSize: fontSize,
+      );
+
+  static OutlineInputBorder fieldOutlineBorder({bool focused = false}) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(buttonRadius),
+        borderSide: BorderSide(
+          color: focused ? AppColors.accent : AppColors.borderSoft,
+          width: focused ? 1.5 : 1,
+        ),
+      );
+
+  static InputDecoration lightFieldDecoration({
+    String? hintText,
+    String? labelText,
+    Widget? prefixIcon,
+    bool filled = true,
+  }) =>
+      InputDecoration(
+        hintText: hintText,
+        labelText: labelText,
+        hintStyle: fieldHint(),
+        labelStyle: const TextStyle(color: AppColors.textSecondary),
+        prefixIcon: prefixIcon,
+        filled: filled,
+        fillColor: filled ? AppColors.surface.withOpacity(0.95) : null,
+        enabledBorder: fieldOutlineBorder(),
+        focusedBorder: fieldOutlineBorder(focused: true),
+        border: fieldOutlineBorder(),
+      );
 }

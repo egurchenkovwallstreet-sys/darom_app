@@ -6,6 +6,7 @@ import '../models/support_ticket.dart';
 import '../services/support_api.dart';
 import '../services/refresh_intervals.dart';
 import '../theme/app_colors.dart';
+import '../theme/darom_decorations.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import 'support_thread_screen.dart';
@@ -83,31 +84,23 @@ class _SupportScreenState extends State<SupportScreen> {
     final created = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.darkBlue,
-        title: const Text('Новое обращение', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surface,
+        title: const Text('Новое обращение', style: TextStyle(color: AppColors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: subjectController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Тема (необязательно)',
-                  labelStyle: TextStyle(color: Colors.white54),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.cyan)),
-                ),
+                style: DaromDecorations.fieldText,
+                decoration: DaromDecorations.lightFieldDecoration(labelText: 'Тема (необязательно)'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: bodyController,
-                style: const TextStyle(color: Colors.white),
+                style: DaromDecorations.fieldText,
                 maxLines: 5,
-                decoration: const InputDecoration(
-                  labelText: 'Сообщение',
-                  labelStyle: TextStyle(color: Colors.white54),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.cyan)),
-                ),
+                decoration: DaromDecorations.lightFieldDecoration(labelText: 'Сообщение'),
               ),
             ],
           ),

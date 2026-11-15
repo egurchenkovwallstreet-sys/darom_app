@@ -39,7 +39,7 @@ class PinCodeFields extends StatelessWidget {
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             style: const TextStyle(
               fontSize: 28,
-              color: Color(0xFFFFFFFF),
+              color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
             ),
             maxLength: 1,
