@@ -378,10 +378,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFFFFFFF),
+                              color: AppColors.textPrimary,
                               shadows: [
                                 Shadow(
-                                  color: AppColors.accent.withOpacity(0.6),
+                                  color: AppColors.accent.withOpacity(0.2),
                                   offset: Offset(0, 4),
                                   blurRadius: 8,
                                 ),
@@ -449,17 +449,18 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String>(
                                       value: _selectedCategory,
-                                      dropdownColor: AppColors.textPrimary,
-                                      style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                      dropdownColor: AppColors.surface,
+                                      style: DaromDecorations.fieldText.copyWith(
+                                        fontWeight: FontWeight.w600,
                                       ),
                                       icon: Icon(Icons.arrow_drop_down, color: AppColors.accent),
                                       items: _subcategories.keys.map((String category) {
                                         return DropdownMenuItem<String>(
                                           value: category,
-                                          child: Text(category),
+                                          child: Text(
+                                            category,
+                                            style: DaromDecorations.fieldText,
+                                          ),
                                         );
                                       }).toList(),
                                       onChanged: (String? newValue) {
@@ -499,17 +500,18 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String>(
                                       value: _selectedSubcategory,
-                                      dropdownColor: AppColors.textPrimary,
-                                      style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                      dropdownColor: AppColors.surface,
+                                      style: DaromDecorations.fieldText.copyWith(
+                                        fontWeight: FontWeight.w600,
                                       ),
                                       icon: Icon(Icons.arrow_drop_down, color: AppColors.accentDark),
                                       items: _currentSubcategoryOptions.map((String subcategory) {
                                         return DropdownMenuItem<String>(
                                           value: subcategory,
-                                          child: Text(subcategory),
+                                          child: Text(
+                                            subcategory,
+                                            style: DaromDecorations.fieldText,
+                                          ),
                                         );
                                       }).toList(),
                                       onChanged: (String? newValue) {

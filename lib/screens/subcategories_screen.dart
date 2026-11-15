@@ -290,7 +290,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFFFFFFF),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
