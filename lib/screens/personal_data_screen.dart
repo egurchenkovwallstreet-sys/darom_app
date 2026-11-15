@@ -57,7 +57,7 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
                     child: Text(
                       'Мои персональные данные',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -86,7 +86,7 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
                             Text(
                               snapshot.error.toString(),
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white.withOpacity(0.8)),
+                              style: TextStyle(color: AppColors.textSecondary),
                             ),
                             const SizedBox(height: 16),
                             PrimaryActionButton(
@@ -117,7 +117,7 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
                         Text(
                           'Выгрузка: ${data.exportedAt}',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.45),
+                            color: AppColors.textSecondary.withOpacity(0.8),
                             fontSize: 11,
                           ),
                         ),
@@ -193,7 +193,7 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
               child: Text(
                 line,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
+                  color: AppColors.textSecondary,
                   fontSize: 14,
                   height: 1.35,
                 ),

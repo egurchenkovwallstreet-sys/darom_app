@@ -163,7 +163,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                     child: Text(
                       'Карта объявлений',
                       style: TextStyle(
-                        color: Color(0xFFFFFFFF),
+                        color: AppColors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -245,7 +245,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: Color(0xFFFFFFFF),
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
@@ -301,7 +301,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
-                  color: Color(0xFFFFFFFF),
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(width: 6),

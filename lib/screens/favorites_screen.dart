@@ -73,7 +73,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFFFFFFFF),
+                color: AppColors.textPrimary,
               ),
             ),
           ),

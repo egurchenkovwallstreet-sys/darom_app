@@ -7,7 +7,7 @@ Future<bool?> showPushPermissionDialog(BuildContext context) {
     context: context,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
-      backgroundColor: AppColors.textPrimary,
+      backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: AppColors.accent, width: 2),
@@ -19,7 +19,7 @@ Future<bool?> showPushPermissionDialog(BuildContext context) {
           Expanded(
             child: Text(
               'Уведомления',
-              style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 18),
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 18),
             ),
           ),
         ],
@@ -28,7 +28,7 @@ Future<bool?> showPushPermissionDialog(BuildContext context) {
         'Разрешите уведомления, чтобы не пропустить сообщения в чате, '
         'бронирования и отметку «Отдал».\n\n'
         'После нажатия «Включить» браузер покажет свой запрос — выберите «Разрешить».',
-        style: TextStyle(color: Color(0xFFFFFFFF), height: 1.45),
+        style: TextStyle(color: AppColors.textPrimary, height: 1.45),
       ),
       actions: [
         TextButton(

@@ -134,7 +134,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.textPrimary,
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -153,7 +153,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -164,7 +164,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.white.withOpacity(0.85),
+                  color: AppColors.textSecondary,
                   height: 1.4,
                 ),
               ),

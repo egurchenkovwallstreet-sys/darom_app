@@ -512,13 +512,13 @@ class _DesktopNavTile extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: AppColors.danger,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.white, width: 1.5),
+                              border: Border.all(color: AppColors.white, width: 1.5),
                             ),
                             child: Text(
                               badgeLabel,
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 height: 1,
@@ -596,7 +596,7 @@ class _NavItem extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors.danger,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.white, width: 1.5),
+                          border: Border.all(color: AppColors.textPrimary, width: 1.5),
                           boxShadow: const [
                             BoxShadow(
                               color: Color(0x88000000),
@@ -609,7 +609,7 @@ class _NavItem extends StatelessWidget {
                           badgeLabel,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             height: 1.0,

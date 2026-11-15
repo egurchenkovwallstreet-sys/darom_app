@@ -143,11 +143,11 @@ class _ListingScreenState extends State<ListingScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.textPrimary,
-        title: const Text('Пожаловаться?', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surface,
+        title: const Text('Пожаловаться?', style: TextStyle(color: AppColors.textPrimary)),
         content: Text(
           'Жалоба на объявление «${_listing.title}». После 3 жалоб оно будет скрыто.',
-          style: TextStyle(color: Colors.white.withOpacity(0.85)),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -193,11 +193,11 @@ class _ListingScreenState extends State<ListingScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.textPrimary,
-        title: const Text('Удалить объявление?', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surface,
+        title: const Text('Удалить объявление?', style: TextStyle(color: AppColors.textPrimary)),
         content: Text(
           '«${_listing.title}» будет скрыто из ленты. Это действие нельзя отменить.',
-          style: TextStyle(color: Colors.white.withOpacity(0.85)),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -313,7 +313,7 @@ class _ListingScreenState extends State<ListingScreen> {
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFFFFFFF),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -360,7 +360,7 @@ class _ListingScreenState extends State<ListingScreen> {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFFFFFFFF),
+                color: AppColors.textPrimary,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -449,7 +449,7 @@ class _ListingScreenState extends State<ListingScreen> {
       ),
       child: Text(
         text,
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 12),
       ),
     );
   }
@@ -477,7 +477,7 @@ class _ListingScreenState extends State<ListingScreen> {
           const SizedBox(height: 10),
           Text(
             _listing.description,
-            style: const TextStyle(fontSize: 15, color: Color(0xFFFFFFFF), height: 1.6),
+            style: const TextStyle(fontSize: 15, color: AppColors.textPrimary, height: 1.6),
           ),
         ],
       ),
@@ -501,7 +501,7 @@ class _ListingScreenState extends State<ListingScreen> {
               color: AppColors.accent,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.person, color: Colors.white, size: 32),
+            child: const Icon(Icons.person, color: AppColors.textPrimary, size: 32),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -516,7 +516,7 @@ class _ListingScreenState extends State<ListingScreen> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFFFFFFF),
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ),

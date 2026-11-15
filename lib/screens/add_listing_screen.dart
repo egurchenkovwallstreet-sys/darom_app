@@ -664,7 +664,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                                           child: const Icon(
                                                             Icons.close,
                                                             size: 16,
-                                                            color: Colors.white,
+                                                            color: AppColors.textPrimary,
                                                           ),
                                                         ),
                                                       ),

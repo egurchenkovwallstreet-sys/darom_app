@@ -133,7 +133,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFFFFFFFF),
+                color: AppColors.textPrimary,
               ),
             ),
           ),
@@ -260,7 +260,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                           Text(
                             chat.counterpartyName,
                             style: const TextStyle(
-                              color: Color(0xFFFFFFFF),
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -310,7 +310,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                             child: Text(
                               chat.unreadCount > 99 ? '99+' : '${chat.unreadCount}',
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                               ),

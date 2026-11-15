@@ -15,7 +15,7 @@ Future<bool?> showPrivacyPolicyUpdateDialog(BuildContext context) {
     context: context,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
-      backgroundColor: AppColors.textPrimary,
+      backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: AppColors.accent, width: 2),
@@ -27,7 +27,7 @@ Future<bool?> showPrivacyPolicyUpdateDialog(BuildContext context) {
           Expanded(
             child: Text(
               l10n.privacyUpdateTitle,
-              style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 18),
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 18),
             ),
           ),
         ],
@@ -38,7 +38,7 @@ Future<bool?> showPrivacyPolicyUpdateDialog(BuildContext context) {
         children: [
           Text(
             l10n.privacyUpdateBody(policyDate),
-            style: TextStyle(color: Colors.white.withOpacity(0.9), height: 1.45),
+            style: TextStyle(color: AppColors.textSecondary, height: 1.45),
           ),
           const SizedBox(height: 12),
           _DocLink(

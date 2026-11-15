@@ -67,7 +67,7 @@ class AvatarImage extends StatelessWidget {
     return Icon(
       Icons.person,
       size: size * 0.55,
-      color: Colors.white,
+      color: AppColors.textPrimary,
     );
   }
 }

@@ -26,7 +26,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     child: Text(
                       PrivacyPolicyText.title,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -49,7 +49,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   child: Text(
                     PrivacyPolicyText.body,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontSize: 14,
                       height: 1.55,
                     ),

@@ -128,7 +128,7 @@ class _ListingPhotoGalleryState extends State<ListingPhotoGallery> {
                   child: Text(
                     '${_index + 1} / ${urls.length}',
                     style: const TextStyle(
-                      color: Color(0xFFFFFFFF),
+                      color: AppColors.textPrimary,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),

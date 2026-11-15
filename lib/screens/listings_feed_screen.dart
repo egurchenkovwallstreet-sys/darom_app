@@ -121,7 +121,7 @@ class _ListingsFeedScreenState extends State<ListingsFeedScreen> {
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFFFFFFFF),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         Text(
@@ -229,7 +229,7 @@ class _ErrorState extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFFFFFFFF),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -406,7 +406,7 @@ class _ListingCardState extends State<_ListingCard> {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFFFFFFF),
+                        color: AppColors.textPrimary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

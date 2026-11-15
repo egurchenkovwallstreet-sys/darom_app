@@ -93,7 +93,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFFFFFFF),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -201,7 +201,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFFFFFFFF),
+                                        color: AppColors.textPrimary,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,

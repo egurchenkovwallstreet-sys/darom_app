@@ -56,7 +56,7 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFFFFFFF),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -83,7 +83,7 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                             Text(
                               '$snapshot.error',
                               textAlign: TextAlign.center,
-                              style: const TextStyle(color: Color(0xFFFFFFFF)),
+                              style: const TextStyle(color: AppColors.textPrimary),
                             ),
                             const SizedBox(height: 16),
                             TextButton(
@@ -185,7 +185,7 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
                 child: Text(
                   code,
                   style: const TextStyle(
-                    color: Color(0xFFFFFFFF),
+                    color: AppColors.textPrimary,
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 3,

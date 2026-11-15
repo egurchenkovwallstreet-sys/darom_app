@@ -139,7 +139,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
             const SizedBox(height: 16),
             const Text(
               'Повторите пароль',
-              style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 16),
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
             ),
             const SizedBox(height: 12),
             PinCodeFields(controllers: _confirmControllers, obscure: _obscure),

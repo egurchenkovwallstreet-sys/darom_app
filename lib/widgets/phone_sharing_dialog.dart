@@ -8,7 +8,7 @@ Future<bool> confirmPhoneSharing(BuildContext context) {
   return showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      backgroundColor: AppColors.textPrimary,
+      backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: AppColors.danger, width: 2),
@@ -20,7 +20,7 @@ Future<bool> confirmPhoneSharing(BuildContext context) {
           Expanded(
             child: Text(
               'Вы передаёте номер телефона',
-              style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 18),
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 18),
             ),
           ),
         ],
@@ -32,7 +32,7 @@ Future<bool> confirmPhoneSharing(BuildContext context) {
         '• не переводите деньги\n'
         '• не сообщайте коды из SMS и банков\n'
         '• не передавайте паспортные и другие личные данные',
-        style: TextStyle(color: Color(0xFFFFFFFF), height: 1.45),
+        style: TextStyle(color: AppColors.textPrimary, height: 1.45),
       ),
       actions: [
         TextButton(

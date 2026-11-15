@@ -17,9 +17,9 @@ Future<bool?> showPickupPackOfferDialog(
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.textPrimary,
-        title: const Text('Лимит заборов', style: TextStyle(color: Colors.white)),
-        content: Text(limitInfo.message, style: const TextStyle(color: Colors.white70)),
+        backgroundColor: AppColors.surface,
+        title: const Text('Лимит заборов', style: TextStyle(color: AppColors.textPrimary)),
+        content: Text(limitInfo.message, style: const TextStyle(color: AppColors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -87,7 +87,7 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
     final upsell = widget.upsell;
 
     return Dialog(
-      backgroundColor: AppColors.textPrimary,
+      backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(color: AppColors.accent.withOpacity(0.5), width: 2),
@@ -102,7 +102,7 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
             Text(
               widget.limitInfo.message,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white.withOpacity(0.85)),
+              style: TextStyle(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 16),
             Text(
@@ -110,7 +110,7 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -126,13 +126,13 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
             Text(
               upsell.description,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.75)),
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 8),
             Text(
               'Оплата через Робокассу (карта, СБП).',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.5)),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary.withOpacity(0.85)),
             ),
             const SizedBox(height: 20),
             PrimaryActionButton(
@@ -146,7 +146,7 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('Не сейчас', style: TextStyle(color: Colors.white.withOpacity(0.6))),
+              child: Text('Не сейчас', style: TextStyle(color: AppColors.textSecondary.withOpacity(0.9))),
             ),
           ],
         ),

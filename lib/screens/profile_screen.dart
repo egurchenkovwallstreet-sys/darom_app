@@ -570,12 +570,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.star, color: Colors.white, size: 16),
+                                      const Icon(Icons.star, color: AppColors.white, size: 16),
                                       SizedBox(width: 5),
                                       Text(
                                         '${l10n.donorLevelLabel(user.donorLevel)} • ${user.rating}',
-                                        style: TextStyle(
-                                          color: Colors.white,
+                                        style: const TextStyle(
+                                          color: AppColors.white,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,
                                         ),
@@ -1007,7 +1007,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Text(
                   badgeCount > 99 ? '99+' : '$badgeCount',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),

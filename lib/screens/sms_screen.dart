@@ -244,7 +244,7 @@ class _SmsScreenState extends State<SmsScreen> {
                     Text(
                       _debugCode!,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 42,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 10,

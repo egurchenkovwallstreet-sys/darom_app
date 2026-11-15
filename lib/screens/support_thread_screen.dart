@@ -187,7 +187,7 @@ class _SupportThreadScreenState extends State<SupportThreadScreen> {
                 padding: EdgeInsets.all(16),
                 child: Text(
                   'Обращение закрыто',
-                  style: TextStyle(color: Colors.white54),
+                  style: TextStyle(color: AppColors.textSecondary),
                 ),
               ),
           ],
@@ -215,11 +215,11 @@ class _SupportThreadScreenState extends State<SupportThreadScreen> {
                       : _ticket.displayTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Text(
                   _ticket.statusLabel,
-                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 ),
               ],
             ),
@@ -284,10 +284,12 @@ class _SupportThreadScreenState extends State<SupportThreadScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
             decoration: BoxDecoration(
-              color: isMine ? const Color(0xFF007AA3) : AppColors.textPrimary,
+              color: isMine
+                  ? AppColors.accent.withOpacity(0.88)
+                  : AppColors.surface.withOpacity(0.95),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isMine ? AppColors.textSecondary : AppColors.cyan,
+                color: isMine ? AppColors.accentDark : AppColors.borderSoft,
                 width: 1.5,
               ),
             ),
@@ -297,17 +299,28 @@ class _SupportThreadScreenState extends State<SupportThreadScreen> {
                 Text(
                   message.isFromAdmin ? 'Поддержка' : (widget.isAdminMode ? 'Пользователь' : 'Вы'),
                   style: TextStyle(
-                    color: isMine ? AppColors.cyan : Colors.white54,
+                    color: isMine ? AppColors.white : AppColors.textSecondary,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(message.body, style: const TextStyle(color: Colors.white, fontSize: 15)),
+                Text(
+                  message.body,
+                  style: TextStyle(
+                    color: isMine ? AppColors.white : AppColors.textPrimary,
+                    fontSize: 15,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   _formatTime(message.createdAt),
-                  style: const TextStyle(color: Colors.white38, fontSize: 11),
+                  style: TextStyle(
+                    color: isMine
+                        ? AppColors.white.withOpacity(0.85)
+                        : AppColors.textSecondary,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ),

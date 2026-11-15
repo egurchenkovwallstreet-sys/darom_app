@@ -33,7 +33,7 @@ class AboutAppScreen extends StatelessWidget {
                     child: Text(
                       'О приложении',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -61,7 +61,7 @@ class AboutAppScreen extends StatelessWidget {
                           Text(
                             _paragraphs[i],
                             style: TextStyle(
-                              color: Colors.white.withOpacity(i == 0 ? 1 : 0.88),
+                              color: i == 0 ? AppColors.textPrimary : AppColors.textSecondary,
                               fontSize: i == 0 ? 18 : 16,
                               height: 1.55,
                               fontWeight: i == 0 ? FontWeight.bold : FontWeight.normal,

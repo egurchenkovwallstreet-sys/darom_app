@@ -117,6 +117,20 @@ class _DaromAppState extends State<DaromApp> {
         dropdownMenuTheme: const DropdownMenuThemeData(
           textStyle: TextStyle(color: AppColors.textPrimary, fontSize: 16),
         ),
+        dialogTheme: DialogTheme(
+          backgroundColor: AppColors.surface,
+          surfaceTintColor: Colors.transparent,
+          titleTextStyle: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+          contentTextStyle: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 15,
+            height: 1.4,
+          ),
+        ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: AppColors.surface.withOpacity(0.95),

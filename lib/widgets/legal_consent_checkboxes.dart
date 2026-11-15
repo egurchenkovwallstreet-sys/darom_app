@@ -110,7 +110,7 @@ class _ConsentRow extends StatelessWidget {
               child: Text(
                 label,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.85),
+                  color: AppColors.textSecondary,
                   fontSize: 13,
                   height: 1.35,
                 ),

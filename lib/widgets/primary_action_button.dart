@@ -142,7 +142,7 @@ class _PrimaryActionButtonState extends State<PrimaryActionButton> {
                 width: widget.height * 0.45,
                 height: widget.height * 0.45,
                 child: const CircularProgressIndicator(
-                  color: Colors.white,
+                  color: AppColors.white,
                   strokeWidth: 2,
                 ),
               )
@@ -151,7 +151,7 @@ class _PrimaryActionButtonState extends State<PrimaryActionButton> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (widget.icon != null) ...[
-                    Icon(widget.icon, color: Colors.white, size: widget.fontSize),
+                    Icon(widget.icon, color: AppColors.white, size: widget.fontSize),
                     const SizedBox(width: 8),
                   ],
                   Flexible(

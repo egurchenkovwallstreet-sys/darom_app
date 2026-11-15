@@ -379,7 +379,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                             _debugCode!,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                               fontSize: 36,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 8,
@@ -394,7 +394,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                     const Text(
                       'Последние 4 цифры номера звонящего',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                     ),
                     const SizedBox(height: 8),
                     KeyedSubtree(

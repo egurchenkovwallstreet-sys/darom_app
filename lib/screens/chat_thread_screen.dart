@@ -437,7 +437,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Color(0xFFFFFFFF),
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 17,
                   ),
@@ -552,7 +552,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
             SizedBox(width: 8),
             Text(
               'Вы забронировали это объявление',
-              style: TextStyle(color: Color(0xFFFFFFFF), fontWeight: FontWeight.w600),
+              style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -620,7 +620,10 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
             ),
             child: Text(
               message.body,
-              style: const TextStyle(color: Color(0xFFFFFFFF), height: 1.35),
+              style: TextStyle(
+                color: isMine ? AppColors.white : AppColors.textPrimary,
+                height: 1.35,
+              ),
             ),
           ),
         );

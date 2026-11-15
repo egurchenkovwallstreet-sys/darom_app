@@ -26,7 +26,7 @@ class PublicOfferScreen extends StatelessWidget {
                     child: Text(
                       PublicOfferText.title,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -49,7 +49,7 @@ class PublicOfferScreen extends StatelessWidget {
                   child: const Text(
                     PublicOfferText.body,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontSize: 14,
                       height: 1.55,
                     ),

@@ -178,7 +178,7 @@ class _SupportScreenState extends State<SupportScreen> {
                     child: Text(
                       title,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -232,7 +232,7 @@ class _SupportScreenState extends State<SupportScreen> {
       return Center(
         child: Text(
           widget.isAdminMode ? 'Обращений пока нет' : 'У вас пока нет обращений',
-          style: const TextStyle(color: Colors.white54),
+          style: const TextStyle(color: AppColors.textSecondary),
         ),
       );
     }
@@ -245,7 +245,7 @@ class _SupportScreenState extends State<SupportScreen> {
         final unread = widget.isAdminMode ? ticket.unreadForAdmin : ticket.unreadForUser;
 
         return Card(
-          color: const Color(0xFF0A2A4A),
+          color: AppColors.surface.withOpacity(0.95),
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             onTap: () async {
@@ -265,23 +265,23 @@ class _SupportScreenState extends State<SupportScreen> {
               widget.isAdminMode
                   ? '${ticket.userName ?? 'Пользователь'} (${ticket.userPhone ?? '—'})'
                   : ticket.displayTitle,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (widget.isAdminMode)
-                  Text(ticket.displayTitle, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  Text(ticket.displayTitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                 Text(
                   ticket.lastMessage ?? '—',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${ticket.statusLabel} · ${_formatTime(ticket.lastMessageAt ?? ticket.updatedAt)}',
-                  style: const TextStyle(color: Colors.white38, fontSize: 12),
+                  style: TextStyle(color: AppColors.textSecondary.withOpacity(0.75), fontSize: 12),
                 ),
               ],
             ),
@@ -289,7 +289,7 @@ class _SupportScreenState extends State<SupportScreen> {
                 ? Container(
                     padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(color: AppColors.cyan, shape: BoxShape.circle),
-                    child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    child: Text('$unread', style: const TextStyle(color: AppColors.white, fontSize: 12)),
                   )
                 : null,
           ),

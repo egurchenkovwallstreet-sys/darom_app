@@ -93,7 +93,7 @@ class PartnerEmailRequestCard extends StatelessWidget {
             'Хотите стать нашим партнёром?\nНапишите запрос на почту',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Color(0xFFFFFFFF),
+              color: AppColors.textPrimary,
               fontSize: 15,
               height: 1.45,
               fontWeight: FontWeight.w600,

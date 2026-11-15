@@ -53,7 +53,7 @@ class _LimitDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: AppColors.textPrimary,
+      backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(color: AppColors.accent.withOpacity(0.4)),
@@ -68,7 +68,7 @@ class _LimitDialog extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFFFFFFFF),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -143,7 +143,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
     final upsell = widget.upsell;
 
     return Dialog(
-      backgroundColor: AppColors.textPrimary,
+      backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(color: AppColors.accent.withOpacity(0.5), width: 2),
@@ -198,7 +198,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFFFFFFF),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
