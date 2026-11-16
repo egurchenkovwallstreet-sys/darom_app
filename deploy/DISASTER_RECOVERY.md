@@ -124,10 +124,9 @@ curl -s http://127.0.0.1:3000/api/health
 После `git pull` на сервере:
 
 ```bash
-chmod +x /opt/darom_app/deploy/scripts/daily_db_backup.sh
-/opt/darom_app/deploy/scripts/daily_db_backup.sh
+/bin/bash /opt/darom_app/deploy/scripts/daily_db_backup.sh
 crontab -l 2>/dev/null | grep -v daily_db_backup.sh | crontab - 2>/dev/null || true
-(crontab -l 2>/dev/null; echo "0 3 * * * /opt/darom_app/deploy/scripts/daily_db_backup.sh >> /var/log/darom_backup.log 2>&1") | crontab -
+(crontab -l 2>/dev/null; echo "0 3 * * * /bin/bash /opt/darom_app/deploy/scripts/daily_db_backup.sh >> /var/log/darom_backup.log 2>&1") | crontab -
 crontab -l
 ```
 

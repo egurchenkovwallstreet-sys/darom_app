@@ -1,6 +1,7 @@
 #!/bin/bash
 # Ежедневный бэкап PostgreSQL «Даром» + копия .env (J-F).
-# Cron: 0 3 * * * /opt/darom_app/deploy/scripts/daily_db_backup.sh >> /var/log/darom_backup.log 2>&1
+# Cron: 0 3 * * * /bin/bash /opt/darom_app/deploy/scripts/daily_db_backup.sh >> /var/log/darom_backup.log 2>&1
+# (через /bin/bash: git pull сбрасывает бит исполнения, и прямой вызов падал с Permission denied)
 
 set -euo pipefail
 

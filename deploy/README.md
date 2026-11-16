@@ -36,7 +36,8 @@ nano /opt/darom_app/backend/.env
 В **конец файла** добавьте (подставьте **свой** пароль):
 
 ```
-DEPLOY_SECRET=DaromWebDeploy2026Xy7zK9mN
+DEPLOY_SECRET=<длинный случайный пароль, не публиковать>
+
 WEB_ROOT=/var/www/darom
 ```
 
