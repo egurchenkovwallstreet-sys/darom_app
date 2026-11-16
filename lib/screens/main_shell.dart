@@ -328,12 +328,12 @@ class _DesktopSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassSurface(
-      borderRadius: 0,
-      blurSigma: 16,
-      fillOpacity: 0.92,
-      softShadow: false,
-      borderColor: AppColors.textSecondary,
+    return Container(
+      width: 248,
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(right: BorderSide(color: AppColors.borderSoft, width: 1)),
+      ),
       child: SizedBox(
         width: 248,
         child: Column(
@@ -349,10 +349,8 @@ class _DesktopSidebar extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [AppColors.accent, AppColors.accentDark],
-                    ),
-                    border: Border.all(color: AppColors.accent.withOpacity(0.2)),
+                    color: AppColors.primary,
+                    boxShadow: DaromDecorations.fabShadow,
                   ),
                   child: const Center(
                     child: Text(
@@ -366,14 +364,9 @@ class _DesktopSidebar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
+                Text(
                   'Даром',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
+                  style: DaromDecorations.titleStyle(fontSize: 22),
                 ),
               ],
             ),
@@ -404,10 +397,8 @@ class _DesktopSidebar extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
-                    gradient: const LinearGradient(
-                      colors: [AppColors.accent, AppColors.accentDark],
-                    ),
-                    boxShadow: DaromDecorations.softShadow,
+                    color: AppColors.primary,
+                    boxShadow: DaromDecorations.fabShadow,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -485,7 +476,7 @@ class _DesktopNavTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Material(
-        color: selected ? AppColors.accent.withOpacity(0.12) : Colors.transparent,
+        color: selected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: onTap,
