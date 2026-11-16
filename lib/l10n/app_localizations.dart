@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class AppLocalizations {
   AppLocalizations(this.locale);
@@ -82,8 +82,8 @@ class AppLocalizations {
         'Your first listing or chat message may require free phone verification.\n',
       );
   String get phoneWarningLine3 => _t(
-        '⚠️ Если указать чужой или неактуальный номер, восстановить доступ к аккаунту может быть невозможно.',
-        '⚠️ Using someone else’s or outdated number may make account recovery impossible.',
+        'Если указать чужой или неактуальный номер, восстановить доступ к аккаунту может быть невозможно.',
+        'Using someone else’s or outdated number may make account recovery impossible.',
       );
 
   // PIN
@@ -201,12 +201,12 @@ class AppLocalizations {
   String get profileTitle => _t('Профиль', 'Profile');
   String get tapPhotoToChange =>
       _t('Нажмите на фото, чтобы сменить', 'Tap photo to change');
-  String get founderBadge => _t('⭐ Основатель', '⭐ Founder');
-  String get partnerBadge => _t('🤝 Партнёр', '🤝 Partner');
+  String get founderBadge => _t('Основатель', 'Founder');
+  String get partnerBadge => _t('Партнёр', 'Partner');
   String get statListings => _t('Объявления', 'Listings');
   String get statDeals => _t('Сделки', 'Deals');
   String get statPickups => _t('Заборы', 'Pickups');
-  String get achievementsTitle => _t('🏆 Достижения', '🏆 Achievements');
+  String get achievementsTitle => _t('Достижения', 'Achievements');
   String get errNoPhone => _t('Нет номера телефона', 'No phone number');
   String get avatarUpdated => _t('Аватар обновлён', 'Avatar updated');
   String get deleteAccountTitle => _t('Удалить аккаунт?', 'Delete account?');

@@ -206,7 +206,7 @@ class PushService {
       return 'Браузер не поддерживает push-уведомления';
     }
     if (lower.contains('push service not available')) {
-      return 'Push-сервис браузера недоступен. На iPhone добавьте «Даром» на экран «Домой» (Safari → Поделиться)';
+      return 'Push-сервис браузера недоступен. На iPhone добавьте «Даром» на экран «Домой» (в Safari: «Поделиться»)';
     }
     if (lower.contains('unsupported-browser') || lower.contains('unsupported_browser')) {
       return 'Этот браузер не поддерживает push. На iPhone — только через иконку «На экран Домой»';

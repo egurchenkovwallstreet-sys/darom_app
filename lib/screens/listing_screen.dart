@@ -536,7 +536,7 @@ class _ListingScreenState extends State<ListingScreen> {
                   ],
                 ),
                 Text(
-                  '${_listing.authorLevel} • ${_listing.authorRating} ★',
+                  '${_listing.authorLevel} • рейтинг ${_listing.authorRating}',
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.textPrimary.withOpacity(0.75),

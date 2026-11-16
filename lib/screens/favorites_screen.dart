@@ -132,7 +132,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Пока пусто\nНажмите ❤️ на объявлении, чтобы сохранить',
+                            'Пока пусто\nНажмите на сердечко в объявлении, чтобы сохранить',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: AppColors.textPrimary.withOpacity(0.7),
