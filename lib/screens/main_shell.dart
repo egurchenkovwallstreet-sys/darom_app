@@ -263,12 +263,12 @@ class _MainShellState extends State<MainShell> {
       minimum: const EdgeInsets.only(bottom: 16),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(DaromDecorations.screenPaddingH, 0, DaromDecorations.screenPaddingH, 8),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(DaromDecorations.navBarRadius),
-            boxShadow: DaromDecorations.cardShadow,
-          ),
+        child: GlassSurface(
+          borderRadius: DaromDecorations.navBarRadius,
+          blurSigma: 22,
+          fillOpacity: 0.94,
+          borderWidth: 1,
+          borderColor: AppColors.glassBorder,
           padding: const EdgeInsets.fromLTRB(6, 8, 6, 10),
           child: SizedBox(
             height: 72,
@@ -328,13 +328,17 @@ class _DesktopSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 248,
+    return DecoratedBox(
       decoration: const BoxDecoration(
-        color: AppColors.surface,
         border: Border(right: BorderSide(color: AppColors.borderSoft, width: 1)),
       ),
-      child: SizedBox(
+      child: GlassSurface(
+        borderRadius: 0,
+        blurSigma: 22,
+        fillOpacity: 0.92,
+        borderWidth: 0,
+        softShadow: false,
+        child: SizedBox(
         width: 248,
         child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -447,6 +451,7 @@ class _DesktopSidebar extends StatelessWidget {
             ),
           ),
         ],
+        ),
         ),
       ),
     );

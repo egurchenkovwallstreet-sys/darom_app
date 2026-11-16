@@ -37,7 +37,9 @@ class FounderListingStyle {
       color: backgroundColor(listing),
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(
-        color: borderColor(listing, defaultBorderColor),
+        color: borderColor(listing, defaultBorderColor).withOpacity(
+          highlight(listing) ? 0.55 : 0.12,
+        ),
         width: borderWidth,
       ),
       boxShadow: DaromDecorations.softShadow,

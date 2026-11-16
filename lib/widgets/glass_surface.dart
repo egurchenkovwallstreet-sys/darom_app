@@ -11,11 +11,11 @@ class GlassSurface extends StatelessWidget {
     super.key,
     required this.child,
     this.borderRadius = DaromDecorations.cardRadius,
-    this.blurSigma = 12,
+    this.blurSigma = DaromDecorations.glassBlurSigma,
     this.padding,
     this.borderColor,
     this.fillColor,
-    this.fillOpacity = 0.8,
+    this.fillOpacity = DaromDecorations.glassFillOpacity,
     this.borderWidth = 1,
     this.softShadow = true,
   });
@@ -34,7 +34,7 @@ class GlassSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(borderRadius);
     final fill = fillColor ?? AppColors.surface;
-    final border = borderColor ?? AppColors.textSecondary;
+    final border = borderColor ?? AppColors.glassBorder;
 
     Widget panel = ClipRRect(
       borderRadius: radius,
@@ -44,7 +44,7 @@ class GlassSurface extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: radius,
             color: fill.withOpacity(fillOpacity),
-            border: Border.all(color: border.withOpacity(0.15), width: borderWidth),
+            border: Border.all(color: border.withOpacity(0.85), width: borderWidth),
           ),
           child: padding != null ? Padding(padding: padding!, child: child) : child,
         ),

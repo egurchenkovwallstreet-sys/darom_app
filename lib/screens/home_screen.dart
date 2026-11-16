@@ -761,13 +761,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildRadiusPanel(AppLocalizations l10n) {
     final panel = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
+      child: GlassSurface(
+        borderRadius: DaromDecorations.cardRadius,
+        blurSigma: DaromDecorations.glassBlurSigma,
+        fillOpacity: DaromDecorations.glassFillOpacity,
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(DaromDecorations.cardRadius),
-          boxShadow: DaromDecorations.cardShadow,
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

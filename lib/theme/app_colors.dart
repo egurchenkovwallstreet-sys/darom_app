@@ -20,6 +20,10 @@ class AppColors {
   static const textSecondary = Color(0xFF737373);
   static const borderSoft = Color(0x0F000000);
   static const borderDivider = Color(0x0F000000);
+  static const ambientPeach = Color(0xFFFFF0E8);
+  static const ambientMint = Color(0xFFE8F5F0);
+  static const glassHighlight = Color(0x99FFFFFF);
+  static const glassBorder = Color(0x59FFFFFF);
 
   static const danger = Color(0xFFDC2626);
   static const gold = Color(0xFFD4A574);

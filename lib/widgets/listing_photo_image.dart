@@ -39,7 +39,7 @@ class ListingPhotoImage extends StatelessWidget {
       child: Container(
         width: width,
         height: height,
-        color: AppColors.darkBlue.withOpacity(0.85),
+        color: AppColors.background.withOpacity(0.65),
         child: hasUrl
             ? Image.network(
                 resolvedUrl,

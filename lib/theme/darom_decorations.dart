@@ -33,9 +33,21 @@ class DaromDecorations {
 
   static List<BoxShadow> get softShadow => cardShadow;
 
+  static const double glassBlurSigma = 18;
+  static const double glassFillOpacity = 0.88;
+
   static BoxDecoration glassCard({Color? borderColor}) => BoxDecoration(
-        color: AppColors.surface,
         borderRadius: BorderRadius.circular(cardRadius),
+        border: Border.all(
+          color: borderColor ?? AppColors.glassBorder,
+          width: 1,
+        ),
+        boxShadow: cardShadow,
+      );
+
+  static BoxDecoration warmGlassPanel({double radius = cardRadius}) => BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: AppColors.glassBorder, width: 1),
         boxShadow: cardShadow,
       );
 

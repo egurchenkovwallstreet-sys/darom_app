@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 
 import '../models/listing.dart';
 import '../utils/founder_listing_style.dart';
@@ -15,7 +16,7 @@ class ListingTileCard extends StatefulWidget {
     this.isFavorite = false,
     this.onFavoriteChanged,
     this.onTap,
-    this.usePremiumGlass = false,
+    this.usePremiumGlass = true,
   });
 
   final Listing listing;
@@ -34,7 +35,7 @@ class _ListingTileCardState extends State<ListingTileCard> {
 
   @override
   Widget build(BuildContext context) {
-    const defaultBorder = AppColors.accent;
+    const defaultBorder = AppColors.borderSoft;
     final border = FounderListingStyle.borderColor(widget.listing, defaultBorder);
 
     final content = Row(
@@ -82,12 +83,14 @@ class _ListingTileCardState extends State<ListingTileCard> {
     final Widget card;
     if (widget.usePremiumGlass) {
       card = GlassSurface(
-        borderRadius: 24,
-        borderColor: border,
+        borderRadius: DaromDecorations.cardRadius,
+        borderColor: FounderListingStyle.highlight(widget.listing)
+            ? AppColors.gold.withOpacity(0.45)
+            : AppColors.glassBorder,
         fillColor: FounderListingStyle.backgroundColor(widget.listing),
-        fillOpacity: 0.55,
+        fillOpacity: DaromDecorations.glassFillOpacity,
         softShadow: true,
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: content,
       );
     } else {
