@@ -11,7 +11,7 @@ Future<bool> confirmPhoneSharing(BuildContext context) {
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.danger, width: 2),
+        side: BorderSide.none,
       ),
       title: const Row(
         children: [

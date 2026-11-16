@@ -169,7 +169,6 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.accent, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,14 +217,13 @@ class _PartnerStatsScreenState extends State<PartnerStatsScreen> {
     required String subtitle,
     bool accent = false,
   }) {
-    final color = accent ? const Color(0xFFFFC107) : AppColors.accent;
+    final color = accent ? AppColors.gold : AppColors.accent;
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color, width: 2),
       ),
       child: Row(
         children: [

@@ -1,3 +1,4 @@
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -246,10 +247,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ? color.withOpacity(0.2)
             : const Color(0xFF607D8B).withOpacity(0.12),
         borderRadius: BorderRadius.circular(unlocked ? 12 : 10),
-        border: Border.all(
-          color: unlocked ? color : const Color(0xFF607D8B).withOpacity(0.35),
-          width: unlocked ? 2 : 1,
-        ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -371,12 +368,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Container(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
-                color: AppColors.textPrimary,
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.accent, width: 2),
+                boxShadow: DaromDecorations.cardShadow,
               ),
-              child: const Icon(Icons.camera_alt, color: AppColors.accent, size: 18),
+              child: const Icon(Icons.camera_alt_outlined, color: AppColors.textPrimary, size: 17),
             ),
           ),
         ],
@@ -398,12 +395,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Container(
                               width: 45,
                               height: 45,
-                              decoration: BoxDecoration(
-                                color: AppColors.surface.withOpacity(0.92),
+                              decoration: const BoxDecoration(
+                                color: AppColors.surface,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.accent, width: 2),
+                                boxShadow: DaromDecorations.cardShadow,
                               ),
-                              child: Icon(Icons.arrow_back, color: AppColors.accent),
+                              child: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
                             ),
                           )
                               .animate(
@@ -416,18 +413,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Expanded(
                           child: Text(
                             l10n.profileTitle,
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                              shadows: [
-                                Shadow(
-                                  color: AppColors.accent.withOpacity(0.6),
-                                  offset: Offset(0, 4),
-                                  blurRadius: 8,
-                                ),
-                              ],
-                            ),
+                            style: DaromDecorations.titleStyle(fontSize: 24),
                           )
                               .animate(
                                 delay: Duration(milliseconds: 300),
@@ -451,15 +437,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             scale: _isEditPressed ? 1.08 : 1.0,
                             duration: Duration(milliseconds: 150),
                             curve: Curves.easeOut,
-                            child: Container(
+                            child: const SizedBox(
                               width: 45,
                               height: 45,
-                              decoration: BoxDecoration(
-                                color: AppColors.surface.withOpacity(0.92),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.accent, width: 2),
-                              ),
-                              child: Icon(Icons.edit, color: AppColors.accent),
+                              child: Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 22),
                             ),
                           ),
                         ),
@@ -474,19 +455,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           // Аватар и имя
                           Container(
-                            padding: EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface.withOpacity(0.92),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppColors.accent, width: 2),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.accent.withOpacity(0.3),
-                                  blurRadius: 20,
-                                  offset: Offset(0, 10),
-                                ),
-                              ],
-                            ),
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(24),
+                            decoration: DaromDecorations.solidCard(),
                             child: Column(
                               children: [
                                 _buildAvatar(user),
@@ -501,18 +472,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 const SizedBox(height: 8),
                                 Text(
                                   user.name,
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
-                                    shadows: [
-                                      Shadow(
-                                        color: AppColors.accent.withOpacity(0.6),
-                                        offset: Offset(0, 4),
-                                        blurRadius: 8,
-                                      ),
-                                    ],
-                                  ),
+                                  style: DaromDecorations.titleStyle(fontSize: 22),
                                 ),
                                 SizedBox(height: 5),
                                 Text(
@@ -527,16 +487,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFFFC107).withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: const Color(0xFFFFC107)),
+                                      color: AppColors.badgeFounderBg,
+                                      borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
                                     ),
                                     child: Text(
                                       l10n.founderBadge,
-                                      style: TextStyle(
-                                        color: Color(0xFFFFC107),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
+                                      style: const TextStyle(
+                                        color: AppColors.badgeFounderText,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
                                       ),
                                     ),
                                   ),
@@ -546,38 +505,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: AppColors.textSecondary.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: AppColors.textSecondary),
+                                      color: AppColors.tabTrack,
+                                      borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
                                     ),
                                     child: Text(
                                       l10n.partnerBadge,
-                                      style: TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
+                                      style: const TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
                                       ),
                                     ),
                                   ),
                                 ],
                                 SizedBox(height: 10),
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                                   decoration: BoxDecoration(
-                                    color: AppColors.accent,
-                                    borderRadius: BorderRadius.circular(15),
+                                    color: AppColors.badgeNewbieBg,
+                                    borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.star, color: AppColors.white, size: 16),
-                                      SizedBox(width: 5),
+                                      const Icon(Icons.star_rounded, color: AppColors.badgeNewbieText, size: 16),
+                                      const SizedBox(width: 5),
                                       Text(
                                         '${l10n.donorLevelLabel(user.donorLevel)} • ${user.rating}',
                                         style: const TextStyle(
-                                          color: AppColors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                          color: AppColors.badgeNewbieText,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
                                         ),
                                       ),
                                     ],
@@ -596,26 +554,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           // Статистика
                           Container(
-                            padding: EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface.withOpacity(0.92),
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: AppColors.accentDark, width: 2),
-                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                            decoration: DaromDecorations.solidCard(),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                _buildStatItem(Icons.inventory_2, '${user.activeListings}/${user.listingLimit}', l10n.statListings),
+                                _buildStatItem(Icons.inventory_2_outlined, '${user.activeListings}/${user.listingLimit}', l10n.statListings),
                                 Container(
                                   width: 1,
-                                  height: 50,
-                                  color: AppColors.accent.withOpacity(0.3),
+                                  height: 48,
+                                  color: AppColors.borderDivider,
                                 ),
-                                _buildStatItem(Icons.handshake, '${user.dealsCount}', l10n.statDeals),
+                                _buildStatItem(Icons.handshake_outlined, '${user.dealsCount}', l10n.statDeals),
                                 Container(
                                   width: 1,
-                                  height: 50,
-                                  color: AppColors.accent.withOpacity(0.3),
+                                  height: 48,
+                                  color: AppColors.borderDivider,
                                 ),
                                 _buildStatItem(
                                   Icons.shopping_bag_outlined,
@@ -641,17 +595,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               children: [
                                 Text(
                                   l10n.achievementsTitle,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
-                                  ),
+                                  style: DaromDecorations.titleStyle(fontSize: 18),
                                 ),
                                 Text(
                                   '${ProfileAchievements.unlockedCount(user)}/${ProfileAchievements.all.length}',
-                                  style: TextStyle(
-                                    color: AppColors.accent,
-                                    fontWeight: FontWeight.bold,
+                                  style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ],
@@ -661,11 +611,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           Container(
                             height: 120,
-                            decoration: BoxDecoration(
-                              color: AppColors.surface.withOpacity(0.92),
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: AppColors.accent, width: 2),
-                            ),
+                            decoration: DaromDecorations.solidCard(),
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               padding: EdgeInsets.all(15),
@@ -688,11 +634,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           // Настройки
                           Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.surface.withOpacity(0.92),
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: AppColors.accent, width: 2),
-                            ),
+                            clipBehavior: Clip.antiAlias,
+                            decoration: DaromDecorations.solidCard(),
                             child: Column(
                               children: [
                                 _buildSettingsItem(
@@ -701,7 +644,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   subtitle: LocaleService.instance.languageLabel,
                                   onTap: () => showLanguagePickerDialog(context),
                                 ),
-                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                 _buildSettingsItem(
                                   Icons.inventory_2_outlined,
                                   AppLocalizations.of(context).myListings,
@@ -718,7 +661,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   },
                                 ),
                                 if (user.isPartner) ...[
-                                  Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                  const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                   _buildSettingsItem(
                                     Icons.analytics_outlined,
                                     AppLocalizations.of(context).partnerStats,
@@ -735,7 +678,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ],
                                 if (user.canAccessAdminPanel) ...[
-                                  Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                  const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                   _buildSettingsItem(
                                     Icons.flag_outlined,
                                     l10n.adminReports,
@@ -750,7 +693,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ],
                                 if (user.isSuperAdmin) ...[
-                                  Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                  const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                   _buildSettingsItem(
                                     Icons.bar_chart_outlined,
                                     l10n.adminDailyStats,
@@ -763,7 +706,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       );
                                     },
                                   ),
-                                  Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                  const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                   _buildSettingsItem(
                                     Icons.support_agent_outlined,
                                     l10n.adminUserRequests,
@@ -781,14 +724,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       if (mounted) _refreshSupportUnread(user);
                                     },
                                   ),
-                                  Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                  const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                   _buildSettingsItem(
                                     Icons.admin_panel_settings_outlined,
                                     l10n.adminPanel,
                                     onTap: () => _openAdminPanel(user.phoneNumber),
                                   ),
                                 ],
-                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                 _buildSettingsItem(
                                   Icons.support_agent_outlined,
                                   AppLocalizations.of(context).support,
@@ -805,7 +748,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     if (mounted) _refreshSupportUnread(user);
                                   },
                                 ),
-                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                 _buildSettingsItem(
                                   Icons.policy_outlined,
                                   AppLocalizations.of(context).publicOffer,
@@ -818,7 +761,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                   },
                                 ),
-                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                 _buildSettingsItem(
                                   Icons.privacy_tip_outlined,
                                   AppLocalizations.of(context).privacyPolicyMenu,
@@ -831,7 +774,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                   },
                                 ),
-                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                 _buildSettingsItem(
                                   Icons.article_outlined,
                                   AppLocalizations.of(context).cookiePolicyMenu,
@@ -844,7 +787,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                   },
                                 ),
-                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                 _buildSettingsItem(
                                   Icons.folder_shared_outlined,
                                   AppLocalizations.of(context).myPersonalData,
@@ -859,7 +802,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                   },
                                 ),
-                                Divider(color: AppColors.accent.withOpacity(0.3), height: 1),
+                                const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 59),
                                 _buildSettingsItem(
                                   Icons.info,
                                   AppLocalizations.of(context).aboutApp,
@@ -884,16 +827,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           SizedBox(height: 12),
 
                           PrimaryActionButton(
-                            label: AppLocalizations.of(context).deleteAccount,
-                            height: 50,
+                            label: l10n.logoutProfile,
+                            height: 52,
                             fontSize: 16,
-                            borderRadius: 25,
-                            gradientColors: const [
-                              Color(0xFF8B0000),
-                              AppColors.danger,
-                            ],
-                            shadowColor: AppColors.danger,
-                            onPressed: () => _deleteAccount(user),
+                            gradientColors: PrimaryActionButton.neutralGradient,
+                            onPressed: _logout,
                           )
                               .animate(
                                 delay: Duration(milliseconds: 750),
@@ -903,14 +841,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           SizedBox(height: 12),
 
-                          PrimaryActionButton(
-                            label: l10n.logoutProfile,
-                            height: 55,
-                            fontSize: 18,
-                            borderRadius: 27,
-                            gradientColors: PrimaryActionButton.dangerDeepGradient,
-                            shadowColor: AppColors.danger,
-                            onPressed: _logout,
+                          Center(
+                            child: TextButton(
+                              onPressed: () => _deleteAccount(user),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.textSecondary,
+                                textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                              ),
+                              child: Text(AppLocalizations.of(context).deleteAccount),
+                            ),
                           )
                               .animate(
                                 delay: Duration(milliseconds: 800),
@@ -930,20 +869,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildStatItem(IconData icon, String value, String label) {
     return Column(
       children: [
-        Icon(icon, color: AppColors.accent, size: 28),
-        SizedBox(height: 5),
+        Icon(icon, color: AppColors.textPrimary, size: 24),
+        const SizedBox(height: 6),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
+          style: DaromDecorations.titleStyle(fontSize: 19),
         ),
+        const SizedBox(height: 2),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
+          style: const TextStyle(
+            fontSize: 13,
             color: AppColors.textSecondary,
           ),
         ),
@@ -969,11 +905,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       },
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.accent, size: 24),
-            SizedBox(width: 15),
+            Icon(icon, color: AppColors.textPrimary, size: 22),
+            const SizedBox(width: 17),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1001,13 +937,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: const BoxDecoration(
-                  color: AppColors.danger,
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
                 child: Text(
                   badgeCount > 99 ? '99+' : '$badgeCount',
                   style: const TextStyle(
-                    color: AppColors.textPrimary,
+                    color: AppColors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1015,10 +951,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(width: 8),
             ],
-            Icon(
-              Icons.arrow_forward_ios,
-              color: AppColors.textSecondary.withOpacity(0.55),
-              size: 18,
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.textSecondary,
+              size: 22,
             ),
           ],
         ),

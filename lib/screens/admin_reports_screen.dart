@@ -265,7 +265,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
   Widget _blockBtn(String label, VoidCallback onTap) {
     return OutlinedButton(
       onPressed: onTap,
-      style: OutlinedButton.styleFrom(foregroundColor: AppColors.red, side: const BorderSide(color: AppColors.red)),
+      style: OutlinedButton.styleFrom(foregroundColor: AppColors.red, side: BorderSide.none),
       child: Text(label, style: const TextStyle(fontSize: 12)),
     );
   }

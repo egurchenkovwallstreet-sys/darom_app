@@ -173,7 +173,6 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.accent.withOpacity(0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

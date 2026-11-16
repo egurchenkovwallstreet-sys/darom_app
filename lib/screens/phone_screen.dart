@@ -127,50 +127,20 @@ class _PhoneScreenState extends State<PhoneScreen> {
         leading: Container(
           width: 96,
           height: 96,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.textPrimary,
-                AppColors.accentDark.withOpacity(0.3),
-              ],
-            ),
-            border: Border.all(
-              color: AppColors.accent,
-              width: 5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.accent.withOpacity(0.4),
-                blurRadius: 40,
-                spreadRadius: 10,
-                offset: const Offset(0, 15),
-              ),
-            ],
+            color: AppColors.surface,
+            boxShadow: DaromDecorations.cardShadow,
           ),
           child: const Icon(
-            Icons.phone_android,
-            size: 48,
-            color: AppColors.accent,
+            Icons.phone_android_rounded,
+            size: 44,
+            color: AppColors.primary,
           ),
-        )
-            .animate(onPlay: (c) => c.repeat(reverse: true))
-            .animate()
-            .scale(duration: const Duration(seconds: 2), curve: Curves.easeInOut)
-            .then()
-            .scale(duration: const Duration(seconds: 2), curve: Curves.easeInOut),
+        ),
         form: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.surface.withOpacity(0.92),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: AppColors.accent,
-              width: 3,
-            ),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: DaromDecorations.solidCard(),
           child: TextField(
             controller: _phoneController,
             focusNode: _phoneFocus,
@@ -216,7 +186,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
               fontSize: 18,
               borderRadius: 27,
               icon: Icons.handshake_rounded,
-              gradientColors: PrimaryActionButton.tealGradient,
+              gradientColors: PrimaryActionButton.neutralGradient,
               enabled: !_isLoading,
               onPressed: () {
                 Navigator.push(
@@ -244,7 +214,7 @@ class _PhoneNumberWarning extends StatelessWidget {
     fontSize: 14,
     height: 1.15,
     letterSpacing: -0.3,
-    color: Color(0xFFE8F7FF),
+    color: AppColors.textPrimary,
     fontWeight: FontWeight.w500,
   );
 
@@ -252,7 +222,7 @@ class _PhoneNumberWarning extends StatelessWidget {
     fontSize: 14,
     height: 1.15,
     letterSpacing: -0.3,
-    color: Color(0xFFFFE082),
+    color: AppColors.badgeFounderText,
     fontWeight: FontWeight.w600,
   );
 
@@ -261,19 +231,8 @@ class _PhoneNumberWarning extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
-        color: const Color(0xFF00152A).withOpacity(0.95),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.accent.withOpacity(0.65),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accent.withOpacity(0.12),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.badgeFounderBg,
+        borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
       ),
       child: Text.rich(
         TextSpan(

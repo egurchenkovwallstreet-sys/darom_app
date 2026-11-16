@@ -286,7 +286,7 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: AppColors.accent, width: 2),
+        side: BorderSide.none,
       ),
       child: KeyboardInsetPadding(
         child: ConstrainedBox(
@@ -340,12 +340,12 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                         fillColor: AppColors.surface.withOpacity(0.95),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.accent),
+                          borderSide: BorderSide.none,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide:
-                              BorderSide(color: AppColors.accent.withOpacity(0.5)),
+                              BorderSide.none,
                         ),
                       ),
                     ),
@@ -363,9 +363,8 @@ class _RealPhoneVerifyDialogState extends State<_RealPhoneVerifyDialog> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF004466),
+                        color: AppColors.tabTrack,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.accent, width: 2),
                       ),
                       child: Column(
                         children: [

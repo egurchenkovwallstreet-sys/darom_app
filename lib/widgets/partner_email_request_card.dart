@@ -1,3 +1,4 @@
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
 import 'package:flutter/services.dart';
@@ -78,14 +79,7 @@ class PartnerEmailRequestCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.accent, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accent.withOpacity(0.25),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        boxShadow: DaromDecorations.cardShadow,
       ),
       child: Column(
         children: [
@@ -106,7 +100,6 @@ class PartnerEmailRequestCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.accent.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.accent, width: 1.5),
             ),
             child: Row(
               children: [

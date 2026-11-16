@@ -1,3 +1,4 @@
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -55,7 +56,7 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
   @override
   Widget build(BuildContext context) {
     final center = LatLng(widget.centerLat, widget.centerLng);
-    final borderRadius = widget.showBorder ? 15.0 : 0.0;
+    final borderRadius = widget.showBorder ? DaromDecorations.cardRadius : 0.0;
 
     final map = FlutterMap(
       mapController: _mapController,
@@ -79,25 +80,13 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
               CircleMarker(
                 point: center,
                 radius: widget.radiusKm! * 1000,
-                color: const Color(0x3300BFFF),
-                borderColor: AppColors.accent,
-                borderStrokeWidth: 2,
+                color: AppColors.primary.withOpacity(0.08),
+                borderColor: AppColors.primary.withOpacity(0.45),
+                borderStrokeWidth: 1.5,
                 useRadiusInMeter: true,
               ),
             ],
           ),
-        CircleLayer(
-          circles: [
-            CircleMarker(
-              point: center,
-              radius: 120,
-              color: AppColors.gold.withOpacity(0.22),
-              borderColor: AppColors.gold,
-              borderStrokeWidth: 3,
-              useRadiusInMeter: true,
-            ),
-          ],
-        ),
         MarkerLayer(
           markers: [
             Marker(
@@ -143,10 +132,9 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: AppColors.borderSoft, width: 1),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius - 2),
+        borderRadius: BorderRadius.circular(borderRadius),
         child: content,
       ),
     );
@@ -170,45 +158,33 @@ class _UserLocationPin extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.gold,
-              border: Border.all(color: AppColors.white, width: 3),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.gold.withOpacity(0.9),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-                const BoxShadow(
-                  color: Color(0xAA000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
+              color: AppColors.primary,
+              boxShadow: DaromDecorations.cardShadow,
             ),
             child: const Icon(
-              Icons.person_pin_circle,
-              color: AppColors.darkBlue,
-              size: 26,
+              Icons.person_rounded,
+              color: AppColors.white,
+              size: 24,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: AppColors.darkBlue.withOpacity(0.92),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.gold, width: 1.5),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
+              boxShadow: DaromDecorations.cardShadow,
             ),
             child: Text(
               label,
               style: const TextStyle(
-                color: AppColors.gold,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -240,20 +216,16 @@ class _ListingPinState extends State<_ListingPin> {
   @override
   Widget build(BuildContext context) {
     final Color bgColor;
-    final Color borderColor;
     final Color iconColor;
 
     if (widget.isReserved) {
-      bgColor = const Color(0xFF757575);
-      borderColor = AppColors.gold;
+      bgColor = AppColors.textSecondary;
       iconColor = AppColors.white;
     } else if (widget.isFounder) {
-      bgColor = AppColors.gold;
-      borderColor = AppColors.darkBlue;
-      iconColor = AppColors.darkBlue;
+      bgColor = AppColors.badgeFounderBg;
+      iconColor = AppColors.badgeFounderText;
     } else {
       bgColor = AppColors.primary;
-      borderColor = AppColors.white;
       iconColor = AppColors.white;
     }
 
@@ -265,25 +237,18 @@ class _ListingPinState extends State<_ListingPin> {
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              width: 52,
-              height: 52,
+              width: 44,
+              height: 44,
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: bgColor,
-                  border: Border.all(color: borderColor, width: 3),
-                  boxShadow: [
-                    BoxShadow(
-                      color: bgColor.withOpacity(0.35),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  boxShadow: DaromDecorations.cardShadow,
                 ),
                 child: Icon(
                   widget.isReserved ? Icons.lock_outline : Icons.card_giftcard,
                   color: iconColor,
-                  size: 26,
+                  size: 22,
                 ),
               ),
             ),
@@ -292,14 +257,14 @@ class _ListingPinState extends State<_ListingPin> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.darkBlue.withOpacity(0.92),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.gold, width: 1.2),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
+                  boxShadow: DaromDecorations.cardShadow,
                 ),
                 child: ReservationCountdownText(
                   until: widget.reservedUntil,
                   style: const TextStyle(
-                    color: AppColors.gold,
+                    color: AppColors.textPrimary,
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
                   ),

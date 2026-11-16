@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/listing.dart';
@@ -106,7 +107,6 @@ class _ListingsFeedScreenState extends State<ListingsFeedScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.surface.withOpacity(0.92),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.accent, width: 2),
                       ),
                       child: const Icon(Icons.arrow_back, color: AppColors.accent),
                     ),
@@ -139,7 +139,6 @@ class _ListingsFeedScreenState extends State<ListingsFeedScreen> {
                     decoration: BoxDecoration(
                       color: widget.categoryColor.withOpacity(0.25),
                       borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: widget.categoryColor, width: 2),
                     ),
                     child: Text(
                       _loading ? '…' : '${_listings.length}',
@@ -343,14 +342,7 @@ class _ListingCardState extends State<_ListingCard> {
           decoration: BoxDecoration(
             color: cardBackground,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: cardBorderColor, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: cardBorderColor.withOpacity(0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            boxShadow: DaromDecorations.cardShadow,
           ),
           child: Row(
             children: [
@@ -435,7 +427,7 @@ class _ListingCardState extends State<_ListingCard> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Icon(Icons.star, size: 14, color: Color(0xFFFFC107)),
+                        const Icon(Icons.star, size: 14, color: AppColors.gold),
                         const SizedBox(width: 4),
                         Text(
                           '${listing.authorRating}',

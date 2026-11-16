@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 
 import '../models/listing_limit_info.dart';
 import '../services/users_api.dart';
@@ -56,7 +57,7 @@ class _LimitDialog extends StatelessWidget {
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: AppColors.accent.withOpacity(0.4)),
+        side: BorderSide.none,
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -146,7 +147,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: AppColors.accent.withOpacity(0.5), width: 2),
+        side: BorderSide.none,
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -157,14 +158,9 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFFFFC107).withOpacity(0.3),
-                    AppColors.accent.withOpacity(0.3),
-                  ],
-                ),
+                color: AppColors.badgeFounderBg,
               ),
-              child: const Icon(Icons.star_rounded, color: Color(0xFFFFC107), size: 36),
+              child: const Icon(Icons.star_rounded, color: AppColors.gold, size: 36),
             ),
             const SizedBox(height: 16),
             Text(
@@ -180,16 +176,8 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.accent.withOpacity(0.4)),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.accent.withOpacity(0.15),
-                    AppColors.accentDark.withOpacity(0.1),
-                  ],
-                ),
+                borderRadius: BorderRadius.circular(DaromDecorations.cardRadius),
+                color: AppColors.badgeNewbieBg,
               ),
               child: Column(
                 children: [
@@ -225,7 +213,7 @@ class _SuperDonorDialogState extends State<_SuperDonorDialog> {
                     'Итого до ${upsell.newLimit} объявлений',
                     style: const TextStyle(
                       fontSize: 13,
-                      color: Color(0xFFFFC107),
+                      color: AppColors.gold,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

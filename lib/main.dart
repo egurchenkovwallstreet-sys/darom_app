@@ -134,7 +134,7 @@ class _DaromAppState extends State<DaromApp> {
           labelLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
         ),
         splashFactory: InkRipple.splashFactory,
-        highlightColor: const Color(0x0AFF5A36),
+        highlightColor: const Color(0x0A1E4D3B),
         dropdownMenuTheme: const DropdownMenuThemeData(
           textStyle: TextStyle(color: AppColors.textPrimary, fontSize: 16),
         ),
@@ -154,7 +154,7 @@ class _DaromAppState extends State<DaromApp> {
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: AppColors.surface.withOpacity(0.95),
+          fillColor: AppColors.surface,
           hintStyle: DaromDecorations.fieldHint(),
           labelStyle: const TextStyle(color: AppColors.textSecondary),
           enabledBorder: DaromDecorations.fieldOutlineBorder(),

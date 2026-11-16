@@ -1,3 +1,4 @@
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
 
@@ -174,7 +175,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.accent.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.accent, width: 1.5),
                     ),
                     child: Text(
                       _loading ? '…' : '${_listings.length} шт.',
@@ -233,7 +233,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.surface.withOpacity(0.95),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.accent, width: 2),
                   ),
                   child: Row(
                     children: [
@@ -281,14 +280,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface.withOpacity(0.94),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.accent, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.35),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: DaromDecorations.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -383,7 +375,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface.withOpacity(0.94),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.danger, width: 1.5),
       ),
       child: Text(
         message,

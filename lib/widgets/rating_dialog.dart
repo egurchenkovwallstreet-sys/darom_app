@@ -24,7 +24,7 @@ Future<void> showRatingDialog(
             backgroundColor: AppColors.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              side: BorderSide(color: AppColors.accent.withOpacity(0.5)),
+              side: BorderSide.none,
             ),
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -58,7 +58,7 @@ Future<void> showRatingDialog(
                         onPressed: () => setState(() => selected = star),
                         icon: Icon(
                           filled ? Icons.star_rounded : Icons.star_outline_rounded,
-                          color: filled ? const Color(0xFFFFC107) : const Color(0xFF9E9E9E),
+                          color: filled ? AppColors.gold : const Color(0xFF9E9E9E),
                           size: 36,
                         ),
                       );

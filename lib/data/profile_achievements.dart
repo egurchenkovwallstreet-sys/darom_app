@@ -44,7 +44,7 @@ class ProfileAchievements {
     ProfileAchievement(
       icon: Icons.volunteer_activism,
       title: 'Благотворитель',
-      color: Color(0xFFFFC107),
+      color: AppColors.gold,
       isUnlocked: _philanthropist,
     ),
     ProfileAchievement(

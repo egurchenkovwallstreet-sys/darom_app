@@ -286,10 +286,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           onSelected: (_) => onChanged(p.$1),
           selectedColor: AppColors.cyan,
           backgroundColor: const Color(0xFF0A2A4A),
-          side: BorderSide(
-            color: selected ? AppColors.cyan : AppColors.cyan.withOpacity(0.45),
-            width: 1.5,
-          ),
+          side: BorderSide.none,
           labelStyle: TextStyle(
             color: selected ? AppColors.darkBlue : Colors.white,
             fontWeight: selected ? FontWeight.bold : FontWeight.w600,

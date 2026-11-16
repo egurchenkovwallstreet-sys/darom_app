@@ -18,7 +18,7 @@ Future<bool?> showPrivacyPolicyUpdateDialog(BuildContext context) {
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.accent, width: 2),
+        side: BorderSide.none,
       ),
       title: Row(
         children: [

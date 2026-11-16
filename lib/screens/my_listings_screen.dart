@@ -53,7 +53,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
   Color _statusColor(String status) {
     switch (status) {
       case 'reserved':
-        return const Color(0xFFFFC107);
+        return AppColors.gold;
       case 'given':
         return const Color(0xFF4CAF50);
       case 'hidden':
@@ -81,7 +81,6 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.surface.withOpacity(0.92),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.accent, width: 2),
                       ),
                       child: const Icon(Icons.arrow_back, color: AppColors.accent),
                     ),
@@ -188,7 +187,6 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                           decoration: BoxDecoration(
                             color: backgroundColor,
                             borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: borderColor, width: 2),
                           ),
                           child: Row(
                             children: [
@@ -223,7 +221,6 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                                       decoration: BoxDecoration(
                                         color: color.withOpacity(0.2),
                                         borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(color: color),
                                       ),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +241,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                                               style: const TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
-                                                color: Color(0xFFFFC107),
+                                                color: AppColors.gold,
                                               ),
                                             ),
                                         ],

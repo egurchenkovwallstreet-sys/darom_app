@@ -90,7 +90,7 @@ class _PickupPackDialogState extends State<_PickupPackDialog> {
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: AppColors.accent.withOpacity(0.5), width: 2),
+        side: BorderSide.none,
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),

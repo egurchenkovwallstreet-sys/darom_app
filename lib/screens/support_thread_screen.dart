@@ -288,10 +288,6 @@ class _SupportThreadScreenState extends State<SupportThreadScreen> {
                   ? AppColors.accent.withOpacity(0.88)
                   : AppColors.surface.withOpacity(0.95),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isMine ? AppColors.accentDark : AppColors.borderSoft,
-                width: 1.5,
-              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,11 +344,11 @@ class _SupportThreadScreenState extends State<SupportThreadScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(color: AppColors.borderSoft),
+                    borderSide: BorderSide.none,
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+                    borderSide: BorderSide.none,
                   ),
                 ),
                 onSubmitted: (_) => _send(),

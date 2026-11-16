@@ -348,7 +348,6 @@ class _ListingScreenState extends State<ListingScreen> {
               decoration: BoxDecoration(
                 color: AppColors.surface.withOpacity(0.92),
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.accent, width: 2),
               ),
               child: const Icon(Icons.arrow_back, color: AppColors.accent),
             ),
@@ -375,7 +374,6 @@ class _ListingScreenState extends State<ListingScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surface.withOpacity(0.92),
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.danger.withOpacity(0.7), width: 2),
                 ),
                 child: const Icon(Icons.flag_outlined, color: AppColors.danger, size: 22),
               ),
@@ -399,7 +397,6 @@ class _ListingScreenState extends State<ListingScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF9E9E9E).withOpacity(0.25),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF9E9E9E)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -420,7 +417,7 @@ class _ListingScreenState extends State<ListingScreen> {
               until: _listing.reservedUntil,
               prefix: 'осталось ',
               style: const TextStyle(
-                color: Color(0xFFFFC107),
+                color: AppColors.gold,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -461,7 +458,6 @@ class _ListingScreenState extends State<ListingScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: AppColors.accent, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -490,7 +486,6 @@ class _ListingScreenState extends State<ListingScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface.withOpacity(0.92),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: AppColors.accentDark, width: 2),
       ),
       child: Row(
         children: [
@@ -527,7 +522,6 @@ class _ListingScreenState extends State<ListingScreen> {
                         decoration: BoxDecoration(
                           color: AppColors.gold.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.gold, width: 1),
                         ),
                         child: const Text(
                           'Основатель',
@@ -562,7 +556,6 @@ class _ListingScreenState extends State<ListingScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface.withOpacity(0.95),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-        border: Border(top: BorderSide(color: AppColors.accent.withOpacity(0.3), width: 2)),
       ),
       child: _isBusy
           ? const Center(
@@ -599,7 +592,7 @@ class _ListingScreenState extends State<ListingScreen> {
             fontSize: 17,
             borderRadius: 27,
             gradientColors: PrimaryActionButton.warningGradient,
-            shadowColor: const Color(0xFFFFC107),
+            shadowColor: AppColors.gold,
             onPressed: () => _runAction(
               () => _api.reactivate(listingId: _listing.id, phone: widget.phoneNumber),
               'Объявление снова активно',

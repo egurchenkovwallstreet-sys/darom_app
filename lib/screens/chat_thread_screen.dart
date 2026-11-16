@@ -527,7 +527,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
             borderRadius: 14,
             enabled: !_donorActionBusy,
             gradientColors: PrimaryActionButton.warningGradient,
-            shadowColor: const Color(0xFFFFC107),
+            shadowColor: AppColors.gold,
             onPressed: _donorActionBusy ? null : _reactivateListing,
           ),
         ],
@@ -543,7 +543,6 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF9E9E9E).withOpacity(0.25),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF9E9E9E)),
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -613,10 +612,6 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   ? AppColors.accent.withOpacity(0.85)
                   : AppColors.surface.withOpacity(0.92),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isMine ? AppColors.textSecondary : AppColors.accent,
-                width: 1.5,
-              ),
             ),
             child: Text(
               message.body,
@@ -643,7 +638,6 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFF9E9E9E).withOpacity(0.18),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF9E9E9E).withOpacity(0.55)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -674,7 +668,6 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       decoration: BoxDecoration(
         color: AppColors.surface.withOpacity(0.95),
-        border: Border(top: BorderSide(color: AppColors.accent.withOpacity(0.3))),
       ),
       child: Row(
         children: [
@@ -696,11 +689,11 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: AppColors.textSecondary, width: 2),
+                  borderSide: BorderSide.none,
                 ),
               ),
             ),

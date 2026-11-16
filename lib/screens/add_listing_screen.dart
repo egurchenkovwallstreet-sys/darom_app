@@ -416,7 +416,6 @@ class _AddListingScreenState extends State<AddListingScreen> {
                               decoration: BoxDecoration(
                                 color: AppColors.surface.withOpacity(0.92),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.accent, width: 2),
                               ),
                               child: Icon(Icons.arrow_back, color: AppColors.accent),
                             ),
@@ -434,13 +433,6 @@ class _AddListingScreenState extends State<AddListingScreen> {
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
-                              shadows: [
-                                Shadow(
-                                  color: AppColors.accent.withOpacity(0.2),
-                                  offset: Offset(0, 4),
-                                  blurRadius: 8,
-                                ),
-                              ],
                             ),
                           )
                               .animate(
@@ -463,7 +455,6 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             decoration: BoxDecoration(
                               color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: AppColors.accent, width: 2),
                             ),
                             child: TextField(
                               controller: _titleController,
@@ -494,7 +485,6 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             decoration: BoxDecoration(
                               color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: AppColors.accent, width: 2),
                             ),
                             child: Row(
                               children: [
@@ -545,7 +535,6 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             decoration: BoxDecoration(
                               color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: AppColors.accentDark, width: 2),
                             ),
                             child: Row(
                               children: [
@@ -596,7 +585,6 @@ class _AddListingScreenState extends State<AddListingScreen> {
                             decoration: BoxDecoration(
                               color: AppColors.surface.withOpacity(0.92),
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: AppColors.accent, width: 2),
                             ),
                             child: TextField(
                               controller: _descriptionController,
@@ -638,7 +626,6 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                 decoration: BoxDecoration(
                                   color: AppColors.surface.withOpacity(0.92),
                                   borderRadius: BorderRadius.circular(15),
-                                  border: Border.all(color: AppColors.accent, width: 2, strokeAlign: BorderSide.strokeAlignOutside),
                                 ),
                                 child: _totalPhotoCount == 0
                                     ? Column(
@@ -733,7 +720,6 @@ class _AddListingScreenState extends State<AddListingScreen> {
                                                   height: 72,
                                                   decoration: BoxDecoration(
                                                     borderRadius: BorderRadius.circular(8),
-                                                    border: Border.all(color: AppColors.accent),
                                                   ),
                                                   child: const Icon(
                                                     Icons.add,

@@ -1,18 +1,21 @@
-# Darom — Warm Soft Glass (MASTER)
+# Darom — Quiet Luxury (MASTER)
 
-Единый премиум-стиль на всех экранах. Референсы: glassmorphism + тёплый крем из ТЗ.
+Единый спокойный премиум-стиль на всех экранах. Полные правила: `.cursor/rules/premium-ui.mdc`.
 
 ## Токены
-- Фон: `#F9F6F0`, ambient `#FFF0E8` / `#E8F5F0`
-- Primary `#FF5A36`, Secondary `#2D6A4F`
-- Стекло: blur 18, fill 88%, border `#FFFFFF59`
-- Карточки: radius 20, shadow `0 4 20 / 4%`
+- Фон `#F8F5F0`, поверхности `#FFFFFF`
+- Акцент `#1E4D3B` (изумрудный)
+- Текст `#1A1A1A` / `#737373`
+- Track табов `#EFEBE4`, разделители `#F0F0F0`
+- Бейджи: основатель `#F3EAD3`, новичок `#E3F0E9`
+- Тень одна: `0 4px 20px rgba(0,0,0,0.04)`
+- Радиусы: карточки 16, кнопки/инпуты 12, pill 100, нижнее меню 24
+
+## Запрещено
+Коралл/красный/оранжевый, рамки, цветные тени, стекло (blur), градиенты, тени текста, мерцание.
 
 ## Компоненты
-- `GlassSurface` — карточки, меню, панели
-- `MidnightGlowScreen` — фон + ambient пятна
-- `ListingTileCard` — glass по умолчанию
-- Кнопки: coral + `fabShadow`
-
-## Этап 3 (далее)
-Профиль, чаты, add_listing — заменить жёсткие `Border.all(accent)` на glass/тени.
+- `GlassSurface` — плотная белая карточка с тенью
+- `MidnightGlowScreen` — ровный кремовый фон
+- `PrimaryActionButton` — сплошная кнопка; `neutralGradient` = белая с графитовым текстом
+- `tool/neutralize_shadows.js` — заменяет цветные тени на `cardShadow`

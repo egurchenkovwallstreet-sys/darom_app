@@ -52,7 +52,6 @@ class _ListingPhotoGalleryState extends State<ListingPhotoGallery> {
           decoration: BoxDecoration(
             color: AppColors.surface.withOpacity(0.92),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.accent, width: 2),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -125,7 +124,6 @@ class _ListingPhotoGalleryState extends State<ListingPhotoGallery> {
                   decoration: BoxDecoration(
                     color: AppColors.surface.withOpacity(0.92),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.accent, width: 1.5),
                   ),
                   child: Text(
                     '${_index + 1} / ${urls.length}',

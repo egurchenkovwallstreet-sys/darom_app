@@ -46,7 +46,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const double _blockGap = 3.8;
+  static const double _blockGap = 12;
   static const double _categoryChipHeight = 43.2; // 36 + 20%
   static const double _categoryIconSize = 21.6; // 18 + 20%
   static const double _categoryFontSize = 14.0;
@@ -407,12 +407,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSearchField(AppLocalizations l10n) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(DaromDecorations.inputRadius),
-        boxShadow: DaromDecorations.cardShadow,
-      ),
+    return GlassSurface(
+      borderRadius: DaromDecorations.inputRadius,
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: TextField(
         controller: _searchController,
         style: DaromDecorations.fieldText.copyWith(fontSize: 15),
@@ -428,7 +425,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: InputDecoration(
           isDense: true,
           filled: true,
-          fillColor: AppColors.surface,
+          fillColor: Colors.transparent,
           hintText: l10n.searchHint,
           hintStyle: DaromDecorations.fieldHint(fontSize: 15),
           prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary, size: 22),
@@ -481,9 +478,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 _searchResults.isEmpty
                     ? l10n.searchNothingFound(_lastSearchQuery!)
                     : l10n.searchFoundCount(_searchResults.length),
-                style: TextStyle(
-                  color: AppColors.accent.withOpacity(0.95),
-                  fontWeight: FontWeight.w600,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
                   fontSize: 14,
                 ),
               ),
@@ -498,7 +495,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SliverFillRemaining(
           hasScrollBody: false,
           child: Center(
-            child: CircularProgressIndicator(color: AppColors.accent),
+            child: CircularProgressIndicator(color: AppColors.textSecondary),
           ),
         ),
       );
@@ -553,9 +550,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     l10n.repeatButton,
                     style: const TextStyle(
-                      color: AppColors.accent,
+                      color: AppColors.secondary,
                       fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -591,8 +588,7 @@ class _HomeScreenState extends State<HomeScreen> {
           sliver: SliverToBoxAdapter(
             child: SizedBox(
               height: _mapPreviewHeight,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
+              child: GlassSurface(
                 child: _buildMapPreview(),
               ),
             ),
@@ -622,7 +618,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppColors.accent,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -641,11 +637,7 @@ class _HomeScreenState extends State<HomeScreen> {
             alignment: Alignment.centerLeft,
             child: Text(
               l10n.categories,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+              style: DaromDecorations.titleStyle(fontSize: 17),
             ),
           ),
         ),
@@ -653,12 +645,12 @@ class _HomeScreenState extends State<HomeScreen> {
       SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
       SliverToBoxAdapter(
         child: SizedBox(
-          height: _categoryChipHeight,
+          height: _categoryChipHeight + 24,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
             itemCount: _categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: _blockGap),
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (context, index) => _buildCategoryChip(index),
           ),
         ),
@@ -675,8 +667,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: AppColors.pillTrack,
-          borderRadius: BorderRadius.circular(24),
+          color: AppColors.tabTrack,
+          borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
         ),
         child: SizedBox(
           height: 40,
@@ -732,15 +724,15 @@ class _HomeScreenState extends State<HomeScreen> {
       onTapCancel: onPressUp,
       onTap: onTap,
       child: AnimatedScale(
-        scale: pressed ? 1.06 : 1.0,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOutCubic,
+        scale: pressed ? 0.98 : 1.0,
+        duration: DaromDecorations.interactionDuration,
+        curve: DaromDecorations.interactionCurve,
         child: AnimatedContainer(
           duration: DaromDecorations.interactionDuration,
           curve: DaromDecorations.interactionCurve,
           decoration: BoxDecoration(
             color: selected ? AppColors.surface : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
             boxShadow: selected ? DaromDecorations.cardShadow : null,
           ),
           child: Center(
@@ -761,12 +753,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildRadiusPanel(AppLocalizations l10n) {
     final panel = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GlassSurface(
-        borderRadius: DaromDecorations.cardRadius,
-        blurSigma: DaromDecorations.glassBlurSigma,
-        fillOpacity: DaromDecorations.glassFillOpacity,
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        child: Column(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
@@ -774,9 +761,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   l10n.radiusLabel,
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -784,9 +771,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     _radiusLabels[_radiusIndex],
                     style: const TextStyle(
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -794,7 +781,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildRadiusCountBadge(),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Row(
               children: List.generate(
                 _radiusButtonLabels.length,
@@ -810,28 +797,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     onTapCancel: () => setState(() => _pressedRadiusIndex = -1),
                     child: AnimatedScale(
-                      scale: _pressedRadiusIndex == index ? 1.08 : 1.0,
-                      duration: const Duration(milliseconds: 150),
-                      curve: Curves.easeOutCubic,
-                      child: Container(
-                        height: 32,
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                      scale: _pressedRadiusIndex == index ? 0.97 : 1.0,
+                      duration: DaromDecorations.interactionDuration,
+                      curve: DaromDecorations.interactionCurve,
+                      child: AnimatedContainer(
+                        duration: DaromDecorations.interactionDuration,
+                        curve: DaromDecorations.interactionCurve,
+                        height: 36,
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
                         decoration: BoxDecoration(
                           color: _radiusIndex == index ? AppColors.primary : AppColors.surface,
-                          borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
-                          border: _radiusIndex == index
-                              ? null
-                              : Border.all(color: AppColors.borderSoft, width: 1),
-                          boxShadow: _radiusIndex == index
-                              ? [
-                                  BoxShadow(
-                                    color: AppColors.primary.withOpacity(0.2),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ]
-                              : null,
+                          borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
+                          boxShadow: _radiusIndex == index ? null : DaromDecorations.cardShadow,
                         ),
                         child: Center(
                           child: FittedBox(
@@ -841,10 +819,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: _radiusIndex == index
-                                    ? Colors.white
-                                    : AppColors.textPrimary.withOpacity(0.85),
-                                fontWeight: FontWeight.bold,
-                                fontSize: index == 4 ? 10 : 12,
+                                    ? AppColors.white
+                                    : AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: index == 4 ? 12 : 13,
                               ),
                             ),
                           ),
@@ -857,7 +835,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-      ),
     );
 
     return animateUnlessWeb(
@@ -965,26 +942,25 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Positioned(
-            right: 8,
-            top: 8,
+            right: 12,
+            top: 12,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.textPrimary.withOpacity(0.88),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.accent, width: 1.5),
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.fullscreen_rounded, color: AppColors.accent, size: 16),
-                  const SizedBox(width: 4),
+                  const Icon(Icons.fullscreen_rounded, color: AppColors.white, size: 16),
+                  const SizedBox(width: 6),
                   Text(
                     _l10n.openButton,
-                    style: TextStyle(
-                      color: AppColors.accent,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -999,14 +975,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSelectedListingCard() {
     final listing = _selectedListing!;
     return GlassSurface(
-      borderRadius: 20,
-      borderWidth: 1.5,
-      borderColor: AppColors.accent,
-      fillOpacity: 0.42,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          const Icon(Icons.card_giftcard, color: AppColors.accent, size: 22),
+          const Icon(Icons.card_giftcard, color: AppColors.secondary, size: 22),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -1025,7 +997,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => _openListing(listing),
             child: Text(
               _l10n.openButton,
-              style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w600),
             ),
           ),
           IconButton(
@@ -1064,15 +1036,11 @@ class _HomeScreenState extends State<HomeScreen> {
         scale: pressed ? 0.98 : 1.0,
         duration: DaromDecorations.interactionDuration,
         curve: DaromDecorations.interactionCurve,
-        child: AnimatedContainer(
-          duration: DaromDecorations.interactionDuration,
-          curve: DaromDecorations.interactionCurve,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: pressed ? AppColors.secondary : AppColors.surface,
-            borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
-            boxShadow: pressed ? null : DaromDecorations.cardShadow,
-          ),
+        child: GlassSurface(
+          borderRadius: DaromDecorations.pillRadius,
+          fillColor: pressed ? AppColors.primary : AppColors.surface,
+          child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1094,6 +1062,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+        ),
       ),
     );
   }
@@ -1105,25 +1074,25 @@ class _HomeScreenState extends State<HomeScreen> {
         height: 22,
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          color: AppColors.accent,
+          color: AppColors.textSecondary,
         ),
       );
     }
 
     final count = _nearbyListings.length;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.accent.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.accent, width: 1.5),
+        color: AppColors.tabTrack,
+        borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
       ),
       child: Text(
         '$count шт.',
         style: const TextStyle(
-          color: AppColors.accent,
-          fontWeight: FontWeight.bold,
-          fontSize: 13,
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+          letterSpacing: -0.01,
         ),
       ),
     );
@@ -1131,8 +1100,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMapPlaceholder(String message) {
     return GlassSurface(
-      borderRadius: 24,
-      fillOpacity: 0.4,
       child: Center(
         child: Text(
           message,

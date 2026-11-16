@@ -17,15 +17,7 @@ class FounderListingStyle {
     return defaultColor;
   }
 
-  static Color backgroundColor(Listing listing) {
-    if (highlight(listing)) {
-      return Color.alphaBlend(
-        AppColors.gold.withOpacity(0.12),
-        AppColors.surface.withOpacity(0.92),
-      );
-    }
-    return AppColors.surface.withOpacity(0.92);
-  }
+  static Color backgroundColor(Listing listing) => AppColors.surface;
 
   static BoxDecoration cardDecoration(
     Listing listing,
@@ -36,13 +28,7 @@ class FounderListingStyle {
     return BoxDecoration(
       color: backgroundColor(listing),
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(
-        color: borderColor(listing, defaultBorderColor).withOpacity(
-          highlight(listing) ? 0.55 : 0.12,
-        ),
-        width: borderWidth,
-      ),
-      boxShadow: DaromDecorations.softShadow,
+      boxShadow: DaromDecorations.cardShadow,
     );
   }
 }

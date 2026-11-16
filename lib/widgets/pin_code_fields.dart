@@ -28,7 +28,6 @@ class PinCodeFields extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.surface.withOpacity(0.92),
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: AppColors.accent, width: 2),
           ),
           child: TextField(
             controller: controllers[index],

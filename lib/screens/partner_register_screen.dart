@@ -133,7 +133,6 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
               decoration: BoxDecoration(
                 color: AppColors.surface.withOpacity(0.92),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.accent, width: 3),
               ),
               child: TextField(
                 controller: _codeController,
@@ -156,7 +155,6 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
               decoration: BoxDecoration(
                 color: AppColors.surface.withOpacity(0.92),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.accent, width: 3),
               ),
               child: TextField(
                 controller: _phoneController,

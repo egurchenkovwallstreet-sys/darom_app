@@ -108,13 +108,6 @@ class _AuthFormScrollState extends State<AuthFormScroll> {
                   fontSize: _compact ? 22 : 26,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
-                  shadows: const [
-                    Shadow(
-                      color: Color(0x6600BFFF),
-                      offset: Offset(0, 4),
-                      blurRadius: 8,
-                    ),
-                  ],
                 ),
               ),
               if (!_compact && widget.subtitleWidget != null) ...[

@@ -1,6 +1,4 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/darom_decorations.dart';
@@ -35,17 +33,20 @@ class PrimaryActionButton extends StatefulWidget {
     AppColors.accentDark,
   ];
 
-  static const warningGradient = [
-    AppColors.accentSecondary,
-    Color(0xFFFBBF24),
-  ];
+  static const warningGradient = primaryGradient;
 
   static const dangerGradient = [
     AppColors.danger,
-    Color(0xFFFCA5A5),
+    AppColors.danger,
   ];
 
   static const dangerDeepGradient = dangerGradient;
+
+  /// Белая кнопка с графитовым текстом — для второстепенных действий.
+  static const neutralGradient = [
+    AppColors.surface,
+    AppColors.surface,
+  ];
 
   static const tealGradient = primaryGradient;
 
@@ -78,7 +79,6 @@ class _PrimaryActionButtonState extends State<PrimaryActionButton> {
   Widget build(BuildContext context) {
     final canTap = widget.enabled && !widget.loading && widget.onPressed != null;
     final colors = widget.gradientColors ?? PrimaryActionButton.primaryGradient;
-    final glowColor = widget.shadowColor ?? colors.first;
 
     return Padding(
       padding: widget.padding,
@@ -90,30 +90,20 @@ class _PrimaryActionButtonState extends State<PrimaryActionButton> {
         },
         onTapCancel: () => _setPressed(false),
         child: AnimatedScale(
-          scale: _pressed && canTap ? 1.08 : 1.0,
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
+          scale: _pressed && canTap ? 0.98 : 1.0,
+          duration: DaromDecorations.interactionDuration,
+          curve: DaromDecorations.interactionCurve,
           child: Opacity(
             opacity: widget.enabled ? 1.0 : 0.55,
             child: Container(
               width: double.infinity,
+              height: widget.height,
               decoration: BoxDecoration(
+                color: colors.first,
                 borderRadius: BorderRadius.circular(widget.borderRadius),
-                boxShadow: widget.showShadow
-                    ? [
-                        BoxShadow(
-                          color: glowColor.withOpacity(0.5),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 10),
-                        ),
-                      ]
-                    : null,
+                boxShadow: widget.showShadow ? DaromDecorations.cardShadow : null,
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(widget.borderRadius),
-                child: _gradientButtonFace(colors),
-              ),
+              child: _buttonFace(colors.first),
             ),
           ),
         ),
@@ -121,69 +111,42 @@ class _PrimaryActionButtonState extends State<PrimaryActionButton> {
     );
   }
 
-  Widget _gradientButtonFace(List<Color> colors) {
-    final face = Container(
-      height: widget.height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(widget.borderRadius),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: colors,
-        ),
-        border: Border.all(
-          color: const Color(0xFF000000).withOpacity(0.15),
-          width: 2,
-        ),
-      ),
-      child: Center(
-        child: widget.loading
-            ? SizedBox(
-                width: widget.height * 0.45,
-                height: widget.height * 0.45,
-                child: const CircularProgressIndicator(
-                  color: AppColors.white,
-                  strokeWidth: 2,
-                ),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (widget.icon != null) ...[
-                    Icon(widget.icon, color: AppColors.white, size: widget.fontSize),
-                    const SizedBox(width: 8),
-                  ],
-                  Flexible(
-                    child: Text(
-                      widget.label,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: widget.fontSize,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.white,
-                        shadows: const [
-                          Shadow(
-                            color: Color(0x4D000000),
-                            blurRadius: 5,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
+  Widget _buttonFace(Color background) {
+    final foreground =
+        background.computeLuminance() > 0.6 ? AppColors.textPrimary : AppColors.white;
+
+    return Center(
+      child: widget.loading
+          ? SizedBox(
+              width: widget.height * 0.45,
+              height: widget.height * 0.45,
+              child: CircularProgressIndicator(
+                color: foreground,
+                strokeWidth: 2,
+              ),
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.icon != null) ...[
+                  Icon(widget.icon, color: foreground, size: widget.fontSize),
+                  const SizedBox(width: 8),
+                ],
+                Flexible(
+                  child: Text(
+                    widget.label,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: widget.fontSize,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.01,
+                      color: foreground,
                     ),
                   ),
-                ],
-              ),
-      ),
+                ),
+              ],
+            ),
     );
-
-    if (kIsWeb) return face;
-
-    return face
-        .animate(onPlay: (controller) => controller.repeat())
-        .shimmer(
-          duration: 2.seconds,
-          color: AppColors.textPrimary.withOpacity(0.3),
-        );
   }
 }

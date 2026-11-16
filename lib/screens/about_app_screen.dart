@@ -51,7 +51,6 @@ class AboutAppScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.surface.withOpacity(0.92),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.cyan, width: 1.5),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

@@ -363,10 +363,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   labelText: 'Телефон администратора',
                   labelStyle: TextStyle(color: AppColors.cyan),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.cyan, width: 2),
+                    borderSide: BorderSide.none,
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.cyan, width: 2),
+                    borderSide: BorderSide.none,
                   ),
                 ),
               )
@@ -390,10 +390,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     counterText: '',
                     labelStyle: TextStyle(color: AppColors.cyan),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.cyan, width: 2),
+                      borderSide: BorderSide.none,
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.cyan, width: 2),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
@@ -411,10 +411,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     counterText: '',
                     labelStyle: TextStyle(color: AppColors.cyan),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.cyan, width: 2),
+                      borderSide: BorderSide.none,
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.cyan, width: 2),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),

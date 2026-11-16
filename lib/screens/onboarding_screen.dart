@@ -1,3 +1,4 @@
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -97,31 +98,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     width: _currentPage == index ? 24 : 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      gradient: _currentPage == index
-                          ? LinearGradient(
-                              colors: [
-                                AppColors.accent,
-                                AppColors.accentDark,
-                              ],
-                            )
-                          : null,
                       color: _currentPage == index
-                          ? null
+                          ? AppColors.primary
                           : AppColors.textSecondary.withOpacity(0.25),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: AppColors.accent,
-                        width: 2,
-                      ),
-                      boxShadow: _currentPage == index
-                          ? [
-                              BoxShadow(
-                                color: AppColors.accent.withOpacity(0.6),
-                                blurRadius: 15,
-                                spreadRadius: 3,
-                              ),
-                            ]
-                          : [],
                     ),
                   ),
                 ),
@@ -190,48 +170,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Container(
             width: 160,
             height: 160,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.textPrimary,
-                  borderColor.withOpacity(0.3),
-                ],
-              ),
-              border: Border.all(
-                color: borderColor,
-                width: 5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: iconColor.withOpacity(0.4),
-                  blurRadius: 40,
-                  spreadRadius: 10,
-                  offset: Offset(0, 15),
-                ),
-              ],
+              color: AppColors.surface,
+              boxShadow: DaromDecorations.cardShadow,
             ),
             child: Icon(
               icon,
-              size: 80,
-              color: iconColor,
+              size: 72,
+              color: AppColors.primary,
             ),
-          )
-              .animate(
-                onPlay: (controller) => controller.repeat(reverse: true),
-              )
-              .animate()
-              .scale(
-                duration: Duration(seconds: 2),
-                curve: Curves.easeInOut,
-              )
-              .then()
-              .scale(
-                duration: Duration(seconds: 2),
-                curve: Curves.easeInOut,
-              ),
+          ),
           SizedBox(height: 40),
           animateUnlessWeb(
             Text(
@@ -241,13 +190,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
-                shadows: [
-                  Shadow(
-                    color: AppColors.accent.withOpacity(0.2),
-                    offset: Offset(0, 4),
-                    blurRadius: 8,
-                  ),
-                ],
               ),
             ),
             (child) => child
@@ -261,21 +203,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           animateUnlessWeb(
             Container(
               padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.surface.withOpacity(0.92),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: borderColor,
-                  width: 3,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.accent.withOpacity(0.2),
-                    blurRadius: 25,
-                    offset: Offset(0, 10),
-                  ),
-                ],
-              ),
+              decoration: DaromDecorations.solidCard(),
               child: Text(
                 description,
                 textAlign: TextAlign.center,

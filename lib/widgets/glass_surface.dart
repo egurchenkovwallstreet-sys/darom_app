@@ -1,23 +1,25 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/darom_decorations.dart';
 
-/// Полупрозрачная «стеклянная» панель с размытием фона.
+/// Плотная белая поверхность с мягкой тенью (без рамок, размытия и прозрачности).
+///
+/// Имя и параметры `blurSigma`, `fillOpacity`, `borderColor`, `borderWidth`
+/// сохранены для совместимости и игнорируются.
 class GlassSurface extends StatelessWidget {
   const GlassSurface({
     super.key,
     required this.child,
     this.borderRadius = DaromDecorations.cardRadius,
-    this.blurSigma = DaromDecorations.glassBlurSigma,
+    this.blurSigma = 0,
     this.padding,
     this.borderColor,
     this.fillColor,
-    this.fillOpacity = DaromDecorations.glassFillOpacity,
-    this.borderWidth = 1,
+    this.fillOpacity = 1,
+    this.borderWidth = 0,
     this.softShadow = true,
+    this.elevatedShadow = false,
   });
 
   final Widget child;
@@ -29,36 +31,21 @@ class GlassSurface extends StatelessWidget {
   final double fillOpacity;
   final double borderWidth;
   final bool softShadow;
+  final bool elevatedShadow;
 
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(borderRadius);
-    final fill = fillColor ?? AppColors.surface;
-    final border = borderColor ?? AppColors.glassBorder;
-
-    Widget panel = ClipRRect(
-      borderRadius: radius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            color: fill.withOpacity(fillOpacity),
-            border: Border.all(color: border.withOpacity(0.85), width: borderWidth),
-          ),
-          child: padding != null ? Padding(padding: padding!, child: child) : child,
-        ),
-      ),
-    );
-
-    if (!softShadow) return panel;
-
     return DecoratedBox(
       decoration: BoxDecoration(
+        color: fillColor ?? AppColors.surface,
         borderRadius: radius,
-        boxShadow: DaromDecorations.softShadow,
+        boxShadow: softShadow || elevatedShadow ? DaromDecorations.cardShadow : null,
       ),
-      child: panel,
+      child: ClipRRect(
+        borderRadius: radius,
+        child: padding != null ? Padding(padding: padding!, child: child) : child,
+      ),
     );
   }
 }

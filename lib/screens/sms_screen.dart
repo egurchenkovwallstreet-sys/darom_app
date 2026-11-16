@@ -1,3 +1,4 @@
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
 
@@ -201,13 +202,8 @@ class _SmsScreenState extends State<SmsScreen> {
           height: 120,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [
-                AppColors.textPrimary,
-                AppColors.accentDark.withOpacity(0.3),
-              ],
-            ),
-            border: Border.all(color: AppColors.accent, width: 5),
+            color: AppColors.surface,
+            boxShadow: DaromDecorations.cardShadow,
           ),
           child: const Icon(Icons.sms, size: 60, color: AppColors.accent),
         ),
@@ -219,16 +215,9 @@ class _SmsScreenState extends State<SmsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004466),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.accent, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.accent.withOpacity(0.25),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(DaromDecorations.cardRadius),
+                  boxShadow: DaromDecorations.cardShadow,
                 ),
                 child: Column(
                   children: [

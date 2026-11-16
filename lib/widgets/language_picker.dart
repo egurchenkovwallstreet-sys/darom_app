@@ -113,10 +113,6 @@ class _LanguageOption extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.surface.withOpacity(0.92),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: selected ? AppColors.accent : AppColors.accent.withOpacity(0.35),
-              width: selected ? 2.5 : 1.5,
-            ),
           ),
           child: Row(
             children: [
@@ -156,7 +152,7 @@ Future<void> showLanguagePickerDialog(BuildContext context) async {
             backgroundColor: AppColors.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: AppColors.accent.withOpacity(0.35), width: 1.5),
+              side: BorderSide.none,
             ),
             title: Text(
               l10n.languageTitle,
@@ -229,9 +225,7 @@ class _DialogLanguageTile extends StatelessWidget {
       onTap: onTap,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
-        side: BorderSide(
-          color: selected ? AppColors.accent : AppColors.accent.withOpacity(0.3),
-        ),
+        side: BorderSide.none,
       ),
       tileColor: AppColors.backgroundStart,
       leading: Icon(

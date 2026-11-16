@@ -134,33 +134,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         leading: Container(
           width: 120,
           height: 120,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.textPrimary,
-                AppColors.accentDark.withOpacity(0.3),
-              ],
-            ),
-            border: Border.all(color: AppColors.accent, width: 5),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.accent.withOpacity(0.4),
-                blurRadius: 40,
-                spreadRadius: 10,
-                offset: const Offset(0, 15),
-              ),
-            ],
+            color: AppColors.surface,
+            boxShadow: DaromDecorations.cardShadow,
           ),
-          child: const Icon(Icons.person, size: 60, color: AppColors.accent),
-        )
-            .animate(onPlay: (c) => c.repeat(reverse: true))
-            .animate()
-            .scale(duration: 2.seconds, curve: Curves.easeInOut)
-            .then()
-            .scale(duration: 2.seconds, curve: Curves.easeInOut),
+          child: const Icon(Icons.person_outline_rounded, size: 56, color: AppColors.primary),
+        ),
         form: Column(
           children: [
             Container(
@@ -168,7 +148,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               decoration: BoxDecoration(
                 color: AppColors.surface.withOpacity(0.92),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.accent, width: 3),
               ),
               child: TextField(
                 controller: _nameController,
@@ -210,7 +189,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.surface.withOpacity(0.92),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.textSecondary, width: 1.5),
                   ),
                   child: TextField(
                     controller: _referralController,

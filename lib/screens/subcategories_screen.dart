@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -113,7 +114,6 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.surface.withOpacity(0.92),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.accent, width: 2),
                       ),
                       child: const Icon(Icons.arrow_back, color: AppColors.accent),
                     ),
@@ -129,13 +129,6 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
-                            shadows: [
-                              Shadow(
-                                color: AppColors.categoryIcon.withOpacity(0.6),
-                                offset: const Offset(0, 4),
-                                blurRadius: 8,
-                              ),
-                            ],
                           ),
                         ),
                         Text(
@@ -229,9 +222,6 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
             ? AppColors.categoryIcon.withOpacity(0.25)
             : AppColors.textPrimary.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: count > 0 ? AppColors.categoryIcon : AppColors.textPrimary.withOpacity(0.2),
-        ),
       ),
       child: Text(
         _listingsLabel(l10n, count),
@@ -253,17 +243,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         decoration: BoxDecoration(
           color: AppColors.surface.withOpacity(0.92),
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: AppColors.categoryIcon,
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.categoryIcon.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
+          boxShadow: DaromDecorations.cardShadow,
         ),
         child: Row(
           children: [

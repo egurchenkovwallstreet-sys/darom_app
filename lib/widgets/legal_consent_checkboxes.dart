@@ -32,7 +32,6 @@ class LegalConsentCheckboxes extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.textPrimary.withOpacity(0.7),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.accent.withOpacity(0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -101,7 +100,7 @@ class _ConsentRow extends StatelessWidget {
               child: Checkbox(
                 value: value,
                 activeColor: AppColors.accent,
-                side: const BorderSide(color: AppColors.accent),
+                side: BorderSide.none,
                 onChanged: enabled ? (v) => onChanged(v ?? false) : null,
               ),
             ),

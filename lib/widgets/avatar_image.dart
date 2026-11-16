@@ -1,3 +1,4 @@
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
@@ -27,15 +28,8 @@ class AvatarImage extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.cyan,
-        border: Border.all(color: borderColor, width: borderWidth),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.cyan.withOpacity(0.4),
-            blurRadius: 16,
-            spreadRadius: 2,
-          ),
-        ],
+        color: AppColors.tabTrack,
+        boxShadow: DaromDecorations.cardShadow,
       ),
       clipBehavior: Clip.antiAlias,
       child: hasUrl
@@ -67,7 +61,7 @@ class AvatarImage extends StatelessWidget {
     return Icon(
       Icons.person,
       size: size * 0.55,
-      color: AppColors.textPrimary,
+      color: AppColors.textSecondary,
     );
   }
 }

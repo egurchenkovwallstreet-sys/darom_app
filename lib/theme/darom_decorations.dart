@@ -6,48 +6,37 @@ import 'app_colors.dart';
 class DaromDecorations {
   DaromDecorations._();
 
-  static const double cardRadius = 20;
+  static const double cardRadius = 16;
   static const double buttonRadius = 12;
   static const double inputRadius = 12;
+  static const double pillRadius = 100;
   static const double navBarRadius = 24;
   static const double screenPaddingH = 16;
 
   static const Duration interactionDuration = Duration(milliseconds: 200);
   static const Curve interactionCurve = Curves.easeOut;
 
-  static List<BoxShadow> get cardShadow => [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.04),
-          blurRadius: 20,
-          offset: const Offset(0, 4),
-        ),
-      ];
+  /// Единственная тень в продукте: 0 4px 20px rgba(0,0,0,0.04).
+  static const List<BoxShadow> cardShadow = [
+    BoxShadow(
+      color: Color(0x0A000000),
+      blurRadius: 20,
+      offset: Offset(0, 4),
+    ),
+  ];
 
-  static List<BoxShadow> get fabShadow => [
-        BoxShadow(
-          color: AppColors.primary.withOpacity(0.3),
-          blurRadius: 24,
-          offset: const Offset(0, 8),
-        ),
-      ];
+  static const List<BoxShadow> fabShadow = cardShadow;
+  static const List<BoxShadow> elevatedShadow = cardShadow;
+  static const List<BoxShadow> softShadow = cardShadow;
 
-  static List<BoxShadow> get softShadow => cardShadow;
+  static const double glassBlurSigma = 0;
+  static const double glassFillOpacity = 1;
 
-  static const double glassBlurSigma = 18;
-  static const double glassFillOpacity = 0.88;
-
-  static BoxDecoration glassCard({Color? borderColor}) => BoxDecoration(
-        borderRadius: BorderRadius.circular(cardRadius),
-        border: Border.all(
-          color: borderColor ?? AppColors.glassBorder,
-          width: 1,
-        ),
-        boxShadow: cardShadow,
-      );
+  static BoxDecoration glassCard({Color? borderColor}) => solidCard();
 
   static BoxDecoration warmGlassPanel({double radius = cardRadius}) => BoxDecoration(
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: AppColors.glassBorder, width: 1),
         boxShadow: cardShadow,
       );
 
@@ -60,7 +49,8 @@ class DaromDecorations {
   static ButtonStyle dangerOutlinedStyle() => OutlinedButton.styleFrom(
         foregroundColor: AppColors.danger,
         backgroundColor: AppColors.surface,
-        side: BorderSide(color: AppColors.danger.withOpacity(0.35), width: 1),
+        side: BorderSide.none,
+        elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(buttonRadius)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       );
@@ -94,10 +84,7 @@ class DaromDecorations {
 
   static OutlineInputBorder fieldOutlineBorder({bool focused = false}) => OutlineInputBorder(
         borderRadius: BorderRadius.circular(inputRadius),
-        borderSide: BorderSide(
-          color: focused ? AppColors.primary.withOpacity(0.35) : Colors.transparent,
-          width: focused ? 1.5 : 0,
-        ),
+        borderSide: BorderSide.none,
       );
 
   static InputDecoration lightFieldDecoration({

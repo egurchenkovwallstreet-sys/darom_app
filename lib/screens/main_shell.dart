@@ -265,10 +265,6 @@ class _MainShellState extends State<MainShell> {
         padding: const EdgeInsets.fromLTRB(DaromDecorations.screenPaddingH, 0, DaromDecorations.screenPaddingH, 8),
         child: GlassSurface(
           borderRadius: DaromDecorations.navBarRadius,
-          blurSigma: 22,
-          fillOpacity: 0.94,
-          borderWidth: 1,
-          borderColor: AppColors.glassBorder,
           padding: const EdgeInsets.fromLTRB(6, 8, 6, 10),
           child: SizedBox(
             height: 72,
@@ -328,41 +324,36 @@ class _DesktopSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        border: Border(right: BorderSide(color: AppColors.borderSoft, width: 1)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 10, 16),
       child: GlassSurface(
-        borderRadius: 0,
-        blurSigma: 22,
-        fillOpacity: 0.92,
-        borderWidth: 0,
-        softShadow: false,
+        borderRadius: DaromDecorations.navBarRadius,
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: SizedBox(
-        width: 248,
+        width: 232,
         child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 18),
             child: Row(
               children: [
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.primary,
-                    boxShadow: DaromDecorations.fabShadow,
                   ),
                   child: const Center(
                     child: Text(
                       'D',
                       style: TextStyle(
                         color: AppColors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                        letterSpacing: -0.02,
                       ),
                     ),
                   ),
@@ -370,12 +361,12 @@ class _DesktopSidebar extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   'Даром',
-                  style: DaromDecorations.titleStyle(fontSize: 22),
+                  style: DaromDecorations.titleStyle(fontSize: 20),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           _DesktopNavTile(
             icon: Icons.home_rounded,
             label: l10n.navHome,
@@ -389,34 +380,34 @@ class _DesktopSidebar extends StatelessWidget {
             onTap: () => onTabTap(1),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
             child: Material(
-              elevation: 0,
-              borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
               color: Colors.transparent,
               child: InkWell(
                 onTap: () => onTabTap(2),
                 borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
                 child: Ink(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
                     color: AppColors.primary,
-                    boxShadow: DaromDecorations.fabShadow,
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.add_rounded, color: AppColors.white, size: 26),
-                      const SizedBox(height: 6),
-                      Text(
-                        l10n.navAddListing,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          height: 1.2,
+                      const Icon(Icons.add_rounded, color: AppColors.white, size: 22),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          l10n.navAddListing,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            height: 1.2,
+                            letterSpacing: -0.01,
+                          ),
                         ),
                       ),
                     ],
@@ -479,15 +470,15 @@ class _DesktopNavTile extends StatelessWidget {
     final badgeLabel = badgeCount > 99 ? '99+' : '$badgeCount';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       child: Material(
-        color: selected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        color: selected ? AppColors.navActiveTint : Colors.transparent,
+        borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
             child: Row(
               children: [
                 SizedBox(
@@ -497,7 +488,7 @@ class _DesktopNavTile extends StatelessWidget {
                     clipBehavior: Clip.none,
                     alignment: Alignment.center,
                     children: [
-                      Icon(icon, size: 24, color: color),
+                      Icon(icon, size: 22, color: color),
                       if (badgeCount > 0)
                         Positioned(
                           right: -6,
@@ -506,9 +497,8 @@ class _DesktopNavTile extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                             constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                             decoration: BoxDecoration(
-                              color: AppColors.danger,
+                              color: AppColors.primary,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.white, width: 1.5),
                             ),
                             child: Text(
                               badgeLabel,
@@ -530,9 +520,10 @@ class _DesktopNavTile extends StatelessWidget {
                   child: Text(
                     badgeCount > 0 ? '$label ($badgeCount)' : label,
                     style: TextStyle(
-                      color: badgeCount > 0 ? AppColors.danger : color,
-                      fontSize: 15,
+                      color: badgeCount > 0 ? AppColors.primary : color,
+                      fontSize: 14,
                       fontWeight: selected || badgeCount > 0 ? FontWeight.w600 : FontWeight.w500,
+                      letterSpacing: -0.01,
                     ),
                   ),
                 ),
@@ -590,22 +581,14 @@ class _NavItem extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                         constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                         decoration: BoxDecoration(
-                          color: AppColors.danger,
+                          color: AppColors.primary,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.textPrimary, width: 1.5),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x88000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 1),
-                            ),
-                          ],
                         ),
                         child: Text(
                           badgeLabel,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            color: AppColors.textPrimary,
+                            color: AppColors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             height: 1.0,
@@ -622,8 +605,8 @@ class _NavItem extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 10,
-                color: badgeCount > 0 ? AppColors.danger : color,
+                fontSize: 11,
+                color: badgeCount > 0 ? AppColors.primary : color,
                 fontWeight: badgeCount > 0 || selected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -667,10 +650,10 @@ class _NavAddItem extends StatelessWidget {
                   child: Ink(
                     width: 56,
                     height: 56,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.primary,
-                      boxShadow: DaromDecorations.fabShadow,
+                      boxShadow: DaromDecorations.cardShadow,
                     ),
                     child: const Icon(
                       Icons.add_rounded,

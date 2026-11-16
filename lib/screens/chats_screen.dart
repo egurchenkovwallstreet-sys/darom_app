@@ -238,7 +238,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surface.withOpacity(0.92),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.accent, width: 1.5),
                 ),
                 child: Row(
                   children: [
@@ -248,7 +247,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.accent.withOpacity(0.2),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.accent),
                       ),
                       child: const Icon(Icons.chat, color: AppColors.accent),
                     ),

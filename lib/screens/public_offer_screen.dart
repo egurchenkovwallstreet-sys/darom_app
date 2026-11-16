@@ -44,7 +44,6 @@ class PublicOfferScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.surface.withOpacity(0.92),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.accent.withOpacity(0.4), width: 2),
                   ),
                   child: const Text(
                     PublicOfferText.body,

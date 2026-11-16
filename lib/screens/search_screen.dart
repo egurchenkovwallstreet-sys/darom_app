@@ -42,7 +42,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   static const _fieldBorder = OutlineInputBorder(
     borderRadius: BorderRadius.all(Radius.circular(14)),
-    borderSide: BorderSide(color: AppColors.accent, width: 2),
+    borderSide: BorderSide.none,
   );
 
   @override
@@ -135,7 +135,6 @@ class _SearchScreenState extends State<SearchScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surface.withOpacity(0.92),
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.accent, width: 2),
                     ),
                     child: const Icon(Icons.arrow_back, color: AppColors.accent),
                   ),
@@ -182,7 +181,7 @@ class _SearchScreenState extends State<SearchScreen> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               enabledBorder: _fieldBorder,
               focusedBorder: _fieldBorder.copyWith(
-                borderSide: const BorderSide(color: AppColors.textSecondary, width: 2),
+                borderSide: BorderSide.none,
               ),
             ),
           ),
@@ -194,10 +193,8 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Container(
               height: 46,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(23),
-                gradient: const LinearGradient(
-                  colors: [AppColors.accent, AppColors.accentDark],
-                ),
+                borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
+                color: AppColors.primary,
               ),
               child: Center(
                 child: _isSearching
