@@ -134,7 +134,7 @@ class _DaromAppState extends State<DaromApp> {
           labelLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
         ),
         splashFactory: InkRipple.splashFactory,
-        highlightColor: const Color(0x0A1B4B8F),
+        highlightColor: const Color(0x0A1C8CF0),
         checkboxTheme: CheckboxThemeData(
           side: const BorderSide(color: AppColors.controlOutline, width: 2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),

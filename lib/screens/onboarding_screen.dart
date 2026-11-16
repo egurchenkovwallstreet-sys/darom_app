@@ -100,7 +100,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       width: _currentPage == index ? 24 : 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: _currentPage == index ? AppColors.primary : AppColors.tabTrack,
+                        color: _currentPage == index ? null : AppColors.tabTrack,
+                        gradient: _currentPage == index ? AppColors.brandGradient : null,
                         borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
                       ),
                     ),

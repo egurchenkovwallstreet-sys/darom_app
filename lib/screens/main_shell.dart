@@ -344,7 +344,7 @@ class _DesktopSidebar extends StatelessWidget {
                   height: 40,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.primary,
+                    gradient: AppColors.brandGradient,
                   ),
                   child: const Center(
                     child: Text(
@@ -390,7 +390,7 @@ class _DesktopSidebar extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
-                    color: AppColors.primary,
+                    gradient: AppColors.brandGradient,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -652,7 +652,7 @@ class _NavAddItem extends StatelessWidget {
                     height: 56,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.primary,
+                      gradient: AppColors.brandGradient,
                       boxShadow: DaromDecorations.cardShadow,
                     ),
                     child: const Icon(

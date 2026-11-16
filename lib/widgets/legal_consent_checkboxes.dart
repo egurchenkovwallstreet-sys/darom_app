@@ -150,7 +150,8 @@ class _ConsentBox extends StatelessWidget {
       width: 26,
       height: 26,
       decoration: BoxDecoration(
-        color: checked ? AppColors.primary : AppColors.surface,
+        color: checked ? null : AppColors.surface,
+        gradient: checked ? AppColors.brandGradient : null,
         borderRadius: BorderRadius.circular(7),
         border: checked ? null : Border.all(color: AppColors.controlOutline, width: 2),
       ),

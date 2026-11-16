@@ -790,7 +790,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         margin: EdgeInsets.only(left: index == 0 ? 0 : 6),
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         decoration: BoxDecoration(
-                          color: selected ? AppColors.primary : AppColors.tabTrack,
+                          color: selected ? null : AppColors.tabTrack,
+                          gradient: selected ? AppColors.brandGradient : null,
                           borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
                         ),
                         child: Center(
@@ -920,7 +921,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                gradient: AppColors.brandGradient,
                 borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
                 boxShadow: DaromDecorations.cardShadow,
               ),

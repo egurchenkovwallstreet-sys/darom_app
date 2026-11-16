@@ -1,33 +1,42 @@
 import 'package:flutter/material.dart';
 
-/// Дизайн-система «Даром» — Deep Blue: холодный светлый фон, белые поверхности, глубокий синий акцент.
+/// Дизайн-система «Даром» — Sky Blue: светлый голубоватый фон, белые поверхности,
+/// ярко-голубой акцент с градиентом (светло-голубой → насыщенный синий).
 class AppColors {
   AppColors._();
 
   // --- Design tokens ---
-  static const background = Color(0xFFF3F6FA);
+  static const background = Color(0xFFF2F8FD);
   static const backgroundStart = background;
   static const backgroundEnd = background;
   static const backgroundWarm = background;
   static const surface = Color(0xFFFFFFFF);
   static const surfaceGlass = surface;
 
-  static const primary = Color(0xFF1B4B8F);
-  static const primaryDark = Color(0xFF0F2F5C);
-  static const primarySoft = Color(0xFFE6EEF8);
+  static const primary = Color(0xFF1C8CF0);
+  static const primaryLight = Color(0xFF38C6F7);
+  static const primaryDark = Color(0xFF1468D8);
+  static const primarySoft = Color(0xFFE2F3FD);
   static const secondary = primary;
+
+  /// Фирменный градиент: кнопки, «+», выбранные чипсы, иконки-шапки.
+  static const brandGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryLight, primaryDark],
+  );
 
   static const textPrimary = Color(0xFF0F1B2D);
   static const textSecondary = Color(0xFF55657A);
   static const borderSoft = Color(0x00000000);
-  static const borderDivider = Color(0xFFE9EEF4);
+  static const borderDivider = Color(0xFFE6EFF7);
   static const glassHighlight = surface;
   static const glassBorder = Color(0x00000000);
 
   /// Обводка пустого чекбокса / радиокнопки — должна быть видна на белом.
   static const controlOutline = Color(0xFF8A99AD);
 
-  static const tabTrack = Color(0xFFE6ECF3);
+  static const tabTrack = Color(0xFFE3EEF8);
   static const navActiveTint = primarySoft;
   static const chipSelected = primary;
 

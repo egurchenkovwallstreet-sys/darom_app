@@ -22,16 +22,13 @@ class PrimaryActionButton extends StatefulWidget {
   });
 
   static const primaryGradient = [
-    AppColors.accent,
-    AppColors.accentDark,
+    AppColors.primaryLight,
+    AppColors.primaryDark,
   ];
 
   static const primaryShortGradient = primaryGradient;
 
-  static const successGradient = [
-    AppColors.accent,
-    AppColors.accentDark,
-  ];
+  static const successGradient = primaryGradient;
 
   static const warningGradient = primaryGradient;
 
@@ -100,10 +97,17 @@ class _PrimaryActionButtonState extends State<PrimaryActionButton> {
               height: widget.height,
               decoration: BoxDecoration(
                 color: colors.first,
+                gradient: colors.length > 1 && colors.first != colors.last
+                    ? LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: colors,
+                      )
+                    : null,
                 borderRadius: BorderRadius.circular(widget.borderRadius),
                 boxShadow: widget.showShadow ? DaromDecorations.cardShadow : null,
               ),
-              child: _buttonFace(colors.first),
+              child: _buttonFace(colors.last),
             ),
           ),
         ),
@@ -139,7 +143,7 @@ class _PrimaryActionButtonState extends State<PrimaryActionButton> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: widget.fontSize,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: -0.01,
                       color: foreground,
                     ),
