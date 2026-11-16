@@ -312,7 +312,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
     try {
       if (kIsWeb) {
-        final result = await FilePicker.platform.pickFiles(
+        final result = await FilePicker.pickFiles(
           type: FileType.image,
           allowMultiple: true,
           withData: true,
