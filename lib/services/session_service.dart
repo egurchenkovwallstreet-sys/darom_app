@@ -52,11 +52,12 @@ class SessionService {
 
     if (ApiConfig.usesHttpOnlySessionCookie &&
         await readString(_keyCookieMode) == '1') {
+      final token = await readString(_keyToken);
       return SessionData(
         userId: await readString(_keyUserId),
         phoneNumber: phone,
         name: name,
-        sessionToken: '',
+        sessionToken: token ?? '',
         usesCookie: true,
       );
     }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
 import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../data/app_categories.dart';
@@ -198,14 +199,24 @@ class _AddListingScreenState extends State<AddListingScreen> {
       );
 
       var photosUploaded = 0;
+      String? lastPhotoError;
       for (final photo in _photos) {
-        await _listingsApi.uploadPhoto(
-          listingId: listing.id,
-          phone: _activePhone,
-          bytes: photo.bytes,
-          fileName: photo.name,
+        try {
+          await _listingsApi.uploadPhoto(
+            listingId: listing.id,
+            phone: _activePhone,
+            bytes: photo.bytes,
+            fileName: photo.name,
+          );
+          photosUploaded++;
+        } catch (error) {
+          lastPhotoError = _publishErrorMessage(error);
+        }
+      }
+      if (_photos.isNotEmpty && photosUploaded == 0 && lastPhotoError != null) {
+        throw ListingsApiException(
+          'Объявление создано, но фото не загрузились: $lastPhotoError',
         );
-        photosUploaded++;
       }
 
       if (!mounted) return;
@@ -296,19 +307,43 @@ class _AddListingScreenState extends State<AddListingScreen> {
       return;
     }
 
-    List<XFile> picked = [];
+    final remaining = _maxPhotos - _totalPhotoCount;
+    final newPhotos = <_PickedPhoto>[];
+
     try {
-      picked = await _imagePicker.pickMultiImage(
-        imageQuality: 85,
-        maxWidth: 1600,
-      );
-      if (picked.isEmpty && kIsWeb) {
-        final single = await _imagePicker.pickImage(
-          source: ImageSource.gallery,
+      if (kIsWeb) {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.image,
+          allowMultiple: true,
+          withData: true,
+        );
+        if (result == null || result.files.isEmpty) return;
+        for (final file in result.files.take(remaining)) {
+          final bytes = file.bytes;
+          if (bytes == null || bytes.isEmpty) continue;
+          final name = file.name.isNotEmpty ? file.name : 'photo.jpg';
+          newPhotos.add(_PickedPhoto(bytes: bytes, name: name));
+        }
+      } else {
+        var picked = await _imagePicker.pickMultiImage(
           imageQuality: 85,
           maxWidth: 1600,
         );
-        if (single != null) picked = [single];
+        if (picked.isEmpty) {
+          final single = await _imagePicker.pickImage(
+            source: ImageSource.gallery,
+            imageQuality: 85,
+            maxWidth: 1600,
+          );
+          if (single != null) picked = [single];
+        }
+        if (picked.isEmpty) return;
+        for (final file in picked.take(remaining)) {
+          final bytes = await file.readAsBytes();
+          newPhotos.add(
+            _PickedPhoto(bytes: bytes, name: _photoFileName(file)),
+          );
+        }
       }
     } catch (error) {
       if (!mounted) return;
@@ -320,21 +355,20 @@ class _AddListingScreenState extends State<AddListingScreen> {
       );
       return;
     }
-    if (picked.isEmpty || !mounted) return;
 
-    final remaining = _maxPhotos - _totalPhotoCount;
-    final toAdd = picked.take(remaining);
-
-    final newPhotos = <_PickedPhoto>[];
-    for (final file in toAdd) {
-      final bytes = await file.readAsBytes();
-      newPhotos.add(
-        _PickedPhoto(
-          bytes: bytes,
-          name: _photoFileName(file),
+    if (newPhotos.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Файл не прочитан. Выберите JPG или PNG (до 10 МБ).',
+          ),
+          backgroundColor: AppColors.danger,
         ),
       );
+      return;
     }
+    if (!mounted) return;
 
     setState(() => _photos.addAll(newPhotos));
   }

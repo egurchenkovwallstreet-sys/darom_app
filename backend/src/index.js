@@ -45,6 +45,14 @@ app.use(
   })
 );
 app.use(cookieParser());
+// Некоторые прокси ошибочно передают Content-Encoding: br на multipart — multer/json падают.
+app.use((req, res, next) => {
+  const type = String(req.headers['content-type'] || '').toLowerCase();
+  if (type.includes('multipart/form-data') && req.headers['content-encoding']) {
+    delete req.headers['content-encoding'];
+  }
+  next();
+});
 app.use(express.json());
 app.use(responseMetricsMiddleware);
 
