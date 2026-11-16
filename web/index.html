@@ -88,29 +88,20 @@
 <body>
   <script>
     (function () {
-      var BUILD_ID = '20261116-photo-fix';
+      var BUILD_ID = '20261116-safari-photo';
       var STORAGE_KEY = 'darom_web_build';
       try {
         if (localStorage.getItem(STORAGE_KEY) !== BUILD_ID) {
           localStorage.setItem(STORAGE_KEY, BUILD_ID);
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function (regs) {
-              Promise.all(regs.map(function (r) { return r.unregister(); })).then(function () {
-                if (window.caches && caches.keys) {
-                  caches.keys().then(function (keys) {
-                    return Promise.all(keys.map(function (k) { return caches.delete(k); }));
-                  }).finally(function () {
-                    if (!sessionStorage.getItem('darom_sw_reset_done')) {
-                      sessionStorage.setItem('darom_sw_reset_done', '1');
-                      location.reload();
-                    }
-                  });
-                } else if (!sessionStorage.getItem('darom_sw_reset_done')) {
-                  sessionStorage.setItem('darom_sw_reset_done', '1');
-                  location.reload();
-                }
-              });
-            });
+              regs.forEach(function (r) { r.unregister(); });
+            }).catch(function () {});
+          }
+          if (window.caches && caches.keys) {
+            caches.keys().then(function (keys) {
+              keys.forEach(function (k) { caches.delete(k); });
+            }).catch(function () {});
           }
         }
       } catch (e) { /* private mode */ }
@@ -158,7 +149,10 @@
       }
 
       window.addEventListener('error', function () {
-        showLoadError('Ошибка загрузки. Нажмите Ctrl+Shift+R или откройте сайт в режиме инкогнито.');
+        var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent || '');
+        showLoadError(isIos
+          ? 'Ошибка загрузки в Safari. Закройте вкладку, откройте сайт снова. Если не помогло — Настройки Safari → Дополнения → выключите блокировщики для этого сайта.'
+          : 'Ошибка загрузки. Нажмите Ctrl+Shift+R или откройте сайт в режиме инкогнито.');
       });
 
       window.addEventListener('pagehide', function () {
@@ -197,12 +191,15 @@
         } else if (pollTicks >= 120) {
           clearInterval(pollTimer);
           if (!flutterMounted()) {
-            showLoadError('Приложение не загрузилось. Обновите страницу: Ctrl+Shift+R (жёсткое обновление).');
+            var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent || '');
+            showLoadError(isIos
+              ? 'Приложение не загрузилось. В Safari: закройте вкладку и откройте darom-app.online снова. Проверьте, что включён JavaScript.'
+              : 'Приложение не загрузилось. Обновите страницу: Ctrl+Shift+R (жёсткое обновление).');
           }
         }
       }, 250);
     })();
   </script>
-  <script src="flutter_bootstrap.js?v=20261115-2" defer></script>
+  <script src="flutter_bootstrap.js?v=20261116-safari-photo" defer></script>
 </body>
 </html>

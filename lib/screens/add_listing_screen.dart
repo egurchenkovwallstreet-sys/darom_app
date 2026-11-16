@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
 import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
+import '../utils/pick_listing_images.dart';
 import 'package:image_picker/image_picker.dart';
 import '../data/app_categories.dart';
 import '../models/listing.dart';
@@ -312,17 +312,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
     try {
       if (kIsWeb) {
-        final result = await FilePicker.pickFiles(
-          type: FileType.image,
-          allowMultiple: true,
-          withData: true,
-        );
-        if (result == null || result.files.isEmpty) return;
-        for (final file in result.files.take(remaining)) {
-          final bytes = file.bytes;
-          if (bytes == null || bytes.isEmpty) continue;
-          final name = file.name.isNotEmpty ? file.name : 'photo.jpg';
-          newPhotos.add(_PickedPhoto(bytes: bytes, name: name));
+        final picked = await pickListingImages(maxCount: remaining);
+        if (picked.isEmpty) return;
+        for (final file in picked) {
+          newPhotos.add(_PickedPhoto(bytes: file.bytes, name: file.name));
         }
       } else {
         var picked = await _imagePicker.pickMultiImage(
