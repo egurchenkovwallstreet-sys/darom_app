@@ -68,7 +68,8 @@ class _MainShellState extends State<MainShell> {
 
   void _startUnreadPoll() {
     _unreadPollTimer?.cancel();
-    _unreadPollTimer = Timer.periodic(_unreadPollInterval, (_) => _refreshUnreadCount());
+    _unreadPollTimer =
+        Timer.periodic(_unreadPollInterval, (_) => _refreshUnreadCount());
   }
 
   @override
@@ -84,7 +85,8 @@ class _MainShellState extends State<MainShell> {
     if (_unreadLoadInFlight) return;
     _unreadLoadInFlight = true;
     try {
-      final count = await _chatsApi.fetchUnreadSummary(phone: widget.phoneNumber);
+      final count =
+          await _chatsApi.fetchUnreadSummary(phone: widget.phoneNumber);
       if (!mounted || count == _unreadChatCount) return;
       setState(() => _unreadChatCount = count);
     } catch (_) {
@@ -221,7 +223,8 @@ class _MainShellState extends State<MainShell> {
     final l10n = AppLocalizations.of(context);
 
     return MidnightGlowScreen(
-      bottomNavigationBar: isDesktop ? null : _buildMobileBottomNav(context, l10n),
+      bottomNavigationBar:
+          isDesktop ? null : _buildMobileBottomNav(context, l10n),
       child: isDesktop ? _buildDesktopBody(context, l10n) : _buildMobileBody(),
     );
   }
@@ -262,44 +265,49 @@ class _MainShellState extends State<MainShell> {
       top: false,
       minimum: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(DaromDecorations.screenPaddingH, 0, DaromDecorations.screenPaddingH, 8),
-        child: GlassSurface(
-          borderRadius: DaromDecorations.navBarRadius,
+        padding: const EdgeInsets.fromLTRB(DaromDecorations.screenPaddingH, 0,
+            DaromDecorations.screenPaddingH, 8),
+        child: Container(
           padding: const EdgeInsets.fromLTRB(6, 8, 6, 10),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(DaromDecorations.navBarRadius),
+            boxShadow: DaromDecorations.cardShadow,
+          ),
           child: SizedBox(
             height: 72,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-              _NavItem(
-                icon: Icons.home_rounded,
-                label: l10n.navHome,
-                selected: _currentIndex == 0,
-                onTap: () => _onTabTap(0),
-              ),
-              _NavItem(
-                icon: Icons.favorite_rounded,
-                label: l10n.navFavorites,
-                selected: _currentIndex == 1,
-                onTap: () => _onTabTap(1),
-              ),
-              _NavAddItem(
-                selected: _currentIndex == 2,
-                onTap: () => _onTabTap(2),
-              ),
-              _NavItem(
-                icon: Icons.chat_bubble_rounded,
-                label: l10n.navChats,
-                selected: _currentIndex == 3,
-                badgeCount: _unreadChatCount,
-                onTap: () => _onTabTap(3),
-              ),
-              _NavItem(
-                icon: Icons.person_rounded,
-                label: l10n.navProfile,
-                selected: _currentIndex == 4,
-                onTap: () => _onTabTap(4),
-              ),
+                _NavItem(
+                  icon: Icons.home_rounded,
+                  label: l10n.navHome,
+                  selected: _currentIndex == 0,
+                  onTap: () => _onTabTap(0),
+                ),
+                _NavItem(
+                  icon: Icons.favorite_rounded,
+                  label: l10n.navFavorites,
+                  selected: _currentIndex == 1,
+                  onTap: () => _onTabTap(1),
+                ),
+                _NavAddItem(
+                  selected: _currentIndex == 2,
+                  onTap: () => _onTabTap(2),
+                ),
+                _NavItem(
+                  icon: Icons.chat_bubble_rounded,
+                  label: l10n.navChats,
+                  selected: _currentIndex == 3,
+                  badgeCount: _unreadChatCount,
+                  onTap: () => _onTabTap(3),
+                ),
+                _NavItem(
+                  icon: Icons.person_rounded,
+                  label: l10n.navProfile,
+                  selected: _currentIndex == 4,
+                  onTap: () => _onTabTap(4),
+                ),
               ],
             ),
           ),
@@ -330,119 +338,123 @@ class _DesktopSidebar extends StatelessWidget {
         borderRadius: DaromDecorations.navBarRadius,
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: SizedBox(
-        width: 232,
-        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: AppColors.brandGradient,
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'D',
-                      style: TextStyle(
-                        color: AppColors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
-                        letterSpacing: -0.02,
+          width: 232,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: AppColors.brandGradient,
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'D',
+                          style: TextStyle(
+                            color: AppColors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
+                            letterSpacing: -0.02,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Даром',
+                      style: DaromDecorations.titleStyle(fontSize: 20),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              _DesktopNavTile(
+                icon: Icons.home_rounded,
+                label: l10n.navHome,
+                selected: currentIndex == 0,
+                onTap: () => onTabTap(0),
+              ),
+              _DesktopNavTile(
+                icon: Icons.favorite_rounded,
+                label: l10n.navFavorites,
+                selected: currentIndex == 1,
+                onTap: () => onTabTap(1),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => onTabTap(2),
+                    borderRadius:
+                        BorderRadius.circular(DaromDecorations.buttonRadius),
+                    child: Ink(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                            DaromDecorations.buttonRadius),
+                        gradient: AppColors.brandGradient,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.add_rounded,
+                              color: AppColors.white, size: 22),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              l10n.navAddListing,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                height: 1.2,
+                                letterSpacing: -0.01,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  'Даром',
-                  style: DaromDecorations.titleStyle(fontSize: 20),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          _DesktopNavTile(
-            icon: Icons.home_rounded,
-            label: l10n.navHome,
-            selected: currentIndex == 0,
-            onTap: () => onTabTap(0),
-          ),
-          _DesktopNavTile(
-            icon: Icons.favorite_rounded,
-            label: l10n.navFavorites,
-            selected: currentIndex == 1,
-            onTap: () => onTabTap(1),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => onTabTap(2),
-                borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
-                child: Ink(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
-                    gradient: AppColors.brandGradient,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.add_rounded, color: AppColors.white, size: 22),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          l10n.navAddListing,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: AppColors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            height: 1.2,
-                            letterSpacing: -0.01,
-                          ),
-                        ),
-                      ),
-                    ],
+              ),
+              _DesktopNavTile(
+                icon: Icons.chat_bubble_rounded,
+                label: l10n.navChats,
+                selected: currentIndex == 3,
+                badgeCount: unreadChatCount,
+                onTap: () => onTabTap(3),
+              ),
+              _DesktopNavTile(
+                icon: Icons.person_rounded,
+                label: l10n.navProfile,
+                selected: currentIndex == 4,
+                onTap: () => onTabTap(4),
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: Text(
+                  'darom-app.online',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-          _DesktopNavTile(
-            icon: Icons.chat_bubble_rounded,
-            label: l10n.navChats,
-            selected: currentIndex == 3,
-            badgeCount: unreadChatCount,
-            onTap: () => onTabTap(3),
-          ),
-          _DesktopNavTile(
-            icon: Icons.person_rounded,
-            label: l10n.navProfile,
-            selected: currentIndex == 4,
-            onTap: () => onTabTap(4),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            child: Text(
-              'darom-app.online',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-              ),
-            ),
-          ),
-        ],
-        ),
         ),
       ),
     );
@@ -494,8 +506,10 @@ class _DesktopNavTile extends StatelessWidget {
                           right: -6,
                           top: -4,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                            constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 2),
+                            constraints: const BoxConstraints(
+                                minWidth: 18, minHeight: 18),
                             decoration: BoxDecoration(
                               color: AppColors.primary,
                               borderRadius: BorderRadius.circular(10),
@@ -522,7 +536,9 @@ class _DesktopNavTile extends StatelessWidget {
                     style: TextStyle(
                       color: badgeCount > 0 ? AppColors.primary : color,
                       fontSize: 14,
-                      fontWeight: selected || badgeCount > 0 ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: selected || badgeCount > 0
+                          ? FontWeight.w600
+                          : FontWeight.w500,
                       letterSpacing: -0.01,
                     ),
                   ),
@@ -565,53 +581,57 @@ class _NavItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
-            SizedBox(
-              width: 36,
-              height: 30,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Icon(icon, size: 22, color: color),
-                  if (badgeCount > 0)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          badgeLabel,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: AppColors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            height: 1.0,
+              SizedBox(
+                width: 36,
+                height: 30,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(icon, size: 22, color: color),
+                    if (badgeCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 2),
+                          constraints:
+                              const BoxConstraints(minWidth: 18, minHeight: 18),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            badgeLabel,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              height: 1.0,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              badgeCount > 0 ? '$label ($badgeCount)' : label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 11,
-                color: badgeCount > 0 ? AppColors.primary : color,
-                fontWeight: badgeCount > 0 || selected ? FontWeight.w600 : FontWeight.normal,
+              const SizedBox(height: 2),
+              Text(
+                badgeCount > 0 ? '$label ($badgeCount)' : label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: badgeCount > 0 ? AppColors.primary : color,
+                  fontWeight: badgeCount > 0 || selected
+                      ? FontWeight.w600
+                      : FontWeight.normal,
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );
@@ -638,27 +658,42 @@ class _NavAddItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Transform.translate(
-              offset: const Offset(0, -12),
-              child: Material(
-                color: Colors.transparent,
-                elevation: 0,
-                shape: const CircleBorder(),
-                child: InkWell(
-                  onTap: onTap,
-                  customBorder: const CircleBorder(),
-                  child: Ink(
-                    width: 56,
-                    height: 56,
+            SizedBox(
+              height: 56,
+              child: OverflowBox(
+                maxWidth: 64,
+                maxHeight: 64,
+                alignment: Alignment.bottomCenter,
+                child: Transform.translate(
+                  offset: const Offset(0, -14),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: AppColors.brandGradient,
-                      boxShadow: DaromDecorations.cardShadow,
+                      color: AppColors.surface,
                     ),
-                    child: const Icon(
-                      Icons.add_rounded,
-                      color: AppColors.white,
-                      size: 30,
+                    child: Material(
+                      color: Colors.transparent,
+                      elevation: 0,
+                      shape: const CircleBorder(),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: onTap,
+                        customBorder: const CircleBorder(),
+                        child: Ink(
+                          width: 56,
+                          height: 56,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: AppColors.brandGradient,
+                          ),
+                          child: const Icon(
+                            Icons.add_rounded,
+                            color: AppColors.white,
+                            size: 30,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
