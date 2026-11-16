@@ -6,7 +6,7 @@
 
 | Компонент | Где | URL |
 |-----------|-----|-----|
-| Backend API | Сервер PM2 | http://5.129.243.246:3000/api/health |
+| Backend API | Сервер PM2 | https://darom-app.online/api/health (порт 3000 закрыт снаружи — `darom-block-3000.service`) |
 | БД | Docker `darom_db` | порт 5433 на сервере |
 | S3 фото | Yandex | `s3Ready: true`, бакет `darom-photos` |
 | Flutter Web | Сервер `/var/www/darom` | http://5.129.243.246/ |

@@ -58,6 +58,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _supportUnread = 0;
   int _adminSupportUnread = 0;
 
+  /// Один запрос счётчиков поддержки на загрузку профиля: build вызывается часто,
+  /// а setState из ответа снова запускал бы build — бесконечный цикл запросов.
+  bool _supportUnreadRequested = false;
+
   @override
   void initState() {
     super.initState();
@@ -98,6 +102,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<User> _loadProfile() {
+    _supportUnreadRequested = false;
     final phone = widget.phoneNumber;
     if (phone == null || phone.isEmpty) {
       return Future.error(AppLocalizations.of(context).errNoPhone);
@@ -368,11 +373,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
 
             final user = snapshot.data!;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && widget.isActiveTab) {
-                _refreshSupportUnread(user);
-              }
-            });
+            if (!_supportUnreadRequested) {
+              _supportUnreadRequested = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted && widget.isActiveTab) {
+                  _refreshSupportUnread(user);
+                }
+              });
+            }
             return _buildContent(user);
           },
         ),
