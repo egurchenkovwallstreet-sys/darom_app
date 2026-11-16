@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:darom_app/theme/app_colors.dart';
 
 import '../models/user.dart';
 
@@ -8,49 +7,63 @@ class ProfileAchievement {
     required this.icon,
     required this.title,
     required this.color,
+    required this.requirementRu,
+    required this.requirementEn,
     required this.isUnlocked,
   });
 
   final IconData icon;
   final String title;
   final Color color;
+  final String requirementRu;
+  final String requirementEn;
   final bool Function(User user) isUnlocked;
 }
 
 /// Достижения профиля = 5 уровней дарителя из ТЗ (раздел 8).
-/// Серые до получения уровня, цветные после.
+/// У каждого уровня свой яркий цвет медали; до получения — приглушённая медаль с условием.
 class ProfileAchievements {
   ProfileAchievements._();
 
   static const List<ProfileAchievement> all = [
     ProfileAchievement(
-      icon: Icons.waving_hand,
+      icon: Icons.waving_hand_rounded,
       title: 'Новичок',
-      color: AppColors.textSecondary,
+      color: Color(0xFF2F6FE0),
+      requirementRu: 'С первого дня',
+      requirementEn: 'From day one',
       isUnlocked: _novice,
     ),
     ProfileAchievement(
-      icon: Icons.bolt,
+      icon: Icons.bolt_rounded,
       title: 'Активный',
-      color: AppColors.accent,
+      color: Color(0xFF6D4AE0),
+      requirementRu: 'Отдать 5 вещей',
+      requirementEn: 'Give 5 items',
       isUnlocked: _active,
     ),
     ProfileAchievement(
-      icon: Icons.card_giftcard,
+      icon: Icons.card_giftcard_rounded,
       title: 'Щедрый',
-      color: AppColors.accentDark,
+      color: Color(0xFF0E8FB8),
+      requirementRu: 'Отдать 20 вещей',
+      requirementEn: 'Give 20 items',
       isUnlocked: _generous,
     ),
     ProfileAchievement(
-      icon: Icons.volunteer_activism,
+      icon: Icons.volunteer_activism_rounded,
       title: 'Благотворитель',
-      color: AppColors.gold,
+      color: Color(0xFFC9952B),
+      requirementRu: 'Отдать 50 вещей',
+      requirementEn: 'Give 50 items',
       isUnlocked: _philanthropist,
     ),
     ProfileAchievement(
-      icon: Icons.favorite,
+      icon: Icons.favorite_rounded,
       title: 'Самое доброе сердце',
-      color: AppColors.danger,
+      color: Color(0xFFC23C8E),
+      requirementRu: 'Отдать 100 вещей',
+      requirementEn: 'Give 100 items',
       isUnlocked: _kindestHeart,
     ),
   ];

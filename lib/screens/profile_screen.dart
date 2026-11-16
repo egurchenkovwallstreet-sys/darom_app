@@ -234,39 +234,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildAchievementTile(ProfileAchievement achievement, User user) {
     final l10n = AppLocalizations.of(context);
     final unlocked = achievement.isUnlocked(user);
-    final color = unlocked ? achievement.color : const Color(0xFF607D8B);
-    final width = unlocked ? 80.0 : 56.0;
-    final iconSize = unlocked ? 30.0 : 18.0;
-    final fontSize = unlocked ? 10.0 : 8.0;
+    final color = achievement.color;
+    final tint = Color.alphaBlend(color.withOpacity(unlocked ? 0.12 : 0.06), AppColors.surface);
 
     return Container(
-      width: width,
+      width: 112,
       margin: const EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.fromLTRB(8, 14, 8, 10),
       decoration: BoxDecoration(
-        color: unlocked
-            ? color.withOpacity(0.2)
-            : const Color(0xFF607D8B).withOpacity(0.12),
-        borderRadius: BorderRadius.circular(unlocked ? 12 : 10),
+        color: unlocked ? tint : AppColors.background,
+        borderRadius: BorderRadius.circular(DaromDecorations.cardRadius),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            achievement.icon,
-            size: iconSize,
-            color: unlocked ? color : const Color(0xFF90A4AE),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: unlocked ? color : tint,
+                ),
+                child: Icon(
+                  achievement.icon,
+                  size: 32,
+                  color: unlocked ? AppColors.white : color.withOpacity(0.55),
+                ),
+              ),
+              if (!unlocked)
+                Positioned(
+                  right: -4,
+                  bottom: -2,
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.surface,
+                      boxShadow: DaromDecorations.cardShadow,
+                    ),
+                    child: const Icon(Icons.lock_rounded, size: 14, color: AppColors.textSecondary),
+                  ),
+                ),
+            ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 10),
           Text(
             l10n.achievementTitle(achievement.title),
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: unlocked ? FontWeight.bold : FontWeight.w500,
-              color: unlocked ? color : const Color(0xFF90A4AE),
-            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.2,
+              fontWeight: FontWeight.w700,
+              color: unlocked ? AppColors.textPrimary : AppColors.textSecondary,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            unlocked
+                ? (l10n.isEn ? 'Received' : 'Получено')
+                : (l10n.isEn ? achievement.requirementEn : achievement.requirementRu),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.2,
+              fontWeight: FontWeight.w600,
+              color: unlocked ? color : AppColors.textSecondary,
+            ),
           ),
         ],
       ),
@@ -610,11 +649,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           SizedBox(height: 10),
 
                           Container(
-                            height: 120,
+                            height: 196,
                             decoration: DaromDecorations.solidCard(),
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              padding: EdgeInsets.all(15),
+                              padding: EdgeInsets.all(12),
                               itemCount: ProfileAchievements.all.length,
                               itemBuilder: (context, index) {
                                 return _buildAchievementTile(
