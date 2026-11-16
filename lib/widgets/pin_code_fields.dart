@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter/services.dart';
 
 /// Четыре поля для ввода цифрового кода (SMS или пароль).
@@ -26,8 +27,9 @@ class PinCodeFields extends StatelessWidget {
           width: 60,
           height: 70,
           decoration: BoxDecoration(
-            color: AppColors.surface.withOpacity(0.92),
-            borderRadius: BorderRadius.circular(15),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
+            boxShadow: DaromDecorations.cardShadow,
           ),
           child: TextField(
             controller: controllers[index],

@@ -1,10 +1,9 @@
 import 'package:darom_app/theme/darom_decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../l10n/app_localizations.dart';
-import '../utils/instant_on_web.dart';
 import '../utils/responsive_layout.dart';
+import '../widgets/auth_header_icon.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import '../widgets/responsive_page_frame.dart';
@@ -22,29 +21,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  List<Map<String, dynamic>> _pages(AppLocalizations l10n) => [
-    {
-      'icon': Icons.card_giftcard,
-      'color': AppColors.accent,
-      'borderColor': AppColors.accentDark,
-      'title': l10n.onboardingTitle1,
-      'description': l10n.onboardingDesc1,
-    },
-    {
-      'icon': Icons.favorite,
-      'color': AppColors.accentDark,
-      'borderColor': AppColors.accent,
-      'title': l10n.onboardingTitle2,
-      'description': l10n.onboardingDesc2,
-    },
-    {
-      'icon': Icons.volunteer_activism,
-      'color': AppColors.accent,
-      'borderColor': AppColors.accentDark,
-      'title': l10n.onboardingTitle3,
-      'description': l10n.onboardingDesc3,
-    },
-  ];
+  List<({IconData icon, String title, String description})> _pages(AppLocalizations l10n) => [
+        (
+          icon: Icons.card_giftcard_rounded,
+          title: l10n.onboardingTitle1,
+          description: l10n.onboardingDesc1,
+        ),
+        (
+          icon: Icons.favorite_outline_rounded,
+          title: l10n.onboardingTitle2,
+          description: l10n.onboardingDesc2,
+        ),
+        (
+          icon: Icons.volunteer_activism_outlined,
+          title: l10n.onboardingTitle3,
+          description: l10n.onboardingDesc3,
+        ),
+      ];
 
   @override
   void dispose() {
@@ -52,177 +45,157 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
+  void _next(int pageCount) {
+    if (_currentPage < pageCount - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const PhoneScreen()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final pages = _pages(l10n);
+    final isLast = _currentPage == pages.length - 1;
 
     return MidnightGlowScreen(
       child: SafeArea(
         child: ResponsivePageFrame(
           maxWidth: ResponsiveLayout.isDesktop(context) ? 560 : double.infinity,
           child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: pages.length,
-                onPageChanged: (int page) {
-                  setState(() {
-                    _currentPage = page;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return _buildVolumetricPage(
-                    icon: pages[index]['icon'],
-                    iconColor: pages[index]['color'],
-                    borderColor: pages[index]['borderColor'],
-                    title: pages[index]['title'],
-                    description: pages[index]['description'],
-                  );
-                },
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: pages.length,
+                  onPageChanged: (page) => setState(() => _currentPage = page),
+                  itemBuilder: (context, index) => _OnboardingPage(
+                    icon: pages[index].icon,
+                    title: pages[index].title,
+                    description: pages[index].description,
+                  ),
+                ),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                pages.length,
-                (index) => GestureDetector(
-                  onTap: () {
-                    _pageController.jumpToPage(index);
-                  },
-                  child: AnimatedContainer(
-                    duration: Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                    margin: EdgeInsets.symmetric(horizontal: 6),
-                    width: _currentPage == index ? 24 : 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: _currentPage == index
-                          ? AppColors.primary
-                          : AppColors.textSecondary.withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  pages.length,
+                  (index) => GestureDetector(
+                    onTap: () => _pageController.animateToPage(
+                      index,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    ),
+                    child: AnimatedContainer(
+                      duration: DaromDecorations.interactionDuration,
+                      curve: DaromDecorations.interactionCurve,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: _currentPage == index ? 24 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: _currentPage == index ? AppColors.primary : AppColors.tabTrack,
+                        borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 30),
-            PrimaryActionButton(
-              key: const ValueKey('onboarding-primary-button'),
-              label: _currentPage < pages.length - 1 ? l10n.nextButton : l10n.startButton,
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              onPressed: () {
-                if (_currentPage < pages.length - 1) {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const PhoneScreen()),
-                  );
-                }
-              },
-            ),
-            if (_currentPage == pages.length - 1) ...[
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const PartnerRegisterScreen(),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: PrimaryActionButton(
+                  key: const ValueKey('onboarding-primary-button'),
+                  label: isLast ? l10n.startButton : l10n.nextButton,
+                  height: 56,
+                  fontSize: 17,
+                  onPressed: () => _next(pages.length),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 48,
+                child: Visibility(
+                  visible: isLast,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PartnerRegisterScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      l10n.partnerLink,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  );
-                },
-                child: Text(
-                  l10n.partnerLink,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
             ],
-            SizedBox(height: 20),
-          ],
-        ),
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildVolumetricPage({
-    required IconData icon,
-    required Color iconColor,
-    required Color borderColor,
-    required String title,
-    required String description,
-  }) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 160,
-            height: 160,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.surface,
-              boxShadow: DaromDecorations.cardShadow,
-            ),
-            child: Icon(
-              icon,
-              size: 72,
-              color: AppColors.primary,
-            ),
-          ),
-          SizedBox(height: 40),
-          animateUnlessWeb(
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+class _OnboardingPage extends StatelessWidget {
+  const _OnboardingPage({
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AuthHeaderIcon(icon, size: 128),
+              const SizedBox(height: 32),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: DaromDecorations.titleStyle(fontSize: 28),
               ),
-            ),
-            (child) => child
-                .animate(
-                  delay: Duration(milliseconds: 300),
-                )
-                .fadeIn(duration: Duration(milliseconds: 800))
-                .slideY(begin: 0.3, end: 0),
-          ),
-          SizedBox(height: 30),
-          animateUnlessWeb(
-            Container(
-              padding: EdgeInsets.all(20),
-              decoration: DaromDecorations.solidCard(),
-              child: Text(
+              const SizedBox(height: 16),
+              Text(
                 description,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.textPrimary,
-                  height: 1.6,
-                  fontWeight: FontWeight.w500,
+                style: const TextStyle(
+                  fontSize: 17,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
                 ),
               ),
-            ),
-            (child) => child
-                .animate(
-                  delay: Duration(milliseconds: 500),
-                )
-                .fadeIn(duration: Duration(milliseconds: 800))
-                .slideY(begin: 0.3, end: 0),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

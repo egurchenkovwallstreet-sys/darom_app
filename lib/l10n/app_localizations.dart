@@ -109,8 +109,19 @@ class AppLocalizations {
   String searchNothingFound(String query) =>
       _t('По запросу «$query» ничего не найдено', 'Nothing found for “$query”');
   String searchFoundCount(int n) => _t('Найдено: $n', 'Found: $n');
-  String get tabMap => _t('🗺️ Карта', '🗺️ Map');
-  String get tabList => _t('📋 Список', '📋 List');
+  String get tabMap => _t('Карта', 'Map');
+  String get tabList => _t('Список', 'List');
+  String homeGreeting(String name) => _t('Здравствуйте, $name', 'Hello, $name');
+  String get homeTitle => _t('Отдают даром рядом', 'Free items near you');
+  String homeItemsCount(int count) {
+    if (isEn) return count == 1 ? '1 item' : '$count items';
+    final mod10 = count % 10;
+    final mod100 = count % 100;
+    final word = mod10 == 1 && mod100 != 11
+        ? 'вещь'
+        : (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14) ? 'вещи' : 'вещей');
+    return '$count $word';
+  }
   String get radiusLabel => _t('Радиус:', 'Radius:');
   String get categories => _t('Категории', 'Categories');
   String get repeatButton => _t('Повторить', 'Retry');

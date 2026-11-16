@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 
 import '../data/legal_consent.dart';
 import '../l10n/app_localizations.dart';
@@ -28,11 +29,8 @@ class LegalConsentCheckboxes extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.textPrimary.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      decoration: DaromDecorations.solidCard(),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -49,7 +47,7 @@ class LegalConsentCheckboxes extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 4),
+          const Divider(color: AppColors.borderDivider, height: 1, thickness: 1, indent: 56),
           _ConsentRow(
             value: privacyAccepted,
             enabled: enabled,
@@ -88,55 +86,77 @@ class _ConsentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return InkWell(
+      onTap: enabled ? () => onChanged(!value) : null,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: Checkbox(
-                value: value,
-                activeColor: AppColors.accent,
-                side: BorderSide.none,
-                onChanged: enabled ? (v) => onChanged(v ?? false) : null,
-              ),
-            ),
-            const SizedBox(width: 8),
+            _ConsentBox(checked: value),
+            const SizedBox(width: 14),
             Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  height: 1.35,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      height: 1.4,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: enabled ? onLink : null,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      linkLabel,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.only(left: 32),
-          child: TextButton(
-            onPressed: enabled ? onLink : null,
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(
-              linkLabel,
-              style: const TextStyle(
-                color: AppColors.accent,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
+    );
+  }
+}
+
+/// Крупный квадрат-галочка: пустой — с заметной обводкой, отмеченный — синий с белой галкой.
+class _ConsentBox extends StatelessWidget {
+  const _ConsentBox({required this.checked});
+
+  final bool checked;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: DaromDecorations.interactionDuration,
+      curve: DaromDecorations.interactionCurve,
+      width: 26,
+      height: 26,
+      decoration: BoxDecoration(
+        color: checked ? AppColors.primary : AppColors.surface,
+        borderRadius: BorderRadius.circular(7),
+        border: checked ? null : Border.all(color: AppColors.controlOutline, width: 2),
+      ),
+      child: checked
+          ? const Icon(Icons.check_rounded, color: AppColors.white, size: 20)
+          : null,
     );
   }
 }

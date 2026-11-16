@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/darom_decorations.dart';
 import '../utils/responsive_layout.dart';
 import 'keyboard_inset_padding.dart';
 import 'responsive_page_frame.dart';
 
 /// Прокручиваемая форма входа/регистрации — поле не перекрывается клавиатурой (в т.ч. на телефоне в браузере).
+///
+/// Раскладка не меняется при фокусе: иначе на мобильном вебе форма «прыгает».
 class AuthFormScroll extends StatefulWidget {
   const AuthFormScroll({
     super.key,
@@ -39,8 +42,6 @@ class _AuthFormScrollState extends State<AuthFormScroll> {
   late final bool _ownsFocusNode;
   final _scrollController = ScrollController();
 
-  bool get _compact => _focusNode.hasFocus;
-
   @override
   void initState() {
     super.initState();
@@ -60,12 +61,8 @@ class _AuthFormScrollState extends State<AuthFormScroll> {
   }
 
   void _onFocusChange() {
-    setState(() {});
     if (!_focusNode.hasFocus) return;
-
-    for (final delay in [200, 400, 600]) {
-      Future<void>.delayed(Duration(milliseconds: delay), _scrollToForm);
-    }
+    Future<void>.delayed(const Duration(milliseconds: 350), _scrollToForm);
   }
 
   void _scrollToForm() {
@@ -74,77 +71,63 @@ class _AuthFormScrollState extends State<AuthFormScroll> {
     if (target == null) return;
     Scrollable.ensureVisible(
       target,
-      alignment: 0.25,
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
+      alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+      duration: DaromDecorations.interactionDuration,
+      curve: DaromDecorations.interactionCurve,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = _compact
-        ? (widget.compactSubtitle ?? widget.subtitle)
-        : widget.subtitle;
+    final subtitle = widget.subtitle;
 
     return KeyboardInsetPadding(
       child: SafeArea(
         child: ResponsivePageFrame(
           maxWidth: ResponsiveLayout.authFormMaxWidth(context),
           child: SingleChildScrollView(
-          controller: _scrollController,
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: EdgeInsets.fromLTRB(30, _compact ? 12 : 24, 30, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (!_compact && widget.leading != null) ...[
-                widget.leading!,
-                SizedBox(height: widget.subtitleWidget != null ? 20 : 32),
-              ],
-              Text(
-                widget.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: _compact ? 22 : 26,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              if (!_compact && widget.subtitleWidget != null) ...[
-                const SizedBox(height: 10),
-                widget.subtitleWidget!,
-              ] else if (subtitle != null && subtitle.isNotEmpty) ...[
-                const SizedBox(height: 12),
+            controller: _scrollController,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (widget.leading != null) ...[
+                  Center(child: widget.leading!),
+                  const SizedBox(height: 24),
+                ],
                 Text(
-                  subtitle,
+                  widget.title,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textPrimary.withOpacity(0.7),
-                    height: 1.45,
+                  style: DaromDecorations.titleStyle(fontSize: 26),
+                ),
+                if (widget.subtitleWidget != null) ...[
+                  const SizedBox(height: 12),
+                  widget.subtitleWidget!,
+                ] else if (subtitle != null && subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitle,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: AppColors.textSecondary,
+                      height: 1.45,
+                    ),
                   ),
+                ],
+                const SizedBox(height: 24),
+                KeyedSubtree(
+                  key: widget.formKey,
+                  child: widget.form,
                 ),
+                if (widget.footer != null) ...[
+                  const SizedBox(height: 24),
+                  widget.footer!,
+                ],
               ],
-              SizedBox(
-                height: _compact
-                    ? 20
-                    : (widget.subtitleWidget != null ? 22 : 32),
-              ),
-              KeyedSubtree(
-                key: widget.formKey,
-                child: widget.form,
-              ),
-              if (widget.footer != null) ...[
-                SizedBox(
-                  height: _compact
-                      ? 20
-                      : (widget.subtitleWidget != null ? 24 : 32),
-                ),
-                widget.footer!,
-              ],
-            ],
+            ),
           ),
-        ),
         ),
       ),
     );

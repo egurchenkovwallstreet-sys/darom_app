@@ -6,6 +6,7 @@ import '../models/user.dart';
 import '../services/auth_api.dart';
 import '../services/session_service.dart';
 import '../widgets/auth_form_scroll.dart';
+import '../widgets/auth_header_icon.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/pin_code_fields.dart';
 import '../widgets/primary_action_button.dart';
@@ -118,7 +119,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
         compactSubtitle: l10n.pinCompactSubtitle,
         focusNode: _pinFocus,
         formKey: _formKey,
-        leading: const Icon(Icons.lock, size: 72, color: AppColors.accent),
+        leading: const AuthHeaderIcon(Icons.lock_outline_rounded),
         form: Column(
           children: [
             PinCodeFields(

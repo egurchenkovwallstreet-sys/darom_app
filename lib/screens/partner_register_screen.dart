@@ -5,6 +5,7 @@ import 'package:darom_app/theme/darom_decorations.dart';
 import '../services/auth_api.dart';
 import '../services/partners_api.dart';
 import '../widgets/auth_form_scroll.dart';
+import '../widgets/auth_header_icon.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/partner_email_request_card.dart';
 import '../widgets/primary_action_button.dart';
@@ -113,7 +114,7 @@ class _PartnerRegisterScreenState extends State<PartnerRegisterScreen> {
         compactSubtitle: 'Код партнёра и номер; подтверждение через Mobile ID (~3–6 ₽)',
         focusNode: _codeFocus,
         formKey: _formKey,
-        leading: const Icon(Icons.handshake_rounded, size: 72, color: AppColors.accent),
+        leading: const AuthHeaderIcon(Icons.handshake_rounded),
         form: Column(
           children: [
             const PartnerEmailRequestCard(),

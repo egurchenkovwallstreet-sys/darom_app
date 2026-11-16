@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../l10n/app_localizations.dart';
 import '../services/auth_api.dart';
 import '../widgets/auth_form_scroll.dart';
+import '../widgets/auth_header_icon.dart';
 import '../widgets/legal_consent_checkboxes.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
@@ -124,20 +125,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
         compactSubtitle: l10n.phoneCompactSubtitle,
         focusNode: _phoneFocus,
         formKey: _formKey,
-        leading: Container(
-          width: 96,
-          height: 96,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.surface,
-            boxShadow: DaromDecorations.cardShadow,
-          ),
-          child: const Icon(
-            Icons.phone_android_rounded,
-            size: 44,
-            color: AppColors.primary,
-          ),
-        ),
+        leading: const AuthHeaderIcon(Icons.phone_android_rounded),
         form: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: DaromDecorations.solidCard(),
@@ -150,14 +138,11 @@ class _PhoneScreenState extends State<PhoneScreen> {
             style: DaromDecorations.fieldTextLarge,
             decoration: InputDecoration(
               hintText: l10n.phoneHint,
-              hintStyle: TextStyle(
-                color: AppColors.textPrimary.withOpacity(0.4),
-                fontSize: 18,
-              ),
+              hintStyle: DaromDecorations.fieldHint(fontSize: 18),
               border: InputBorder.none,
               prefixIcon: const Icon(
-                Icons.phone,
-                color: AppColors.accent,
+                Icons.phone_outlined,
+                color: AppColors.textSecondary,
                 size: 24,
               ),
             ),
@@ -182,10 +167,9 @@ class _PhoneScreenState extends State<PhoneScreen> {
             const SizedBox(height: 8),
             PrimaryActionButton(
               label: l10n.partnerLink,
-              height: 55,
-              fontSize: 18,
-              borderRadius: 27,
-              icon: Icons.handshake_rounded,
+              height: 52,
+              fontSize: 16,
+              icon: Icons.handshake_outlined,
               gradientColors: PrimaryActionButton.neutralGradient,
               enabled: !_isLoading,
               onPressed: () {
@@ -212,26 +196,24 @@ class _PhoneNumberWarning extends StatelessWidget {
 
   static const _baseStyle = TextStyle(
     fontSize: 14,
-    height: 1.15,
-    letterSpacing: -0.3,
+    height: 1.4,
     color: AppColors.textPrimary,
     fontWeight: FontWeight.w500,
   );
 
   static const _alertStyle = TextStyle(
     fontSize: 14,
-    height: 1.15,
-    letterSpacing: -0.3,
-    color: AppColors.badgeFounderText,
-    fontWeight: FontWeight.w600,
+    height: 1.4,
+    color: AppColors.primary,
+    fontWeight: FontWeight.w700,
   );
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.badgeFounderBg,
+        color: AppColors.primarySoft,
         borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
       ),
       child: Text.rich(

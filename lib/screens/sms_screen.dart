@@ -4,6 +4,7 @@ import 'package:darom_app/theme/app_colors.dart';
 
 import '../services/auth_api.dart';
 import '../widgets/auth_form_scroll.dart';
+import '../widgets/auth_header_icon.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/pin_code_fields.dart';
 import '../widgets/primary_action_button.dart';
@@ -197,16 +198,7 @@ class _SmsScreenState extends State<SmsScreen> {
         compactSubtitle: 'Введите 4 цифры из сообщения',
         focusNode: _codeFocus,
         formKey: _formKey,
-        leading: Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.surface,
-            boxShadow: DaromDecorations.cardShadow,
-          ),
-          child: const Icon(Icons.sms, size: 60, color: AppColors.accent),
-        ),
+        leading: const AuthHeaderIcon(Icons.sms_outlined),
         form: Column(
           children: [
             if (_debugCode != null) ...[

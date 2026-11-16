@@ -134,7 +134,15 @@ class _DaromAppState extends State<DaromApp> {
           labelLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
         ),
         splashFactory: InkRipple.splashFactory,
-        highlightColor: const Color(0x0A1E4D3B),
+        highlightColor: const Color(0x0A1B4B8F),
+        checkboxTheme: CheckboxThemeData(
+          side: const BorderSide(color: AppColors.controlOutline, width: 2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          fillColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected) ? AppColors.primary : AppColors.surface,
+          ),
+          checkColor: const WidgetStatePropertyAll(AppColors.white),
+        ),
         dropdownMenuTheme: const DropdownMenuThemeData(
           textStyle: TextStyle(color: AppColors.textPrimary, fontSize: 16),
         ),

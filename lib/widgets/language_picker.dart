@@ -4,6 +4,9 @@ import 'package:darom_app/theme/darom_decorations.dart';
 
 import '../l10n/app_localizations.dart';
 import '../services/locale_service.dart';
+import '../utils/responsive_layout.dart';
+import '../widgets/auth_header_icon.dart';
+import '../widgets/responsive_page_frame.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import '../screens/onboarding_screen.dart';
@@ -40,31 +43,31 @@ class _LanguageWelcomeScreenState extends State<LanguageWelcomeScreen> {
 
     return MidnightGlowScreen(
       child: SafeArea(
-        child: Padding(
+        child: ResponsivePageFrame(
+          maxWidth: ResponsiveLayout.authFormMaxWidth(context),
+          child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
               const Spacer(flex: 2),
+              const AuthHeaderIcon(Icons.translate_rounded),
+              const SizedBox(height: 24),
               Text(
                 l10n.languageWelcomeTitle,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: DaromDecorations.titleStyle(fontSize: 26),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 l10n.languageWelcomeSubtitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 15,
-                  height: 1.35,
+                  height: 1.45,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(height: 32),
               _LanguageOption(
                 label: l10n.languageRussian,
                 selected: _selectedCode == 'ru',
@@ -79,11 +82,14 @@ class _LanguageWelcomeScreenState extends State<LanguageWelcomeScreen> {
               const Spacer(flex: 2),
               PrimaryActionButton(
                 label: l10n.continueButton,
+                height: 56,
+                fontSize: 17,
                 onPressed: _continue,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 72),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -112,24 +118,26 @@ class _LanguageOption extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: selected ? AppColors.primarySoft : AppColors.surface,
             borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
-            boxShadow: DaromDecorations.cardShadow,
+            boxShadow: selected ? null : DaromDecorations.cardShadow,
           ),
           child: Row(
             children: [
-              Icon(
-                selected ? Icons.radio_button_checked : Icons.radio_button_off,
-                color: selected ? AppColors.accent : AppColors.textSecondary,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                label,
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: selected ? AppColors.primary : AppColors.textPrimary,
+                    fontSize: 17,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
                 ),
+              ),
+              Icon(
+                selected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                color: selected ? AppColors.primary : AppColors.controlOutline,
+                size: 26,
               ),
             ],
           ),

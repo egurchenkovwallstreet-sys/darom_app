@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../services/users_api.dart';
 import '../services/partners_api.dart';
 import '../widgets/auth_form_scroll.dart';
+import '../widgets/auth_header_icon.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
 import 'pin_setup_screen.dart';
@@ -131,24 +132,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         compactSubtitle: 'Введите имя для профиля',
         focusNode: _nameFocus,
         formKey: _formKey,
-        leading: Container(
-          width: 120,
-          height: 120,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.surface,
-            boxShadow: DaromDecorations.cardShadow,
-          ),
-          child: const Icon(Icons.person_outline_rounded, size: 56, color: AppColors.primary),
-        ),
+        leading: const AuthHeaderIcon(Icons.person_outline_rounded),
         form: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.surface.withOpacity(0.92),
-                borderRadius: BorderRadius.circular(20),
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: DaromDecorations.solidCard(),
               child: TextField(
                 controller: _nameController,
                 focusNode: _nameFocus,
@@ -158,12 +147,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 style: DaromDecorations.fieldTextLarge,
                 decoration: InputDecoration(
                   hintText: 'Ваше имя',
-                  hintStyle: TextStyle(
-                    color: AppColors.textPrimary.withOpacity(0.4),
-                    fontSize: 18,
-                  ),
+                  hintStyle: DaromDecorations.fieldHint(fontSize: 18),
                   border: InputBorder.none,
-                  prefixIcon: const Icon(Icons.badge, color: AppColors.accent, size: 24),
+                  prefixIcon: const Icon(Icons.badge_outlined, color: AppColors.textSecondary, size: 24),
                 ),
               ),
             ),
@@ -175,30 +161,26 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     : 'Есть код блогера? Получить расширенные возможности',
                 height: 52,
                 fontSize: 15,
-                borderRadius: 26,
                 icon: _showReferralField ? Icons.expand_less : Icons.auto_awesome,
-                gradientColors: _showReferralField
-                    ? PrimaryActionButton.tealGradient
-                    : PrimaryActionButton.warningGradient,
+                gradientColors: PrimaryActionButton.neutralGradient,
                 onPressed: () => setState(() => _showReferralField = !_showReferralField),
               ),
               if (_showReferralField)
                 Container(
                   margin: const EdgeInsets.only(top: 8),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface.withOpacity(0.92),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: DaromDecorations.solidCard(),
                   child: TextField(
                     controller: _referralController,
                     keyboardType: TextInputType.number,
                     maxLength: 4,
                     style: DaromDecorations.fieldTextLarge,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       counterText: '',
+                      hintText: 'Код блогера (4 цифры)',
+                      hintStyle: DaromDecorations.fieldHint(fontSize: 16),
                       border: InputBorder.none,
-                      prefixIcon: Icon(Icons.handshake, color: AppColors.textSecondary),
+                      prefixIcon: const Icon(Icons.handshake_outlined, color: AppColors.textSecondary),
                     ),
                   ),
                 ),

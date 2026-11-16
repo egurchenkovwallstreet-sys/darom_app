@@ -47,10 +47,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const double _blockGap = 12;
-  static const double _categoryChipHeight = 43.2; // 36 + 20%
-  static const double _categoryIconSize = 21.6; // 18 + 20%
-  static const double _categoryFontSize = 14.0;
-  static const double _mapPreviewHeight = 280;
+  static const double _mapPreviewHeight = 260;
 
   int _radiusIndex = 2;
   int _pressedRadiusIndex = -1;
@@ -360,7 +357,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = AppLocalizations.of(context);
 
     final slivers = <Widget>[
-      _buildHomeSliverAppBar(l10n),
+      SliverToBoxAdapter(child: _buildHeader(l10n)),
+      _buildPinnedSearchBar(l10n),
       if (_showSearchResults) ..._buildSearchModeSlivers(l10n) else ..._buildMainModeSlivers(l10n),
       SliverPadding(padding: EdgeInsets.only(bottom: _scrollBottomPadding)),
     ];
@@ -371,38 +369,42 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  SliverAppBar _buildHomeSliverAppBar(AppLocalizations l10n) {
-    final greeting = widget.userName.trim().isNotEmpty ? widget.userName.trim() : 'Даром';
+  Widget _buildHeader(AppLocalizations l10n) {
+    final name = widget.userName.trim();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            name.isNotEmpty ? l10n.homeGreeting(name) : 'Даром',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(l10n.homeTitle, style: DaromDecorations.titleStyle(fontSize: 26)),
+        ],
+      ),
+    );
+  }
 
+  SliverAppBar _buildPinnedSearchBar(AppLocalizations l10n) {
     return SliverAppBar(
       pinned: true,
-      floating: true,
-      snap: true,
-      stretch: true,
+      automaticallyImplyLeading: false,
       elevation: 0,
       scrolledUnderElevation: 0,
-      expandedHeight: 100,
-      backgroundColor: AppColors.backgroundStart.withOpacity(0.95),
+      toolbarHeight: 72,
+      titleSpacing: 16,
+      centerTitle: false,
+      backgroundColor: AppColors.background,
       surfaceTintColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        collapseMode: CollapseMode.parallax,
-        titlePadding: const EdgeInsetsDirectional.only(start: 16, bottom: 56),
-        title: Text(
-          greeting,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-          ),
-        ),
-      ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(52),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: _buildSearchField(l10n),
-        ),
-      ),
+      title: _buildSearchField(l10n),
     );
   }
 
@@ -438,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                 )
               : null,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
@@ -522,25 +524,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> _buildMainModeSlivers(AppLocalizations l10n) {
     final slivers = <Widget>[
-      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
       SliverToBoxAdapter(child: _buildMapListToggle(l10n)),
-      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
-      SliverToBoxAdapter(child: _buildRadiusPanel(l10n)),
-      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
+      const SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            decoration: DaromDecorations.solidCard(),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                if (!_showListView)
+                  SizedBox(height: _mapPreviewHeight, child: _buildMapPreview()),
+                _buildRadiusSection(l10n),
+              ],
+            ),
+          ),
+        ),
+      ),
     ];
 
     if (_locationHint != null) {
       slivers.add(
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
             child: Row(
               children: [
+                const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.textSecondary),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     _locationHint!,
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.35,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -550,8 +568,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     l10n.repeatButton,
                     style: const TextStyle(
-                      color: AppColors.secondary,
-                      fontSize: 12,
+                      color: AppColors.primary,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -570,99 +588,61 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(16, _blockGap, 16, 0),
             child: Text(
               _listingsError!,
-              style: const TextStyle(fontSize: 12, color: AppColors.danger),
+              style: const TextStyle(fontSize: 14, color: AppColors.danger),
             ),
           ),
         ),
       );
     }
 
-    slivers.add(SliverToBoxAdapter(child: SizedBox(height: _blockGap)));
+    if (!_showListView && _selectedListing != null) {
+      slivers.add(
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, _blockGap, 16, 0),
+            child: _buildSelectedListingCard(),
+          ),
+        ),
+      );
+    }
 
     if (_showListView) {
+      slivers.add(const SliverToBoxAdapter(child: SizedBox(height: _blockGap)));
       slivers.addAll(_buildNearbyListSlivers());
-    } else {
-      slivers.add(
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverToBoxAdapter(
-            child: SizedBox(
-              height: _mapPreviewHeight,
-              child: GlassSurface(
-                child: _buildMapPreview(),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      if (_selectedListing != null) {
-        slivers.add(
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, _blockGap, 16, 0),
-              child: _buildSelectedListingCard(),
-            ),
-          ),
-        );
-      }
-
-      if (_loadingListings) {
-        slivers.add(
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(top: _blockGap),
-              child: Center(
-                child: SizedBox(
-                  height: 18,
-                  width: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }
     }
 
+    final wide = MediaQuery.sizeOf(context).width >= 720;
     slivers.addAll([
-      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
+      const SliverToBoxAdapter(child: SizedBox(height: 28)),
       SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              l10n.categories,
-              style: DaromDecorations.titleStyle(fontSize: 17),
-            ),
+          child: Text(l10n.categories, style: DaromDecorations.titleStyle(fontSize: 20)),
+        ),
+      ),
+      const SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        sliver: SliverGrid(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: wide ? 4 : 2,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            mainAxisExtent: 64,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => _buildCategoryTile(index),
+            childCount: _categories.length,
           ),
         ),
       ),
-      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
-      SliverToBoxAdapter(
-        child: SizedBox(
-          height: _categoryChipHeight + 24,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
-            itemCount: _categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (context, index) => _buildCategoryChip(index),
-          ),
-        ),
-      ),
-      SliverToBoxAdapter(child: SizedBox(height: _blockGap)),
     ]);
 
     return slivers;
   }
 
   Widget _buildMapListToggle(AppLocalizations l10n) {
-    final toggle = Padding(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         padding: const EdgeInsets.all(4),
@@ -677,6 +657,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: _mapListSegment(
                   l10n.tabMap,
+                  icon: Icons.map_outlined,
                   selected: !_showListView,
                   onTap: () => setState(() => _showListView = false),
                   pressed: _pressedMapButton,
@@ -688,6 +669,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: _mapListSegment(
                   l10n.tabList,
+                  icon: Icons.view_agenda_outlined,
                   selected: _showListView,
                   onTap: () => setState(() => _showListView = true),
                   pressed: _pressedListButton,
@@ -700,24 +682,18 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-
-    return animateUnlessWeb(
-      toggle,
-      (child) => child
-          .animate(delay: const Duration(milliseconds: 200))
-          .fadeIn(duration: const Duration(milliseconds: 600), curve: Curves.easeOutCubic)
-          .slideY(begin: -0.15, end: 0, curve: Curves.fastOutSlowIn),
-    );
   }
 
   Widget _mapListSegment(
     String label, {
+    required IconData icon,
     required bool selected,
     required VoidCallback onTap,
     required bool pressed,
     required VoidCallback onPressDown,
     required VoidCallback onPressUp,
   }) {
+    final color = selected ? AppColors.primary : AppColors.textSecondary;
     return GestureDetector(
       onTapDown: (_) => onPressDown(),
       onTapUp: (_) => onPressUp(),
@@ -735,57 +711,64 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
             boxShadow: selected ? DaromDecorations.cardShadow : null,
           ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: selected ? AppColors.textPrimary : AppColors.textSecondary,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                fontSize: 14,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18, color: color),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: selected ? AppColors.textPrimary : AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildRadiusPanel(AppLocalizations l10n) {
-    final panel = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+  Widget _buildRadiusSection(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Text(
-                  l10n.radiusLabel,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text(
+                l10n.radiusLabel,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  _radiusLabels[_radiusIndex],
                   style: const TextStyle(
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
+                    fontSize: 15,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    _radiusLabels[_radiusIndex],
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                _buildRadiusCountBadge(),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: List.generate(
-                _radiusButtonLabels.length,
-                (index) => Expanded(
+              ),
+              _buildRadiusCountBadge(),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: List.generate(
+              _radiusButtonLabels.length,
+              (index) {
+                final selected = _radiusIndex == index;
+                return Expanded(
                   child: GestureDetector(
                     onTapDown: (_) => setState(() => _pressedRadiusIndex = index),
                     onTapUp: (_) {
@@ -803,13 +786,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: AnimatedContainer(
                         duration: DaromDecorations.interactionDuration,
                         curve: DaromDecorations.interactionCurve,
-                        height: 36,
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        height: 38,
+                        margin: EdgeInsets.only(left: index == 0 ? 0 : 6),
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         decoration: BoxDecoration(
-                          color: _radiusIndex == index ? AppColors.primary : AppColors.surface,
+                          color: selected ? AppColors.primary : AppColors.tabTrack,
                           borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
-                          boxShadow: _radiusIndex == index ? null : DaromDecorations.cardShadow,
                         ),
                         child: Center(
                           child: FittedBox(
@@ -818,11 +800,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               _radiusButtonLabels[index],
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: _radiusIndex == index
-                                    ? AppColors.white
-                                    : AppColors.textPrimary,
+                                color: selected ? AppColors.white : AppColors.textPrimary,
                                 fontWeight: FontWeight.w600,
-                                fontSize: index == 4 ? 12 : 13,
+                                fontSize: 14,
                               ),
                             ),
                           ),
@@ -830,19 +810,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
-          ],
-        ),
-    );
-
-    return animateUnlessWeb(
-      panel,
-      (child) => child
-          .animate(delay: const Duration(milliseconds: 320))
-          .fadeIn(duration: const Duration(milliseconds: 600), curve: Curves.easeOutCubic)
-          .slideY(begin: -0.15, end: 0, curve: Curves.fastOutSlowIn),
+          ),
+        ],
+      ),
     );
   }
 
@@ -945,21 +918,22 @@ class _HomeScreenState extends State<HomeScreen> {
             right: 12,
             top: 12,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
               decoration: BoxDecoration(
                 color: AppColors.primary,
-                borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
+                borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
+                boxShadow: DaromDecorations.cardShadow,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.fullscreen_rounded, color: AppColors.white, size: 16),
+                  const Icon(Icons.open_in_full_rounded, color: AppColors.white, size: 16),
                   const SizedBox(width: 6),
                   Text(
                     _l10n.openButton,
                     style: const TextStyle(
                       color: AppColors.white,
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1023,7 +997,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCategoryChip(int index) {
+  Widget _buildCategoryTile(int index) {
     final pressed = _pressedCategoryIndex == index;
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressedCategoryIndex = index),
@@ -1033,35 +1007,39 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       onTapCancel: () => setState(() => _pressedCategoryIndex = -1),
       child: AnimatedScale(
-        scale: pressed ? 0.98 : 1.0,
+        scale: pressed ? 0.97 : 1.0,
         duration: DaromDecorations.interactionDuration,
         curve: DaromDecorations.interactionCurve,
-        child: GlassSurface(
-          borderRadius: DaromDecorations.pillRadius,
-          fillColor: pressed ? AppColors.primary : AppColors.surface,
-          child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: DaromDecorations.solidCard(),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                _categoryIcons[index],
-                size: _categoryIconSize,
-                color: pressed ? AppColors.white : AppColors.secondary,
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
+                ),
+                child: Icon(_categoryIcons[index], size: 22, color: AppColors.primary),
               ),
-              const SizedBox(width: 8),
-              Text(
-                _l10n.categoryLabel(_categories[index]),
-                style: TextStyle(
-                  fontSize: _categoryFontSize,
-                  fontWeight: FontWeight.w600,
-                  color: pressed ? AppColors.white : AppColors.textPrimary,
-                  height: 1.1,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  _l10n.categoryLabel(_categories[index]),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                    height: 1.2,
+                  ),
                 ),
               ),
             ],
           ),
-        ),
         ),
       ),
     );
@@ -1083,16 +1061,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.tabTrack,
+        color: AppColors.primarySoft,
         borderRadius: BorderRadius.circular(DaromDecorations.pillRadius),
       ),
       child: Text(
-        '$count шт.',
+        _l10n.homeItemsCount(count),
         style: const TextStyle(
-          color: AppColors.textPrimary,
+          color: AppColors.primary,
           fontWeight: FontWeight.w600,
-          fontSize: 12,
-          letterSpacing: -0.01,
+          fontSize: 13,
         ),
       ),
     );
