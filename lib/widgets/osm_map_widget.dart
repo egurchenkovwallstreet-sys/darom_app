@@ -143,7 +143,7 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: AppColors.accent, width: 2),
+        border: Border.all(color: AppColors.borderSoft, width: 1),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius - 2),
@@ -252,7 +252,7 @@ class _ListingPinState extends State<_ListingPin> {
       borderColor = AppColors.darkBlue;
       iconColor = AppColors.darkBlue;
     } else {
-      bgColor = AppColors.cyan;
+      bgColor = AppColors.primary;
       borderColor = AppColors.white;
       iconColor = AppColors.white;
     }
@@ -274,14 +274,9 @@ class _ListingPinState extends State<_ListingPin> {
                   border: Border.all(color: borderColor, width: 3),
                   boxShadow: [
                     BoxShadow(
-                      color: bgColor.withOpacity(0.85),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                    const BoxShadow(
-                      color: Color(0xAA000000),
-                      blurRadius: 6,
-                      offset: Offset(0, 2),
+                      color: bgColor.withOpacity(0.35),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),

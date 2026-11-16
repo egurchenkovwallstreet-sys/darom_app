@@ -263,15 +263,15 @@ class _MainShellState extends State<MainShell> {
       minimum: const EdgeInsets.only(bottom: 16),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(DaromDecorations.screenPaddingH, 0, DaromDecorations.screenPaddingH, 8),
-        child: GlassSurface(
-          borderRadius: 28,
-          blurSigma: 18,
-          fillOpacity: 0.88,
-          fillColor: AppColors.surface,
-          borderColor: AppColors.textSecondary.withOpacity(0.25),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(DaromDecorations.navBarRadius),
+            boxShadow: DaromDecorations.cardShadow,
+          ),
           padding: const EdgeInsets.fromLTRB(6, 8, 6, 10),
           child: SizedBox(
-            height: 76,
+            height: 72,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -479,7 +479,7 @@ class _DesktopNavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.accent : AppColors.textSecondary;
+    final color = selected ? AppColors.primary : AppColors.textSecondary;
     final badgeLabel = badgeCount > 99 ? '99+' : '$badgeCount';
 
     return Padding(
@@ -566,7 +566,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.accent : AppColors.textSecondary;
+    final color = selected ? AppColors.primary : AppColors.textSecondary;
     final badgeLabel = badgeCount > 99 ? '99+' : '$badgeCount';
 
     return Expanded(
@@ -651,7 +651,6 @@ class _NavAddItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final accent = selected ? AppColors.accent : AppColors.textSecondary;
 
     return Expanded(
       child: Padding(
@@ -660,33 +659,28 @@ class _NavAddItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Material(
-              elevation: 6,
-              shadowColor: accent.withOpacity(0.35),
-              shape: const CircleBorder(),
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: onTap,
-                customBorder: const CircleBorder(),
-                child: Ink(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [AppColors.accent, AppColors.accentDark],
+            Transform.translate(
+              offset: const Offset(0, -12),
+              child: Material(
+                color: Colors.transparent,
+                elevation: 0,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  onTap: onTap,
+                  customBorder: const CircleBorder(),
+                  child: Ink(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primary,
+                      boxShadow: DaromDecorations.fabShadow,
                     ),
-                    border: Border.all(
-                      color: AppColors.accent.withOpacity(0.25),
-                      width: 2,
+                    child: const Icon(
+                      Icons.add_rounded,
+                      color: AppColors.white,
+                      size: 30,
                     ),
-                  ),
-                  child: const Icon(
-                    Icons.add_rounded,
-                    color: AppColors.white,
-                    size: 26,
                   ),
                 ),
               ),
@@ -697,9 +691,9 @@ class _NavAddItem extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 10,
-                color: accent,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                fontSize: 11,
+                color: selected ? AppColors.primary : AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
                 height: 1.1,
               ),
             ),

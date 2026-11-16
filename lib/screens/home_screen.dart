@@ -20,6 +20,7 @@ import '../widgets/listing_tile_card.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/osm_map_widget.dart';
 import '../theme/app_colors.dart';
+import '../theme/darom_decorations.dart';
 import 'subcategories_screen.dart';
 import 'listing_screen.dart';
 import 'nearby_map_screen.dart';
@@ -80,11 +81,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _listingsLoadInFlight = false;
 
   AppLocalizations get _l10n => AppLocalizations(LocaleService.instance.locale);
-
-  static const _searchFieldBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.all(Radius.circular(10)),
-    borderSide: BorderSide(color: AppColors.accent, width: 1.5),
-  );
 
   static const List<double> _radiusKmValues = MapRadiusOptions.kmValues;
   final List<String> _radiusLabels = MapRadiusOptions.labels;
@@ -411,41 +407,44 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSearchField(AppLocalizations l10n) {
-    return TextField(
-      controller: _searchController,
-      style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
-      textInputAction: TextInputAction.search,
-      onSubmitted: (_) => _runSearch(),
-      onChanged: (_) {
-        if (_searchController.text.isEmpty && _showSearchResults) {
-          _clearSearch();
-        } else {
-          setState(() {});
-        }
-      },
-      decoration: InputDecoration(
-        isDense: true,
-        filled: true,
-        fillColor: AppColors.surface.withOpacity(0.92),
-        hintText: l10n.searchHint,
-        hintStyle: TextStyle(
-          color: AppColors.textPrimary.withOpacity(0.45),
-          fontSize: 13,
-        ),
-        prefixIcon: const Icon(Icons.search, color: AppColors.accent, size: 20),
-        prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 36),
-        suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                icon: const Icon(Icons.clear, color: AppColors.textSecondary, size: 18),
-                onPressed: _clearSearch,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              )
-            : null,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        enabledBorder: _searchFieldBorder,
-        focusedBorder: _searchFieldBorder.copyWith(
-          borderSide: const BorderSide(color: AppColors.textSecondary, width: 1.5),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(DaromDecorations.inputRadius),
+        boxShadow: DaromDecorations.cardShadow,
+      ),
+      child: TextField(
+        controller: _searchController,
+        style: DaromDecorations.fieldText.copyWith(fontSize: 15),
+        textInputAction: TextInputAction.search,
+        onSubmitted: (_) => _runSearch(),
+        onChanged: (_) {
+          if (_searchController.text.isEmpty && _showSearchResults) {
+            _clearSearch();
+          } else {
+            setState(() {});
+          }
+        },
+        decoration: InputDecoration(
+          isDense: true,
+          filled: true,
+          fillColor: AppColors.surface,
+          hintText: l10n.searchHint,
+          hintStyle: DaromDecorations.fieldHint(fontSize: 15),
+          prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary, size: 22),
+          prefixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 40),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear, color: AppColors.textSecondary, size: 20),
+                  onPressed: _clearSearch,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                )
+              : null,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
         ),
       ),
     );
@@ -673,18 +672,37 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildMapListToggle(AppLocalizations l10n) {
     final toggle = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GlassSurface(
-        borderRadius: 20,
-        blurSigma: 12,
-        fillOpacity: 0.88,
+      child: Container(
         padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.pillTrack,
+          borderRadius: BorderRadius.circular(24),
+        ),
         child: SizedBox(
-          height: 36,
+          height: 40,
           child: Row(
             children: [
-              Expanded(child: _mapListSegment(l10n.tabMap, selected: !_showListView, onTap: () => setState(() => _showListView = false), pressed: _pressedMapButton, onPressDown: () => setState(() => _pressedMapButton = true), onPressUp: () => setState(() => _pressedMapButton = false))),
+              Expanded(
+                child: _mapListSegment(
+                  l10n.tabMap,
+                  selected: !_showListView,
+                  onTap: () => setState(() => _showListView = false),
+                  pressed: _pressedMapButton,
+                  onPressDown: () => setState(() => _pressedMapButton = true),
+                  onPressUp: () => setState(() => _pressedMapButton = false),
+                ),
+              ),
               const SizedBox(width: 4),
-              Expanded(child: _mapListSegment(l10n.tabList, selected: _showListView, onTap: () => setState(() => _showListView = true), pressed: _pressedListButton, onPressDown: () => setState(() => _pressedListButton = true), onPressUp: () => setState(() => _pressedListButton = false))),
+              Expanded(
+                child: _mapListSegment(
+                  l10n.tabList,
+                  selected: _showListView,
+                  onTap: () => setState(() => _showListView = true),
+                  pressed: _pressedListButton,
+                  onPressDown: () => setState(() => _pressedListButton = true),
+                  onPressUp: () => setState(() => _pressedListButton = false),
+                ),
+              ),
             ],
           ),
         ),
@@ -717,18 +735,21 @@ class _HomeScreenState extends State<HomeScreen> {
         scale: pressed ? 1.06 : 1.0,
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOutCubic,
-        child: Container(
+        child: AnimatedContainer(
+          duration: DaromDecorations.interactionDuration,
+          curve: DaromDecorations.interactionCurve,
           decoration: BoxDecoration(
-            color: selected ? AppColors.accent : Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
+            color: selected ? AppColors.surface : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: selected ? DaromDecorations.cardShadow : null,
           ),
           child: Center(
             child: Text(
               label,
               style: TextStyle(
-                color: selected ? Colors.white : AppColors.textPrimary.withOpacity(0.7),
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+                color: selected ? AppColors.textPrimary : AppColors.textSecondary,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                fontSize: 14,
               ),
             ),
           ),
@@ -740,11 +761,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildRadiusPanel(AppLocalizations l10n) {
     final panel = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GlassSurface(
-        borderRadius: 20,
-        blurSigma: 12,
-        fillOpacity: 0.88,
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(DaromDecorations.cardRadius),
+          boxShadow: DaromDecorations.cardShadow,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -797,10 +820,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         margin: const EdgeInsets.symmetric(horizontal: 2),
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
-                          color: _radiusIndex == index
-                              ? AppColors.accent
-                              : AppColors.textSecondary.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(7),
+                          color: _radiusIndex == index ? AppColors.primary : AppColors.surface,
+                          borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
+                          border: _radiusIndex == index
+                              ? null
+                              : Border.all(color: AppColors.borderSoft, width: 1),
+                          boxShadow: _radiusIndex == index
+                              ? [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.2),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
                         ),
                         child: Center(
                           child: FittedBox(
@@ -1021,6 +1054,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCategoryChip(int index) {
+    final pressed = _pressedCategoryIndex == index;
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressedCategoryIndex = index),
       onTapUp: (_) {
@@ -1029,37 +1063,37 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       onTapCancel: () => setState(() => _pressedCategoryIndex = -1),
       child: AnimatedScale(
-        scale: _pressedCategoryIndex == index ? 1.04 : 1.0,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        child: GlassSurface(
-          borderRadius: 16,
-          blurSigma: 10,
-          borderColor: AppColors.categoryIcon,
-          fillOpacity: 0.38,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: SizedBox(
-            height: _categoryChipHeight - 2,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _categoryIcons[index],
-                  size: _categoryIconSize,
-                  color: AppColors.categoryIcon,
+        scale: pressed ? 0.98 : 1.0,
+        duration: DaromDecorations.interactionDuration,
+        curve: DaromDecorations.interactionCurve,
+        child: AnimatedContainer(
+          duration: DaromDecorations.interactionDuration,
+          curve: DaromDecorations.interactionCurve,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: pressed ? AppColors.secondary : AppColors.surface,
+            borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
+            boxShadow: pressed ? null : DaromDecorations.cardShadow,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _categoryIcons[index],
+                size: _categoryIconSize,
+                color: pressed ? AppColors.white : AppColors.secondary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _l10n.categoryLabel(_categories[index]),
+                style: TextStyle(
+                  fontSize: _categoryFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: pressed ? AppColors.white : AppColors.textPrimary,
+                  height: 1.1,
                 ),
-                const SizedBox(width: 7),
-                Text(
-                  _l10n.categoryLabel(_categories[index]),
-                  style: const TextStyle(
-                    fontSize: _categoryFontSize,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.categoryIcon,
-                    height: 1.1,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

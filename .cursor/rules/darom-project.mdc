@@ -37,6 +37,10 @@ API → Timeweb. Без `--web-port=8080` вход не запоминается
 ## Стек (целевой)
 Flutter | Node.js | PostgreSQL+PostGIS | OpenStreetMap/flutter_map | Yandex S3/Vision | Firebase | SMS.ru | Робокасса
 
+## Деплой после правок
+
+После **любых** изменений интерфейса или `web/` — **сразу** собрать `flutter build web --release --no-web-resources-cdn` и выложить на сервер (`/var/www/darom`), затем `git push` в `main`. Пользователь ожидает, что **боевой сайт** обновлён без отдельной просьбы.
+
 ## При работе
 - Минимальный diff, не ломать `MidnightGlowScreen`
 - Новые экраны → `lib/screens/`, модели → `lib/models/`

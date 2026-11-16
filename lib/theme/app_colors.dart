@@ -1,26 +1,41 @@
 import 'package:flutter/material.dart';
 
-/// Дизайн-система «Даром» — тёплое доверие, нежный голубой (ui-ux-pro-max: Accessible & Ethical).
+/// Дизайн-система «Даром» — тёплый премиум (крем, коралл, изумруд).
 class AppColors {
   AppColors._();
 
-  // --- Палитра «Нежное небо» ---
-  static const backgroundStart = Color(0xFFF6FAFD);
-  static const backgroundEnd = Color(0xFFE3EFF8);
-  static const backgroundWarm = Color(0xFFFFF9F5);
+  // --- Design tokens ---
+  static const background = Color(0xFFF9F6F0);
+  static const backgroundStart = background;
+  static const backgroundEnd = Color(0xFFF3EDE4);
+  static const backgroundWarm = Color(0xFFFFF8F0);
   static const surface = Color(0xFFFFFFFF);
-  static const surfaceGlass = Color(0xCCFFFFFF);
-  static const textPrimary = Color(0xFF2D3F52);
-  static const textSecondary = Color(0xFF5C6B7A);
-  /// Основной акцент — мягкий голубой (не неон).
-  static const accent = Color(0xFF6B9FD4);
-  static const accentDark = Color(0xFF5A8BC0);
-  /// Тёплый вторичный акцент (кнопки «второго плана», уют).
-  static const accentSecondary = Color(0xFFE8B88A);
+  static const surfaceGlass = Color(0xF5FFFFFF);
+
+  static const primary = Color(0xFFFF5A36);
+  static const primaryDark = Color(0xFFE84E2D);
+  static const secondary = Color(0xFF2D6A4F);
+
+  static const textPrimary = Color(0xFF1A1A1A);
+  static const textSecondary = Color(0xFF737373);
+  static const borderSoft = Color(0x0F000000);
+  static const borderDivider = Color(0x0F000000);
+
   static const danger = Color(0xFFDC2626);
   static const gold = Color(0xFFD4A574);
   static const white = Color(0xFFFFFFFF);
-  static const borderSoft = Color(0xFFC5DFF0);
+
+  // --- Aliases (совместимость со старым кодом) ---
+  static const accent = primary;
+  static const accentDark = primaryDark;
+  static const accentSecondary = secondary;
+  static const categoryIcon = secondary;
+  static const darkBlue = textPrimary;
+  static const teal = secondary;
+  static const cyan = primary;
+  static const red = danger;
+
+  static const pillTrack = Color(0x0A000000);
 
   static const appBackgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
@@ -35,25 +50,17 @@ class AppColors {
   );
 
   static LinearGradient subtleOverlay({double opacity = 1.0}) => LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
         colors: [
-          surface.withOpacity(0.45 * opacity),
+          background.withOpacity(0.0),
           backgroundEnd.withOpacity(0.35 * opacity),
         ],
       );
-
-  // --- Совместимость со старыми именами ---
-  static const darkBlue = textPrimary;
-  static const teal = accentDark;
-  static const cyan = accent;
-  static const red = danger;
-  static const categoryIcon = accent;
 
   static const midnightGlowGradient = appBackgroundGradient;
   static const warmTrustGradient = appBackgroundGradientWarm;
 
   static LinearGradient warmTrustOverlay({double opacity = 1.0}) => subtleOverlay(opacity: opacity);
-
   static LinearGradient overlayGradient({double opacity = 1.0}) => subtleOverlay(opacity: opacity);
 }
