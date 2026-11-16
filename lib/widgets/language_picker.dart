@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
+import 'package:darom_app/theme/darom_decorations.dart';
 
 import '../l10n/app_localizations.dart';
 import '../services/locale_service.dart';
@@ -106,13 +107,14 @@ class _LanguageOption extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
         child: Ink(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: AppColors.surface.withOpacity(0.92),
-            borderRadius: BorderRadius.circular(14),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(DaromDecorations.buttonRadius),
+            boxShadow: DaromDecorations.cardShadow,
           ),
           child: Row(
             children: [
