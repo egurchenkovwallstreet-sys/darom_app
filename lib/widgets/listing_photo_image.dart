@@ -11,6 +11,7 @@ class ListingPhotoImage extends StatelessWidget {
     this.height,
     this.borderRadius = 12,
     this.iconColor = AppColors.cyan,
+    this.detailView = false,
   });
 
   final String? url;
@@ -18,10 +19,19 @@ class ListingPhotoImage extends StatelessWidget {
   final double? height;
   final double borderRadius;
   final Color iconColor;
+  /// Для карточки объявления — миниатюра; для экрана объявления — крупнее.
+  final bool detailView;
 
   @override
   Widget build(BuildContext context) {
-    final resolvedUrl = resolvePhotoUrl(url);
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final layoutWidth = _layoutWidth(context);
+    final pixelWidth = _targetPixelWidth(layoutWidth, dpr, detailView);
+    final pixelHeight = height != null && height!.isFinite
+        ? (height! * dpr).ceil().clamp(64, 1600)
+        : null;
+
+    final resolvedUrl = resolvePhotoUrl(url, maxPixelWidth: pixelWidth);
     final hasUrl = resolvedUrl.isNotEmpty;
 
     return ClipRRect(
@@ -36,6 +46,10 @@ class ListingPhotoImage extends StatelessWidget {
                 width: width,
                 height: height,
                 fit: BoxFit.cover,
+                gaplessPlayback: true,
+                filterQuality: detailView ? FilterQuality.medium : FilterQuality.low,
+                cacheWidth: pixelWidth,
+                cacheHeight: pixelHeight,
                 errorBuilder: (_, __, ___) => _placeholder(),
                 loadingBuilder: (context, child, progress) {
                   if (progress == null) return child;
@@ -54,6 +68,19 @@ class ListingPhotoImage extends StatelessWidget {
             : _placeholder(),
       ),
     );
+  }
+
+  double? _layoutWidth(BuildContext context) {
+    if (width == null) return null;
+    if (width!.isFinite) return width;
+    return MediaQuery.sizeOf(context).width;
+  }
+
+  int? _targetPixelWidth(double? layoutWidth, double dpr, bool detail) {
+    if (layoutWidth == null) return detail ? 960 : 320;
+    final px = (layoutWidth * dpr).ceil();
+    if (detail) return px.clamp(320, 1200);
+    return px.clamp(96, 480);
   }
 
   Widget _placeholder() {

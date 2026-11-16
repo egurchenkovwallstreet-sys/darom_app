@@ -76,6 +76,7 @@ class _ListingPhotoGalleryState extends State<ListingPhotoGallery> {
           width: double.infinity,
           height: double.infinity,
           borderRadius: 20,
+          detailView: true,
         ),
       );
     }
@@ -96,6 +97,7 @@ class _ListingPhotoGalleryState extends State<ListingPhotoGallery> {
                     width: double.infinity,
                     height: double.infinity,
                     borderRadius: 0,
+                    detailView: true,
                   ),
                 ),
               ),
