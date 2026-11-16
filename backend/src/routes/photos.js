@@ -8,10 +8,13 @@ const { readFromS3 } = require('../utils/photo_storage');
 const router = express.Router();
 const FILE_NAME_RE = /^[a-zA-Z0-9._-]+\.(jpg|jpeg|png|webp)$/i;
 
+const DEFAULT_LISTING_MAX = Number.parseInt(process.env.PHOTO_WEB_MAX_W || '768', 10);
+
 function parseMaxWidth(req) {
-  const raw = req.query.w ?? req.query.width;
-  const w = Number.parseInt(String(raw ?? ''), 10);
-  if (!Number.isFinite(w) || w < 1) return null;
+  const raw = req.query.w ?? req.query.width ?? req.query.full;
+  if (raw === '0' || raw === 'full' || raw === 'original') return null;
+  const w = Number.parseInt(String(raw ?? DEFAULT_LISTING_MAX), 10);
+  if (!Number.isFinite(w) || w < 1) return DEFAULT_LISTING_MAX;
   return Math.min(w, 1600);
 }
 
