@@ -3,20 +3,25 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:darom_app/screens/admin_gate.dart';
+import 'package:darom_app/screens/admin_gate.dart' deferred as admin_gate;
 import 'package:darom_app/screens/auth_gate.dart';
 import 'package:darom_app/services/locale_service.dart';
 import 'package:darom_app/services/planet_assets.dart';
 import 'package:darom_app/services/session_service.dart';
 import 'package:darom_app/theme/app_colors.dart';
 import 'package:darom_app/theme/darom_decorations.dart';
-import 'package:darom_app/screens/public_offer_screen.dart';
-import 'package:darom_app/screens/privacy_policy_screen.dart';
+import 'package:darom_app/screens/public_offer_screen.dart' deferred as public_offer;
+import 'package:darom_app/screens/privacy_policy_screen.dart' deferred as privacy_policy;
+import 'package:darom_app/widgets/deferred_screen.dart';
 import 'package:darom_app/widgets/payment_flow.dart';
 import 'package:darom_app/l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:darom_app/utils/hide_web_splash_stub.dart'
     if (dart.library.html) 'package:darom_app/utils/hide_web_splash_web.dart';
+
+final _adminLibrary = DeferredLibrary(admin_gate.loadLibrary);
+final _publicOfferLibrary = DeferredLibrary(public_offer.loadLibrary);
+final _privacyPolicyLibrary = DeferredLibrary(privacy_policy.loadLibrary);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,7 +61,10 @@ class _DaromAppState extends State<DaromApp> {
       final uri = Uri.base;
       final path = uri.path;
       if (path.startsWith('/admin')) {
-        return const AdminGate();
+        return DeferredScreen(
+          library: _adminLibrary,
+          builder: (_) => admin_gate.AdminGate(),
+        );
       }
       if (path.startsWith('/payment/success')) {
         return PaymentResultScreen(
@@ -71,10 +79,16 @@ class _DaromAppState extends State<DaromApp> {
         );
       }
       if (path.startsWith('/offer')) {
-        return const PublicOfferScreen();
+        return DeferredScreen(
+          library: _publicOfferLibrary,
+          builder: (_) => public_offer.PublicOfferScreen(),
+        );
       }
       if (path.startsWith('/privacy')) {
-        return const PrivacyPolicyScreen();
+        return DeferredScreen(
+          library: _privacyPolicyLibrary,
+          builder: (_) => privacy_policy.PrivacyPolicyScreen(),
+        );
       }
     }
     return const AuthGate();
@@ -96,8 +110,8 @@ class _DaromAppState extends State<DaromApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: ThemeData(
-        fontFamily: 'Inter',
-        fontFamilyFallback: const ['NotoSans', 'system-ui', 'Segoe UI', 'sans-serif'],
+        fontFamily: 'Roboto',
+        fontFamilyFallback: const ['system-ui', 'Segoe UI', 'sans-serif'],
         primaryColor: AppColors.primary,
         scaffoldBackgroundColor: AppColors.background,
         colorScheme: const ColorScheme.light(

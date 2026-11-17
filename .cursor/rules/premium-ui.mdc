@@ -38,7 +38,7 @@ alwaysApply: true
 
 ## 3. Типографика
 
-- Шрифт: **Inter** (web: Google Fonts), fallback NotoSans.
+- Шрифт: NotoSans из `assets/fonts`, урезанный `tool/subset_fonts.js`; в `pubspec.yaml` семейство названо **Roboto**, иначе Flutter Web до старта качает Roboto с fonts.gstatic.com. Google Fonts не подключать.
 - Заголовки: w700, `DaromDecorations.titleStyle`.
 - Основной текст: **15–17px**, не мельче **13px**; межстрочный ≥ 1.35.
 - Тёмный текст только на светлом фоне; никаких тёмных полупрозрачных подложек под текстом.

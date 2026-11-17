@@ -17,13 +17,26 @@ import '../utils/instant_on_web.dart';
 import '../utils/map_marker_spread.dart';
 import '../widgets/glass_surface.dart';
 import '../widgets/listing_tile_card.dart';
+import '../widgets/deferred_screen.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/osm_map_widget.dart';
 import '../theme/app_colors.dart';
 import '../theme/darom_decorations.dart';
-import 'subcategories_screen.dart';
-import 'listing_screen.dart';
-import 'nearby_map_screen.dart';
+import 'subcategories_screen.dart' deferred as subcategories;
+import 'listing_screen.dart' deferred as listing_screen;
+import 'nearby_map_screen.dart' deferred as nearby_map;
+
+final _listingLibrary = DeferredLibrary(listing_screen.loadLibrary);
+final _subcategoriesLibrary = DeferredLibrary(subcategories.loadLibrary);
+final _nearbyMapLibrary = DeferredLibrary(nearby_map.loadLibrary);
+
+/// Экраны, открываемые с главной, в порядке фоновой докачки
+/// (карточка объявления — самая частая).
+final homeDeferredLibraries = [
+  _listingLibrary,
+  _subcategoriesLibrary,
+  _nearbyMapLibrary,
+];
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -307,11 +320,14 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ListingScreen(
-          listing: listing,
-          phoneNumber: widget.phoneNumber,
-          currentUserId: widget.userId,
-          isFavorite: _favoriteIds.contains(listing.id),
+        builder: (context) => DeferredScreen(
+          library: _listingLibrary,
+          builder: (_) => listing_screen.ListingScreen(
+            listing: listing,
+            phoneNumber: widget.phoneNumber,
+            currentUserId: widget.userId,
+            isFavorite: _favoriteIds.contains(listing.id),
+          ),
         ),
       ),
     ).then((deleted) {
@@ -328,13 +344,16 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push<int>(
       context,
       MaterialPageRoute(
-        builder: (context) => NearbyMapScreen(
-          position: _position,
-          initialRadiusIndex: _radiusIndex,
-          isApproximateLocation: _locationHint != null,
-          phoneNumber: widget.phoneNumber,
-          userId: widget.userId,
-          favoriteIds: _favoriteIds,
+        builder: (context) => DeferredScreen(
+          library: _nearbyMapLibrary,
+          builder: (_) => nearby_map.NearbyMapScreen(
+            position: _position,
+            initialRadiusIndex: _radiusIndex,
+            isApproximateLocation: _locationHint != null,
+            phoneNumber: widget.phoneNumber,
+            userId: widget.userId,
+            favoriteIds: _favoriteIds,
+          ),
         ),
       ),
     ).then((radiusIndex) {
@@ -988,11 +1007,14 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SubcategoriesScreen(
-          categoryName: _categories[index],
-          categoryColor: AppColors.categoryIcon,
-          phoneNumber: widget.phoneNumber,
-          currentUserId: widget.userId,
+        builder: (context) => DeferredScreen(
+          library: _subcategoriesLibrary,
+          builder: (_) => subcategories.SubcategoriesScreen(
+            categoryName: _categories[index],
+            categoryColor: AppColors.categoryIcon,
+            phoneNumber: widget.phoneNumber,
+            currentUserId: widget.userId,
+          ),
         ),
       ),
     );

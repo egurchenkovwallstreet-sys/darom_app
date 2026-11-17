@@ -6,9 +6,13 @@ import '../utils/responsive_layout.dart';
 import '../widgets/auth_header_icon.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/primary_action_button.dart';
+import '../widgets/deferred_screen.dart';
 import '../widgets/responsive_page_frame.dart';
-import 'phone_screen.dart';
-import 'partner_register_screen.dart';
+import 'phone_screen.dart' deferred as phone;
+import 'partner_register_screen.dart' deferred as partner_register;
+
+final _phoneLibrary = DeferredLibrary(phone.loadLibrary);
+final _partnerRegisterLibrary = DeferredLibrary(partner_register.loadLibrary);
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -40,6 +44,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DeferredLibrary.preloadInOrder([_phoneLibrary, _partnerRegisterLibrary]);
+    });
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
@@ -54,7 +66,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const PhoneScreen()),
+        MaterialPageRoute(
+          builder: (context) => DeferredScreen(
+            library: _phoneLibrary,
+            builder: (_) => phone.PhoneScreen(),
+          ),
+        ),
       );
     }
   }
@@ -132,7 +149,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const PartnerRegisterScreen(),
+                          builder: (context) => DeferredScreen(
+                            library: _partnerRegisterLibrary,
+                            builder: (_) => partner_register.PartnerRegisterScreen(),
+                          ),
                         ),
                       );
                     },

@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:darom_app/theme/app_colors.dart';
 import 'package:darom_app/theme/darom_decorations.dart';
 
-import 'add_listing_screen.dart';
-import 'chats_screen.dart';
-import 'favorites_screen.dart';
+import 'add_listing_screen.dart' deferred as add_listing;
+import 'chats_screen.dart' deferred as chats;
+import 'favorites_screen.dart' deferred as favorites;
 import 'home_screen.dart';
 import 'onboarding_screen.dart';
-import 'profile_screen.dart';
+import 'profile_screen.dart' deferred as profile;
+import '../widgets/deferred_screen.dart';
 import '../l10n/app_localizations.dart';
 import '../services/auth_api.dart';
 import '../services/chats_api.dart';
@@ -21,6 +22,15 @@ import '../widgets/glass_surface.dart';
 import '../widgets/midnight_glow_screen.dart';
 import '../widgets/privacy_policy_update_dialog.dart';
 import '../widgets/responsive_page_frame.dart';
+
+final _favoritesLibrary = DeferredLibrary(favorites.loadLibrary);
+final _addListingLibrary = DeferredLibrary(add_listing.loadLibrary);
+final _chatsLibrary = DeferredLibrary(chats.loadLibrary);
+final _profileLibrary = DeferredLibrary(profile.loadLibrary);
+
+/// Пауза после первого кадра главной перед фоновой докачкой остальных
+/// экранов и второстепенными запросами: сначала сеть занята главной.
+const _startupBackgroundDelay = Duration(seconds: 2);
 
 /// Главная оболочка приложения с нижним меню на всех вкладках.
 class MainShell extends StatefulWidget {
@@ -52,14 +62,29 @@ class _MainShellState extends State<MainShell> {
   bool _unreadLoadInFlight = false;
   bool _privacyCheckStarted = false;
   bool _privacyDialogOpen = false;
+  Timer? _startupTimer;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _visitedTabs.add(_currentIndex);
+    _startupTimer = Timer(_startupBackgroundDelay, _runDeferredStartup);
+  }
+
+  Future<void> _runDeferredStartup() async {
+    if (!mounted) return;
     _refreshUnreadCount();
     _startUnreadPoll();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkPrivacyConsent());
+    _checkPrivacyConsent();
+    await DeferredLibrary.preloadInOrder(homeDeferredLibraries.take(1));
+    await DeferredLibrary.preloadInOrder([
+      _profileLibrary,
+      _chatsLibrary,
+      _favoritesLibrary,
+      _addListingLibrary,
+    ]);
+    await DeferredLibrary.preloadInOrder(homeDeferredLibraries.skip(1));
   }
 
   Duration get _unreadPollInterval => _currentIndex == 3
@@ -74,6 +99,7 @@ class _MainShellState extends State<MainShell> {
 
   @override
   void dispose() {
+    _startupTimer?.cancel();
     _unreadPollTimer?.cancel();
     _chatsApi.dispose();
     _usersApi.dispose();
@@ -186,31 +212,43 @@ class _MainShellState extends State<MainShell> {
           isActiveTab: _currentIndex == 0,
         );
       case 1:
-        return FavoritesScreen(
-          phoneNumber: widget.phoneNumber,
-          currentUserId: widget.userId,
-          inShell: true,
-          isActiveTab: _currentIndex == 1,
+        return DeferredScreen(
+          library: _favoritesLibrary,
+          builder: (_) => favorites.FavoritesScreen(
+            phoneNumber: widget.phoneNumber,
+            currentUserId: widget.userId,
+            inShell: true,
+            isActiveTab: _currentIndex == 1,
+          ),
         );
       case 2:
-        return AddListingScreen(
-          phoneNumber: widget.phoneNumber,
-          inShell: true,
-          onPublished: () => setState(() => _currentIndex = 0),
+        return DeferredScreen(
+          library: _addListingLibrary,
+          builder: (_) => add_listing.AddListingScreen(
+            phoneNumber: widget.phoneNumber,
+            inShell: true,
+            onPublished: () => setState(() => _currentIndex = 0),
+          ),
         );
       case 3:
-        return ChatsScreen(
-          phoneNumber: widget.phoneNumber,
-          currentUserId: widget.userId,
-          inShell: true,
-          isActiveTab: _currentIndex == 3,
+        return DeferredScreen(
+          library: _chatsLibrary,
+          builder: (_) => chats.ChatsScreen(
+            phoneNumber: widget.phoneNumber,
+            currentUserId: widget.userId,
+            inShell: true,
+            isActiveTab: _currentIndex == 3,
+          ),
         );
       case 4:
-        return ProfileScreen(
-          userName: widget.userName,
-          phoneNumber: widget.phoneNumber,
-          inShell: true,
-          isActiveTab: _currentIndex == 4,
+        return DeferredScreen(
+          library: _profileLibrary,
+          builder: (_) => profile.ProfileScreen(
+            userName: widget.userName,
+            phoneNumber: widget.phoneNumber,
+            inShell: true,
+            isActiveTab: _currentIndex == 4,
+          ),
         );
       default:
         return const SizedBox.shrink();

@@ -85,7 +85,10 @@ flutter:
     - assets/images/earth.png
 
   fonts:
-    - family: NotoSans
+    # Семейство названо Roboto намеренно: если в сборке нет шрифта «Roboto», Flutter Web
+    # (CanvasKit) до первого кадра качает Roboto с fonts.gstatic.com — на iPhone в РФ
+    # это минуты ожидания. Сами файлы — NotoSans, урезанный tool/subset_fonts.js.
+    - family: Roboto
       fonts:
         - asset: assets/fonts/NotoSans-Regular.ttf
         - asset: assets/fonts/NotoSans-Bold.ttf
