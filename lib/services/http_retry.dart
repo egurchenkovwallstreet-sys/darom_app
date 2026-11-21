@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:http/http.dart' as http;
 
 /// Слишком много запросов (HTTP 429).
@@ -18,11 +20,34 @@ Future<http.Response> daromGet(
   Map<String, String>? headers,
   Duration timeout = const Duration(seconds: 15),
   int maxRetries = 2,
+  int networkRetries = 2,
 }) {
-  return _requestWithRetry(
-    () => client.get(uri, headers: headers).timeout(timeout),
-    maxRetries: maxRetries,
+  return _retryOnNetworkError(
+    () => _requestWithRetry(
+      () => client.get(uri, headers: headers).timeout(timeout),
+      maxRetries: maxRetries,
+    ),
+    retries: networkRetries,
   );
+}
+
+/// Только для GET: повтор POST мог бы выполнить действие дважды.
+/// В части российских сетей (VPN, мобильный интернет) новые подключения к серверу
+/// периодически обрываются — повторная попытка обычно проходит.
+Future<http.Response> _retryOnNetworkError(
+  Future<http.Response> Function() send, {
+  required int retries,
+}) async {
+  for (var attempt = 0;; attempt++) {
+    try {
+      return await send();
+    } on TimeoutException {
+      if (attempt >= retries) rethrow;
+    } on http.ClientException {
+      if (attempt >= retries) rethrow;
+    }
+    await Future<void>.delayed(Duration(seconds: 1 + attempt));
+  }
 }
 
 Future<http.Response> daromPost(
